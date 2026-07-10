@@ -1,0 +1,21 @@
+{{ 'rep-america-about.css' | asset_url | stylesheet_tag }}
+<section class="ra-about ra-about-mission">
+  <div class="ra-about__shell">
+    <p class="ra-about__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+    <h2 class="ra-about__section-heading">{{ section.settings.heading | escape }}</h2>
+    <div class="ra-about__body ra-about-mission__body">{{ section.settings.body }}</div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name":"About mission",
+  "tag":"section",
+  "settings":[
+    {"type":"text","id":"eyebrow","label":"Eyebrow","default":"Our Mission"},
+    {"type":"text","id":"heading","label":"Heading","default":"Build people who are harder to mislead, harder to break, and more capable of building what comes next."},
+    {"type":"richtext","id":"body","label":"Body","default":"<p>Rep America combines independent media, timeless ideas, and the example of people who build. The goal is not passive consumption. The goal is stronger judgment, stronger character, and stronger action.</p>"}
+  ],
+  "presets":[{"name":"About mission"}]
+}
+{% endschema %}

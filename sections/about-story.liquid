@@ -1,0 +1,40 @@
+{{ 'rep-america-about.css' | asset_url | stylesheet_tag }}
+<section class="ra-about ra-about-story">
+  <div class="ra-about__shell">
+    <div class="ra-about-story__grid">
+      <div>
+        <p class="ra-about__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        <h2 class="ra-about__section-heading">{{ section.settings.heading | escape }}</h2>
+        <div class="ra-about__body">{{ section.settings.body }}</div>
+      </div>
+
+      <div class="ra-about-story__media">
+        {%- if section.settings.image != blank -%}
+          {{
+            section.settings.image
+            | image_url: width: 1800
+            | image_tag:
+              loading: 'lazy',
+              widths: '600, 900, 1200, 1800',
+              sizes: '(min-width: 901px) 50vw, 100vw',
+              alt: section.settings.image.alt
+          }}
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name":"About story",
+  "tag":"section",
+  "settings":[
+    {"type":"text","id":"eyebrow","label":"Eyebrow","default":"Why Rep America Exists"},
+    {"type":"text","id":"heading","label":"Heading","default":"America does not become stronger by accident."},
+    {"type":"richtext","id":"body","label":"Body","default":"<p>It becomes stronger when individuals become more capable, families become more stable, communities become more resilient, and people choose to build instead of merely consume.</p><p>Rep America was created to contribute to that work.</p>"},
+    {"type":"image_picker","id":"image","label":"Story image"}
+  ],
+  "presets":[{"name":"About story"}]
+}
+{% endschema %}

@@ -1,0 +1,404 @@
+.ra-about {
+  --ra-about-ink: #111111;
+  --ra-about-muted: #5f6368;
+  --ra-about-paper: #f7f4ee;
+  --ra-about-line: rgba(17, 17, 17, 0.14);
+  --ra-about-accent: #b01f2e;
+  --ra-about-max: 1280px;
+  color: var(--ra-about-ink);
+}
+
+.ra-about * {
+  box-sizing: border-box;
+}
+
+.ra-about__shell {
+  width: min(calc(100% - 40px), var(--ra-about-max));
+  margin: 0 auto;
+}
+
+.ra-about__eyebrow {
+  margin: 0 0 18px;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ra-about__heading {
+  margin: 0;
+  font-family: var(--font-heading-family, Georgia, serif);
+  font-size: clamp(38px, 6vw, 84px);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+.ra-about__section-heading {
+  margin: 0;
+  font-family: var(--font-heading-family, Georgia, serif);
+  font-size: clamp(30px, 4.2vw, 58px);
+  line-height: 1.03;
+  letter-spacing: -0.025em;
+}
+
+.ra-about__body,
+.ra-about__body p {
+  font-size: clamp(17px, 1.6vw, 21px);
+  line-height: 1.65;
+  color: var(--ra-about-muted);
+}
+
+.ra-about__body p {
+  margin: 0 0 1.1em;
+}
+
+.ra-about__body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Hero */
+.ra-about-hero {
+  padding: clamp(72px, 10vw, 150px) 0 clamp(64px, 9vw, 130px);
+  border-bottom: 1px solid var(--ra-about-line);
+  background:
+    linear-gradient(180deg, rgba(176,31,46,0.035), rgba(176,31,46,0)),
+    #fff;
+}
+
+.ra-about-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: clamp(40px, 8vw, 120px);
+  align-items: end;
+}
+
+.ra-about-hero__lede {
+  max-width: 660px;
+  padding-bottom: 8px;
+}
+
+.ra-about-hero__image {
+  margin-top: 42px;
+  overflow: hidden;
+  aspect-ratio: 16 / 8;
+  background: #e9e5dd;
+}
+
+.ra-about-hero__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Philosophy */
+.ra-about-philosophy {
+  padding: clamp(72px, 9vw, 130px) 0;
+  background: var(--ra-about-paper);
+}
+
+.ra-about-philosophy__intro {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(32px, 7vw, 100px);
+  align-items: start;
+  margin-bottom: clamp(48px, 7vw, 88px);
+}
+
+.ra-about-philosophy__chain {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--ra-about-line);
+  border-bottom: 1px solid var(--ra-about-line);
+}
+
+.ra-about-philosophy__item {
+  position: relative;
+  padding: 34px 24px 36px;
+  min-height: 180px;
+  border-right: 1px solid var(--ra-about-line);
+}
+
+.ra-about-philosophy__item:last-child {
+  border-right: 0;
+}
+
+.ra-about-philosophy__number {
+  display: block;
+  margin-bottom: 44px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--ra-about-accent);
+}
+
+.ra-about-philosophy__label {
+  display: block;
+  font-family: var(--font-heading-family, Georgia, serif);
+  font-size: clamp(22px, 2.3vw, 34px);
+  line-height: 1.08;
+}
+
+.ra-about-philosophy__item:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  background: var(--ra-about-paper);
+  color: var(--ra-about-accent);
+  font-size: 20px;
+}
+
+/* Mission */
+.ra-about-mission {
+  padding: clamp(72px, 9vw, 130px) 0;
+  background: #111;
+  color: #fff;
+}
+
+.ra-about-mission .ra-about__section-heading {
+  max-width: 920px;
+}
+
+.ra-about-mission__body {
+  max-width: 760px;
+  margin: 34px 0 0 auto;
+}
+
+.ra-about-mission__body,
+.ra-about-mission__body p {
+  color: rgba(255,255,255,0.74);
+}
+
+/* Pillars */
+.ra-about-pillars {
+  padding: clamp(72px, 9vw, 130px) 0;
+}
+
+.ra-about-pillars__header {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(32px, 7vw, 100px);
+  margin-bottom: clamp(48px, 7vw, 88px);
+}
+
+.ra-about-pillars__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.ra-about-pillars__card {
+  padding: 30px;
+  min-height: 330px;
+  border: 1px solid var(--ra-about-line);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.ra-about-pillars__index {
+  margin-bottom: auto;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--ra-about-accent);
+}
+
+.ra-about-pillars__card h3 {
+  margin: 42px 0 16px;
+  font-family: var(--font-heading-family, Georgia, serif);
+  font-size: clamp(26px, 2.5vw, 38px);
+  line-height: 1.08;
+}
+
+.ra-about-pillars__card div,
+.ra-about-pillars__card p {
+  color: var(--ra-about-muted);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+/* Story */
+.ra-about-story {
+  padding: clamp(72px, 9vw, 130px) 0;
+  background: var(--ra-about-paper);
+}
+
+.ra-about-story__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(42px, 8vw, 110px);
+  align-items: center;
+}
+
+.ra-about-story__media {
+  min-height: 520px;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(176,31,46,.10), rgba(17,17,17,.03)),
+    #e7e1d7;
+}
+
+.ra-about-story__media img {
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Founder */
+.ra-about-founder {
+  padding: clamp(72px, 9vw, 130px) 0;
+}
+
+.ra-about-founder__grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+  gap: clamp(42px, 8vw, 110px);
+  align-items: center;
+}
+
+.ra-about-founder__media {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: #e8e8e8;
+}
+
+.ra-about-founder__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ra-about-founder__signature {
+  margin-top: 32px;
+  padding-top: 22px;
+  border-top: 1px solid var(--ra-about-line);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ra-about-founder__signature strong {
+  font-size: 17px;
+}
+
+.ra-about-founder__signature span {
+  color: var(--ra-about-muted);
+  font-size: 14px;
+}
+
+/* CTA */
+.ra-about-cta {
+  padding: clamp(72px, 10vw, 150px) 0;
+  background: var(--ra-about-accent);
+  color: #fff;
+}
+
+.ra-about-cta__inner {
+  max-width: 980px;
+}
+
+.ra-about-cta .ra-about__section-heading {
+  font-size: clamp(40px, 6vw, 82px);
+}
+
+.ra-about-cta__body {
+  max-width: 720px;
+  margin-top: 28px;
+}
+
+.ra-about-cta__body,
+.ra-about-cta__body p {
+  color: rgba(255,255,255,.82);
+}
+
+.ra-about-cta__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  margin-top: 34px;
+  padding: 0 26px;
+  border: 1px solid #fff;
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transition: .2s ease;
+}
+
+.ra-about-cta__button:hover {
+  background: #fff;
+  color: var(--ra-about-accent);
+}
+
+@media (max-width: 900px) {
+  .ra-about__shell {
+    width: min(calc(100% - 28px), var(--ra-about-max));
+  }
+
+  .ra-about-hero__grid,
+  .ra-about-philosophy__intro,
+  .ra-about-pillars__header,
+  .ra-about-story__grid,
+  .ra-about-founder__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ra-about-philosophy__chain {
+    grid-template-columns: 1fr;
+  }
+
+  .ra-about-philosophy__item {
+    min-height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--ra-about-line);
+    padding: 26px 6px 28px;
+  }
+
+  .ra-about-philosophy__item:last-child {
+    border-bottom: 0;
+  }
+
+  .ra-about-philosophy__number {
+    margin-bottom: 16px;
+  }
+
+  .ra-about-philosophy__item:not(:last-child)::after {
+    content: "↓";
+    right: 8px;
+    top: auto;
+    bottom: -14px;
+    transform: none;
+  }
+
+  .ra-about-pillars__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ra-about-pillars__card {
+    min-height: 250px;
+  }
+
+  .ra-about-story__media,
+  .ra-about-story__media img {
+    min-height: 360px;
+  }
+
+  .ra-about-founder__media {
+    max-width: 540px;
+  }
+}

@@ -1,0 +1,56 @@
+{{ 'rep-america-about.css' | asset_url | stylesheet_tag }}
+<section class="ra-about ra-about-pillars">
+  <div class="ra-about__shell">
+    <div class="ra-about-pillars__header">
+      <div>
+        <p class="ra-about__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        <h2 class="ra-about__section-heading">{{ section.settings.heading | escape }}</h2>
+      </div>
+      <div class="ra-about__body">{{ section.settings.intro }}</div>
+    </div>
+
+    <div class="ra-about-pillars__grid">
+      {%- for block in section.blocks -%}
+        <article class="ra-about-pillars__card" {{ block.shopify_attributes }}>
+          <span class="ra-about-pillars__index">{{ block.settings.label | escape }}</span>
+          <h3>{{ block.settings.heading | escape }}</h3>
+          <div>{{ block.settings.body }}</div>
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name":"About pillars",
+  "tag":"section",
+  "max_blocks":3,
+  "settings":[
+    {"type":"text","id":"eyebrow","label":"Eyebrow","default":"How We Build"},
+    {"type":"text","id":"heading","label":"Heading","default":"Three forces shape the work."},
+    {"type":"richtext","id":"intro","label":"Introduction","default":"<p>Rep America is being built at the intersection of media, ideas, and enterprise.</p>"}
+  ],
+  "blocks":[
+    {
+      "type":"pillar",
+      "name":"Pillar",
+      "settings":[
+        {"type":"text","id":"label","label":"Label","default":"01"},
+        {"type":"text","id":"heading","label":"Heading","default":"Independent Media"},
+        {"type":"richtext","id":"body","label":"Body","default":"<p>Direct reporting, honest commentary, and conversations that respect the intelligence of the audience.</p>"}
+      ]
+    }
+  ],
+  "presets":[
+    {
+      "name":"About pillars",
+      "blocks":[
+        {"type":"pillar","settings":{"label":"01","heading":"Independent Media","body":"<p>Direct reporting, honest commentary, and conversations that respect the intelligence of the audience.</p>"}},
+        {"type":"pillar","settings":{"label":"02","heading":"Timeless Ideas","body":"<p>History, philosophy, and enduring principles that help people think clearly and live deliberately.</p>"}},
+        {"type":"pillar","settings":{"label":"03","heading":"People Who Build","body":"<p>Creators, entrepreneurs, leaders, and institutions that turn conviction into reality.</p>"}}
+      ]
+    }
+  ]
+}
+{% endschema %}

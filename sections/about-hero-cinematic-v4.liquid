@@ -1,0 +1,337 @@
+{%- liquid
+  assign kicker = section.settings.kicker | strip
+  assign heading = section.settings.heading | strip
+  assign lede = section.settings.lede
+  assign image = section.settings.image
+-%}
+
+<section
+  id="AboutHero-{{ section.id }}"
+  class="ra-about-hero-cinematic"
+  aria-labelledby="AboutHeroHeading-{{ section.id }}"
+>
+  <div class="ra-about-hero-cinematic__media">
+    {%- if image != blank -%}
+      {{
+        image
+        | image_url: width: 3200
+        | image_tag:
+          class: 'ra-about-hero-cinematic__image',
+          loading: 'eager',
+          fetchpriority: 'high',
+          widths: '750, 1100, 1500, 2000, 2600, 3200',
+          sizes: '100vw',
+          alt: image.alt
+      }}
+    {%- else -%}
+      {{ 'lifestyle-1' | placeholder_svg_tag: 'ra-about-hero-cinematic__placeholder' }}
+    {%- endif -%}
+
+    <div class="ra-about-hero-cinematic__overlay" aria-hidden="true"></div>
+
+    <div class="ra-about-hero-cinematic__shell">
+      <div class="ra-about-hero-cinematic__content">
+        {%- if kicker != blank -%}
+          <p class="ra-about-hero-cinematic__kicker">{{ kicker | escape }}</p>
+        {%- endif -%}
+
+        {%- if heading != blank -%}
+          <h1
+            id="AboutHeroHeading-{{ section.id }}"
+            class="ra-about-hero-cinematic__heading"
+          >
+            {{ heading | escape }}
+          </h1>
+        {%- endif -%}
+
+        {%- if lede != blank -%}
+          <div class="ra-about-hero-cinematic__lede">
+            {{ lede }}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  #AboutHero-{{ section.id }} {
+    --ra-overlay-strength: {{ section.settings.overlay_opacity | divided_by: 100.0 }};
+    --ra-desktop-height: {{ section.settings.desktop_height }}px;
+    --ra-mobile-height: {{ section.settings.mobile_height }}px;
+    --ra-desktop-focus-x: {{ section.settings.desktop_focus_x }}%;
+    --ra-desktop-focus-y: {{ section.settings.desktop_focus_y }}%;
+    --ra-mobile-focus-x: {{ section.settings.mobile_focus_x }}%;
+    --ra-mobile-focus-y: {{ section.settings.mobile_focus_y }}%;
+  }
+
+  #AboutHero-{{ section.id }}.ra-about-hero-cinematic {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background: #111111;
+    color: #ffffff;
+  }
+
+  #AboutHero-{{ section.id }} .ra-about-hero-cinematic__media {
+    position: relative;
+    min-height: var(--ra-desktop-height);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  #AboutHero-{{ section.id }} .ra-about-hero-cinematic__image,
+  #AboutHero-{{ section.id }} .ra-about-hero-cinematic__placeholder {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: var(--ra-desktop-focus-x) var(--ra-desktop-focus-y);
+  }
+
+  #AboutHero-{{ section.id }} .ra-about-hero-cinematic__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        90deg,
+        rgba(0, 0, 0, calc(var(--ra-overlay-strength) * 1.12)) 0%,
+        rgba(0, 0, 0, calc(var(--ra-overlay-strength) * 0.96)) 28%,
+        rgba(0, 0, 0, calc(var(--ra-overlay-strength) * 0.52)) 55%,
+        rgba(0, 0, 0, 0.08) 100%
+      );
+  }
+
+  #AboutHero-{{ section.id }} .ra-about-hero-cinematic__shell {
+    position: relative;
+    z-index: 2;
+    width: min(calc(100% - 48px), 1280px);
+    margin: 0 auto;
+  }
+
+  #AboutHero-{{ section.id }} .ra-about-hero-cinematic__content {
+    width: min(46%, 600px);
+    padding: 88px 0;
+  }
+
+  #AboutHero-{{ section.id }} .ra-about-hero-cinematic__kicker {
+    margin: 0 0 18px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  #AboutHero-{{ section.id }} .ra-about-hero-cinematic__heading {
+    max-width: 9.5ch;
+    margin: 0;
+    color: #ffffff;
+    font-family: var(--font-heading-family, Georgia, serif);
+    font-size: clamp(50px, 6.1vw, 90px);
+    font-style: var(--font-heading-style, normal);
+    font-weight: var(--font-heading-weight, 700);
+    line-height: 0.95;
+    letter-spacing: -0.043em;
+    text-wrap: balance;
+  }
+
+  #AboutHero-{{ section.id }} .ra-about-hero-cinematic__lede {
+    max-width: 520px;
+    margin-top: 28px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  #AboutHero-{{ section.id }} .ra-about-hero-cinematic__lede p {
+    margin: 0;
+    color: inherit;
+    font-size: clamp(18px, 1.45vw, 21px);
+    line-height: 1.52;
+  }
+
+  @media screen and (max-width: 989px) {
+    #AboutHero-{{ section.id }} .ra-about-hero-cinematic__media {
+      min-height: var(--ra-mobile-height);
+      align-items: flex-end;
+    }
+
+    #AboutHero-{{ section.id }} .ra-about-hero-cinematic__image,
+    #AboutHero-{{ section.id }} .ra-about-hero-cinematic__placeholder {
+      object-position: var(--ra-mobile-focus-x) var(--ra-mobile-focus-y);
+    }
+
+    #AboutHero-{{ section.id }} .ra-about-hero-cinematic__overlay {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.02) 0%,
+          rgba(0, 0, 0, 0.08) 38%,
+          rgba(0, 0, 0, calc(var(--ra-overlay-strength) * 0.72)) 68%,
+          rgba(0, 0, 0, calc(var(--ra-overlay-strength) * 1.08)) 100%
+        );
+    }
+
+    #AboutHero-{{ section.id }} .ra-about-hero-cinematic__shell {
+      width: min(calc(100% - 28px), 1280px);
+    }
+
+    #AboutHero-{{ section.id }} .ra-about-hero-cinematic__content {
+      width: 100%;
+      max-width: 520px;
+      padding: 48px 0 30px;
+    }
+
+    #AboutHero-{{ section.id }} .ra-about-hero-cinematic__heading {
+      max-width: 8.6ch;
+      font-size: clamp(38px, 10.5vw, 58px);
+      line-height: 0.98;
+    }
+
+    #AboutHero-{{ section.id }} .ra-about-hero-cinematic__lede {
+      max-width: 22rem;
+      margin-top: 18px;
+    }
+
+    #AboutHero-{{ section.id }} .ra-about-hero-cinematic__lede p {
+      font-size: 16px;
+      line-height: 1.48;
+    }
+  }
+
+  @media screen and (max-width: 540px) {
+    #AboutHero-{{ section.id }} .ra-about-hero-cinematic__content {
+      padding-bottom: 24px;
+    }
+
+    #AboutHero-{{ section.id }} .ra-about-hero-cinematic__heading {
+      font-size: clamp(36px, 10vw, 52px);
+    }
+
+    #AboutHero-{{ section.id }} .ra-about-hero-cinematic__kicker {
+      font-size: 10px;
+      letter-spacing: 0.17em;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "About hero cinematic",
+  "tag": "section",
+  "class": "section-about-hero-cinematic",
+  "settings": [
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker",
+      "default": "About Rep America"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Building Stronger Americans."
+    },
+    {
+      "type": "richtext",
+      "id": "lede",
+      "label": "Introduction",
+      "default": "<p>Rep America exists to help build stronger Americans through independent media, timeless ideas, and people who build.</p>"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Hero image"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay strength",
+      "min": 20,
+      "max": 85,
+      "step": 5,
+      "unit": "%",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "desktop_height",
+      "label": "Desktop height",
+      "min": 560,
+      "max": 900,
+      "step": 20,
+      "unit": "px",
+      "default": 720
+    },
+    {
+      "type": "range",
+      "id": "mobile_height",
+      "label": "Mobile height",
+      "min": 560,
+      "max": 900,
+      "step": 20,
+      "unit": "px",
+      "default": 720
+    },
+    {
+      "type": "header",
+      "content": "Desktop image position"
+    },
+    {
+      "type": "range",
+      "id": "desktop_focus_x",
+      "label": "Horizontal position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "desktop_focus_y",
+      "label": "Vertical position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "header",
+      "content": "Mobile image position"
+    },
+    {
+      "type": "range",
+      "id": "mobile_focus_x",
+      "label": "Horizontal position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "mobile_focus_y",
+      "label": "Vertical position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "About hero cinematic"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,560 @@
+{% doc %}
+  @prompt
+    IMAGE GALLERY
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-image-gallery-{{ ai_gen_id }} {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .ai-image-gallery__container-{{ ai_gen_id }} {
+    display: grid;
+    gap: {{ block.settings.spacing }}px;
+    {% if block.settings.layout == 'grid' %}
+      grid-template-columns: repeat({{ block.settings.columns_desktop }}, 1fr);
+    {% elsif block.settings.layout == 'masonry' %}
+      grid-template-columns: repeat({{ block.settings.columns_desktop }}, 1fr);
+      grid-auto-rows: 10px;
+    {% else %}
+      grid-template-columns: 1fr;
+    {% endif %}}
+
+  .ai-image-gallery__item-{{ ai_gen_id }} {
+    position: relative;
+    overflow: hidden;
+    border-radius: {{ block.settings.border_radius }}px;
+    cursor: pointer;
+    transition: transform 0.3s ease;{% if block.settings.layout == 'masonry' %}
+      grid-row-end: span var(--ai-gallery-row-span-{{ ai_gen_id }});
+    {% endif %}
+  }
+
+  .ai-image-gallery__item-{{ ai_gen_id }}:hover {
+    transform: scale({{ block.settings.hover_scale | divided_by: 100.0 }});
+  }
+
+  .ai-image-gallery__image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    {% if block.settings.layout == 'grid' %}
+      aspect-ratio: {{ block.settings.aspect_ratio }};
+    {% endif %}
+  }
+
+  .ai-image-gallery__placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    aspect-ratio: {{ block.settings.aspect_ratio }};
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .ai-image-gallery__placeholder-{{ ai_gen_id }} svg {
+    width: 60%;
+    height: 60%;
+    opacity: 0.3;
+  }
+
+  .ai-image-gallery__empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .ai-image-gallery__overlay-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, {{ block.settings.overlay_opacity | divided_by: 100.0 }});
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-image-gallery__item-{{ ai_gen_id }}:hover .ai-image-gallery__overlay-{{ ai_gen_id }} {
+    opacity: 1;
+  }
+
+  .ai-image-gallery__zoom-icon-{{ ai_gen_id }} {
+    width: 40px;
+    height: 40px;
+    color: white;
+  }
+
+  .ai-image-gallery__lightbox-{{ ai_gen_id }} {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .ai-image-gallery__lightbox-{{ ai_gen_id }}.active {
+    display: flex;
+  }
+
+  .ai-image-gallery__lightbox-content-{{ ai_gen_id }} {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+  }
+
+  .ai-image-gallery__lightbox-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;max-width: 100%;
+    max-height: 100%;}
+
+  .ai-image-gallery__lightbox-close-{{ ai_gen_id }} {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    font-size: 24px;
+  }
+
+  .ai-image-gallery__lightbox-nav-{{ ai_gen_id }} {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 15px;
+    border-radius: 50%;
+    font-size: 20px;
+    transition: background-color 0.3s ease;
+  }
+
+  .ai-image-gallery__lightbox-nav-{{ ai_gen_id }}:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .ai-image-gallery__lightbox-prev-{{ ai_gen_id }} {
+    left: -60px;
+  }
+
+  .ai-image-gallery__lightbox-next-{{ ai_gen_id }} {
+    right: -60px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-image-gallery__container-{{ ai_gen_id }} {
+      grid-template-columns: repeat({{ block.settings.columns_mobile }}, 1fr);
+    }
+
+    .ai-image-gallery__lightbox-nav-{{ ai_gen_id }} {
+      position: fixed;
+      top: auto;
+      bottom: 20px;
+    }
+
+    .ai-image-gallery__lightbox-prev-{{ ai_gen_id }} {
+      left: 20px;
+    }
+
+    .ai-image-gallery__lightbox-next-{{ ai_gen_id }} {
+      right: 20px;
+    }
+  }
+{% endstyle %}
+
+<image-gallery-{{ ai_gen_id }} class="ai-image-gallery-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-image-gallery__container-{{ ai_gen_id }}">
+    {% for i in (1..12) %}
+      {% assign image_key = 'image_' | append: i %}
+      {% assign image = block.settings[image_key] %}
+      
+      {% if image != blank %}
+        <div 
+          class="ai-image-gallery__item-{{ ai_gen_id }}"
+          data-image-index="{{ forloop.index0 }}"
+          {% if block.settings.layout == 'masonry' %}
+            style="--ai-gallery-row-span-{{ ai_gen_id }}: {{ image.height | divided_by: image.width | times: 100 | divided_by: 10 | ceil | plus: 10 }};"
+          {% endif %}
+        >
+          <img
+            src="{{ image | image_url: width: 800}}"
+            alt="{{ image.alt | escape }}"
+            class="ai-image-gallery__image-{{ ai_gen_id }}"
+            loading="lazy"
+            width="{{ image.width }}"
+            height="{{ image.height }}">
+          {% if block.settings.show_overlay %}
+            <div class="ai-image-gallery__overlay-{{ ai_gen_id }}">
+              <svg class="ai-image-gallery__zoom-icon-{{ ai_gen_id }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+                <line x1="11" y1="8" x2="11" y2="14"></line>
+                <line x1="8" y1="11" x2="14" y2="11"></line>
+              </svg>
+            </div>
+          {% endif %}
+        </div>
+      {% elsif forloop.index <= 3 %}
+        <div class="ai-image-gallery__item-{{ ai_gen_id }}">
+          <div class="ai-image-gallery__placeholder-{{ ai_gen_id }}">
+            {{ 'image' | placeholder_svg_tag }}
+            {% if forloop.first %}
+              <div class="ai-image-gallery__empty-state-{{ ai_gen_id }}">
+                Add images to create your gallery
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {% if block.settings.enable_lightbox %}
+    <div class="ai-image-gallery__lightbox-{{ ai_gen_id }}">
+      <div class="ai-image-gallery__lightbox-content-{{ ai_gen_id }}">
+        <button class="ai-image-gallery__lightbox-close-{{ ai_gen_id }}" aria-label="Close lightbox">×</button>
+        <img class="ai-image-gallery__lightbox-image-{{ ai_gen_id }}" src="" alt="">
+        <button class="ai-image-gallery__lightbox-nav-{{ ai_gen_id }} ai-image-gallery__lightbox-prev-{{ ai_gen_id }}" aria-label="Previous image">‹</button>
+        <button class="ai-image-gallery__lightbox-nav-{{ ai_gen_id }} ai-image-gallery__lightbox-next-{{ ai_gen_id }}" aria-label="Next image">›</button>
+      </div>
+    </div>
+  {% endif %}
+</image-gallery-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class ImageGallery{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.currentImageIndex = 0;
+        this.images = [];
+      }
+
+      connectedCallback() {
+        this.setupImages();
+        this.setupEventListeners();
+      }
+
+      setupImages() {
+        const imageElements = this.querySelectorAll('.ai-image-gallery__image-{{ ai_gen_id }}');
+        this.images = Array.from(imageElements).map(img => ({
+          src: img.src.replace(/width=\d+/, 'width=1200'),
+          alt: img.alt
+        }));
+      }
+
+      setupEventListeners() {
+        const items = this.querySelectorAll('.ai-image-gallery__item-{{ ai_gen_id }}');
+        const lightbox = this.querySelector('.ai-image-gallery__lightbox-{{ ai_gen_id }}');
+        const lightboxImage = this.querySelector('.ai-image-gallery__lightbox-image-{{ ai_gen_id }}');
+        const closeBtn = this.querySelector('.ai-image-gallery__lightbox-close-{{ ai_gen_id }}');
+        const prevBtn = this.querySelector('.ai-image-gallery__lightbox-prev-{{ ai_gen_id }}');
+        const nextBtn = this.querySelector('.ai-image-gallery__lightbox-next-{{ ai_gen_id }}');
+
+        if (!lightbox) return;
+
+        items.forEach((item, index) => {
+          const image = item.querySelector('.ai-image-gallery__image-{{ ai_gen_id }}');
+          if (image) {
+            item.addEventListener('click', () => {
+              this.currentImageIndex = index;
+              this.openLightbox();
+            });
+          }
+        });
+
+        closeBtn.addEventListener('click', () => this.closeLightbox());
+        prevBtn.addEventListener('click', () => this.previousImage());
+        nextBtn.addEventListener('click', () => this.nextImage());
+
+        lightbox.addEventListener('click', (e) => {
+          if (e.target === lightbox) {
+            this.closeLightbox();
+          }
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (!lightbox.classList.contains('active')) return;
+          if (e.key === 'Escape') {
+            this.closeLightbox();
+          } else if (e.key === 'ArrowLeft') {
+            this.previousImage();
+          } else if (e.key === 'ArrowRight') {
+            this.nextImage();
+          }
+        });
+      }
+
+      openLightbox() {
+        const lightbox = this.querySelector('.ai-image-gallery__lightbox-{{ ai_gen_id }}');
+        const lightboxImage = this.querySelector('.ai-image-gallery__lightbox-image-{{ ai_gen_id }}');
+        if (this.images[this.currentImageIndex]) {
+          lightboxImage.src = this.images[this.currentImageIndex].src;
+          lightboxImage.alt = this.images[this.currentImageIndex].alt;
+          lightbox.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        }
+      }
+
+      closeLightbox() {
+        const lightbox = this.querySelector('.ai-image-gallery__lightbox-{{ ai_gen_id }}');
+        lightbox.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      previousImage() {
+        this.currentImageIndex = this.currentImageIndex > 0 ? this.currentImageIndex - 1 : this.images.length - 1;
+        this.updateLightboxImage();
+      }
+
+      nextImage() {
+        this.currentImageIndex = this.currentImageIndex < this.images.length - 1 ? this.currentImageIndex + 1 : 0;
+        this.updateLightboxImage();
+      }
+
+      updateLightboxImage() {
+        const lightboxImage = this.querySelector('.ai-image-gallery__lightbox-image-{{ ai_gen_id }}');
+        if (this.images[this.currentImageIndex]) {
+          lightboxImage.src = this.images[this.currentImageIndex].src;
+          lightboxImage.alt = this.images[this.currentImageIndex].alt;
+        }
+      }
+    }
+
+    customElements.define('image-gallery-{{ ai_gen_id }}', ImageGallery{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Image gallery",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout style",
+      "options": [
+        {
+          "value": "grid",
+          "label": "Grid"
+        },
+        {
+          "value": "masonry",
+          "label": "Masonry"
+        }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "Image aspect ratio",
+      "options": [
+        {
+          "value": "1/1",
+          "label": "Square (1:1)"
+        },
+        {
+          "value": "4/3",
+          "label": "Landscape (4:3)"
+        },
+        {
+          "value": "3/4",
+          "label": "Portrait (3:4)"
+        },
+        {
+          "value": "16/9",
+          "label": "Widescreen (16:9)"
+        }
+      ],
+      "default": "1/1"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "label": "Columns on desktop",
+      "default": 3
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Columns on mobile",
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "range",
+      "id": "spacing",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "label": "Spacing between images",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "hover_scale",
+      "min": 100,
+      "max": 110,
+      "step": 1,
+      "unit": "%",
+      "label": "Hover scale effect",
+      "default": 105
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "label": "Show hover overlay",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "label": "Overlay opacity",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Lightbox"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_lightbox",
+      "label": "Enable lightbox",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_1",
+      "label": "Image 1"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_2",
+      "label": "Image 2"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_3",
+      "label": "Image 3"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_4",
+      "label": "Image 4"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_5",
+      "label": "Image 5"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_6",
+      "label": "Image 6"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_7",
+      "label": "Image 7"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_8",
+      "label": "Image 8"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_9",
+      "label": "Image 9"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_10",
+      "label": "Image 10"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_11",
+      "label": "Image 11"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_12",
+      "label": "Image 12"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image gallery"
+    }
+  ]
+}
+{% endschema %}
