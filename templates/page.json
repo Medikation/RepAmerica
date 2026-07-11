@@ -1,1 +1,961 @@
-{"sections":{"main":{"type":"main-page","disabled":true,"settings":{"padding_top":28,"padding_bottom":12}},"image_banner_fXc3Vb":{"type":"image-banner","blocks":{"heading_ANeC3C":{"type":"heading","settings":{"heading":"<strong>THE WORKSHOP<\/strong>","heading_size":"hxl"}},"text_fXQ937":{"type":"text","settings":{"text":"Craftsmanship • Essentials • Great Books","text_style":"subtitle"}}},"block_order":["heading_ANeC3C","text_fXQ937"],"custom_css":[".banner__text p {color: rgb(255, 255, 255) !important;}"],"name":"t:sections.image-banner.presets.name","settings":{"image":"shopify:\/\/shop_images\/Rep_America_Website_Banner_1774_x_887_px.png","image_overlay_opacity":0,"image_height":"small","image_behavior":"none","desktop_content_position":"middle-left","desktop_content_alignment":"left","show_text_box":false,"color_scheme":"scheme-4","stack_images_on_mobile":true,"mobile_content_alignment":"center","show_text_below":false}},"blocks_M9FRHP":{"type":"_blocks","blocks":{"ai_gen_block_6f5998f_hxRD4y":{"type":"ai_gen_block_6f5998f","settings":{"separator_style":"solid","line_thickness":1,"line_color":"#121212","desktop_width_percent":100,"spacing_top":20,"spacing_bottom":0},"blocks":{}}},"block_order":["ai_gen_block_6f5998f_hxRD4y"],"name":"Separator","settings":{}},"rich_text_BxYcK7":{"type":"rich-text","blocks":{"heading_PHwtUn":{"type":"heading","settings":{"heading":"Rep Collection","heading_size":"h0"}},"text_cyGVQP":{"type":"text","settings":{"text":"<p>Made in the USA. Rep America Products built for people who believe in American Craftsmanship and wear their convictions proudly.<\/p>"}}},"block_order":["heading_PHwtUn","text_cyGVQP"],"name":"t:sections.rich-text.presets.name","settings":{"desktop_content_position":"center","content_alignment":"center","color_scheme":"scheme-f89dd22b-435a-4b44-8989-ec5f5a1e3111","full_width":true,"padding_top":20,"padding_bottom":28}},"featured_collection_pyckq7":{"type":"featured-collection","name":"t:sections.featured-collection.presets.name","settings":{"collection":"rep-america","products_to_show":4,"title":"","heading_size":"h1","description":"","show_description":false,"description_style":"body","columns_desktop":3,"enable_desktop_slider":false,"full_width":false,"show_view_all":true,"view_all_style":"solid","color_scheme":"","image_ratio":"adapt","image_shape":"default","show_secondary_image":false,"show_vendor":false,"show_rating":false,"quick_add":"none","columns_mobile":"2","swipe_on_mobile":false,"padding_top":0,"padding_bottom":36}},"rich_text_3CaDEA":{"type":"rich-text","blocks":{"heading_Xb7Jr7":{"type":"heading","settings":{"heading":"The Essentials","heading_size":"h0"}},"text_GtnJr9":{"type":"text","settings":{"text":"<p>These are products I personally use. From health and reading to craftsmanship and everyday essentials, every product here has earned its place in The Essentials.<\/p>"}}},"block_order":["heading_Xb7Jr7","text_GtnJr9"],"name":"t:sections.rich-text.presets.name","settings":{"desktop_content_position":"center","content_alignment":"center","color_scheme":"scheme-f89dd22b-435a-4b44-8989-ec5f5a1e3111","full_width":true,"padding_top":20,"padding_bottom":28}},"rich_text_AaDJbX":{"type":"rich-text","blocks":{"text_Vxjiga":{"type":"text","settings":{"text":"<p><em>Rep America may earn commissions from qualifying purchases made through affiliate links at no additional cost to you.<\/em><\/p>"}}},"block_order":["text_Vxjiga"],"name":"t:sections.rich-text.presets.name","settings":{"desktop_content_position":"center","content_alignment":"center","color_scheme":"scheme-1","full_width":true,"padding_top":4,"padding_bottom":0}},"multicolumn_g8NzEP":{"type":"multicolumn","blocks":{"column_TzPBnp":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/512HJgPlChL._AC_SL1181.jpg","title":"LEUCHTTURM1917 Notebook","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4gjEBzQ"}},"column_zdWb3F":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/glucosent_book_light_1.jpg","title":"Best Book Light Ever","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4auKLJB"}},"column_diYKpE":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/5159vPx3HRL._AC_SL1500.jpg","title":"Montblanc Ink Amethyst Purple","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4p9lUkI"}},"column_4xagd9":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/412c-kA5wPL._AC_SL1000.jpg","title":"Traveler's Notebook - Blue","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4eY5tD9"}},"column_z3d4U7":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/51Zs3D4MdWL._AC_SL1000.jpg","title":"Montblanc 149 Fountain Pen","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4eUnUbP"}}},"block_order":["column_TzPBnp","column_zdWb3F","column_diYKpE","column_4xagd9","column_z3d4U7"],"name":"Reading & Writing","settings":{"title":"Reading & Writing","heading_size":"h1","image_width":"full","image_ratio":"adapt","button_label":"","button_link":"","columns_desktop":3,"column_alignment":"left","background_style":"primary","color_scheme":"","columns_mobile":"2","swipe_on_mobile":true,"padding_top":12,"padding_bottom":36}},"multicolumn_mTcm4j":{"type":"multicolumn","blocks":{"column_UFzjcA":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/51Aj2RIdouL._AC_SL1500.jpg","title":"Logitech MX Master 4","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/3TggJTT"}},"column_iwDqgK":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/71LYHO3_wnL._AC_SL1356.jpg","title":"Shure SM7B","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4vUTQ6U"}},"column_dAEtkW":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/71Qul5AZ51L._AC_SL1500.jpg","title":"Beyerdynamic DT 770 PRO 80 Ohm","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4wmL8ya"}},"column_ApTcaM":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/71qPv9-yzoL._AC_SL1500.jpg","title":"Sound Absorbing Acoustic Panel","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4gpmh8m"}},"column_aiAz7N":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/71FtSiqsK3L._AC_SL1500.jpg","title":"Anker Power Strip","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4gfJ4n1"}},"column_c7tVhe":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/61opq_57R3L._AC_SL1500.jpg","title":"Nanlite PavoTube II 15C","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/3RhgLub"}},"column_ih3cjD":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/1748428806_IMG_2503284.jpg","title":"Sony FX2","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4gNIkWo"}},"column_UQ6NFC":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/1746725589_IMG_2489179.jpg","title":"Sony FX3","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4f8frlg"}},"column_CQ7zgV":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/41O6NJyDr2L._AC_SL1080.jpg","title":"RØDE PSA1+","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4xZxWkq"}},"column_RGbVfQ":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/61RBn61tXkL._AC_SL1500.jpg","title":"Teleprompter - Elgato","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4p1WDc4"}},"column_WEKLQt":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/71d1dPPxL1L._AC_SL1500.jpg","title":"RØDE RØDECaster Duo","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4y3sU6q"}},"column_JwfHQw":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/61mACcuCUSL._AC_SL1500.jpg","title":"Laptop Phone Holder","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/3TeCraU"}},"column_DzgRnY":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/Square_10.png","title":"TOUR BOX Elite","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4wiNhed"}},"column_6MkHzP":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/61o5DJi-MtL._AC_SL1500.jpg","title":"Laptop Stand","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/3SBZcWd"}},"column_qC8CFn":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/Screenshot_2026-07-09_at_12.20.49_PM.jpg","title":"Amaran Halo 200x (Main Keylight)","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4bkKU2z"}},"column_V9zwjc":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/Screenshot_2026-07-09_at_12.20.49_PM.jpg","title":"Amaran Halo 100x (2nd Keylight)","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4h4EwjF"}},"column_gaU9Bg":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/61_5fRQBWbL._AC_SL1500.jpg","title":"Amaran Ray 60c (Backlight)","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4geY8kP"}},"column_aCbqxY":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/818r9zIKhRL._AC_SL1500.jpg","title":"Sony FE PZ 16-35mm f\/4 G Lens","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4h2WfrE"}},"column_h9TGaF":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/1460613550_IMG_609259.jpg","title":"ZEISS Batis 25mm f\/2.0","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4bxfdDa"}},"column_DkzUx7":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/61Y1ZwnlP3L._AC_SL1500.jpg","title":"Sony FE 20-70mm f\/4 G Lens","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4vmBg6U"}}},"block_order":["column_UFzjcA","column_iwDqgK","column_dAEtkW","column_ApTcaM","column_aiAz7N","column_c7tVhe","column_ih3cjD","column_UQ6NFC","column_CQ7zgV","column_RGbVfQ","column_WEKLQt","column_JwfHQw","column_DzgRnY","column_6MkHzP","column_qC8CFn","column_V9zwjc","column_gaU9Bg","column_aCbqxY","column_h9TGaF","column_DkzUx7"],"name":"Studio Equipment","settings":{"title":"Studio Equipment","heading_size":"h1","image_width":"full","image_ratio":"adapt","button_label":"","button_link":"","columns_desktop":3,"column_alignment":"left","background_style":"primary","color_scheme":"","columns_mobile":"2","swipe_on_mobile":true,"padding_top":0,"padding_bottom":36}},"multicolumn_kYqfVF":{"type":"multicolumn","blocks":{"column_aFq6kX":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/Square_12.png","title":"Tea Infuser Strainer","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4v9zYMa"}},"column_cmL4QC":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/81EzbM2x2LL._AC_SL1500.jpg","title":"Leather Cast Iron Pan Handle","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4wjpevH"}},"column_hJzF4H":{"type":"column","disabled":true,"settings":{"image":"shopify:\/\/shop_images\/71mAIK7oxPL._AC_SL1500.jpg","title":"Sugarcane Straws","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4v9BL3Q"}},"column_baYgLy":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/Square_11.png","title":"Yeti Cast Iron (Butter Pat)","text":"","link_label":"Yeti Site","link":"https:\/\/www.yeti.com\/kitchen\/cookware\/21180000005.html"}},"column_YMhCB4":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/71TENCAo71L._AC_SL1500.jpg","title":"Oral-B Electric Toothbrush","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4v4gmcl"}},"column_VFH3Hr":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/61t7G8f2exL._AC_SL1500.jpg","title":"Cocofloss Woven Dental Floss","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4y3aOBC"}},"column_9xdbXU":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/61bL9vCKjDL._AC_SL1500.jpg","title":"Breville Kettle Water Boiler","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4xTK9am"}},"column_YK9dYJ":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/51iP2wIraBL._AC_SL1152.jpg","title":"Breville Air Fryer Oven","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4eYI3gX"}},"column_tdTCPC":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/61iEZ50wxZL._SL1500.jpg","title":"Breville Barista Espresso Machine","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4aviuCO"}},"column_F9iViK":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/51zp2ETVWSL._AC_SL1500.jpg","title":"Electrolux Steamer Iron","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/3Rjmi3o"}}},"block_order":["column_aFq6kX","column_cmL4QC","column_hJzF4H","column_baYgLy","column_YMhCB4","column_VFH3Hr","column_9xdbXU","column_YK9dYJ","column_tdTCPC","column_F9iViK"],"name":"Houseware","settings":{"title":"Houseware","heading_size":"h1","image_width":"full","image_ratio":"adapt","button_label":"","button_link":"","columns_desktop":3,"column_alignment":"left","background_style":"primary","color_scheme":"","columns_mobile":"2","swipe_on_mobile":true,"padding_top":12,"padding_bottom":36}},"multicolumn_zNJaL4":{"type":"multicolumn","blocks":{"column_mQJ7jN":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/salt.jpg","title":"Redmond Real Sea Salt","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4geWyiT"}},"column_GJL47p":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/71voHsxReoL._AC_SL1500.jpg","title":"ONNIT Alpha Brain Nootropic","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4b4LD7S"}},"column_BybQaF":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/81mBPyN2csL._SL1500.jpg","title":"Quest Chocolate Chip Protein Cookie","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4vKeJC1"}},"column_3RBAkB":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/71SGNJz5y8L._AC_SL1500.jpg","title":"Creatine Monohydrate","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4gOsdb6"}},"column_mbiGBP":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/61tojSq7BIL._AC_SL1500.jpg","title":"AG1 Vitamin D3 K2","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4wlG1ON"}},"column_UYBUit":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/610866ruGOL._SL1500.jpg","title":"Magnesium L-Threonate","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4eKGKU0"}},"column_w66CVf":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/61IlOZlKHuL._AC_SL1500.jpg","title":"Magnesium Glycinate","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4v6fZy1"}},"column_kmq9j3":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/71zWvXBMf5L._AC_SL1500.jpg","title":"Vitamin C 1000mg","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4gRm6Tl"}},"column_XAB8r4":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/Square_7_b7cd76c1-d99e-4cd2-aa7d-faf8dee226ce.jpg","title":"Heart & Soil — Beef Organs","text":"","link_label":"Heart & Soil Site","link":"https:\/\/shop.heartandsoil.co\/a\/collections\/products\/?ref=medikation&utm_source=instagram&utm_medium=affiliate&utm_campaign=SARAL"}}},"block_order":["column_mQJ7jN","column_GJL47p","column_BybQaF","column_3RBAkB","column_mbiGBP","column_UYBUit","column_w66CVf","column_kmq9j3","column_XAB8r4"],"name":"Health & Wellness","settings":{"title":"Health & Wellness","heading_size":"h1","image_width":"full","image_ratio":"adapt","button_label":"","button_link":"","columns_desktop":3,"column_alignment":"left","background_style":"primary","color_scheme":"","columns_mobile":"2","swipe_on_mobile":true,"padding_top":0,"padding_bottom":36}},"multicolumn_X4bDBe":{"type":"multicolumn","blocks":{"column_dKWhqJ":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/61gn5IVw1TL._AC_SL1201.jpg","title":"Sony RX1R III","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/44N7bSQ"}},"column_qE7pkw":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/616ioGQ3giL._AC_SL1500.jpg","title":"Whoop Tracker","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4vfOWAD"}},"column_3FkWim":{"type":"column","settings":{"image":"shopify:\/\/shop_images\/Square_8.png","title":"Godox iT20","text":"","link_label":"Amazon","link":"https:\/\/amzn.to\/4gTH5VC"}}},"block_order":["column_dKWhqJ","column_qE7pkw","column_3FkWim"],"name":"EDC - Everyday Carry","settings":{"title":"EDC - Everyday Carry","heading_size":"h1","image_width":"full","image_ratio":"adapt","button_label":"","button_link":"","columns_desktop":3,"column_alignment":"left","background_style":"primary","color_scheme":"","columns_mobile":"2","swipe_on_mobile":true,"padding_top":0,"padding_bottom":36}},"rich_text_GRYqfG":{"type":"rich-text","blocks":{"text_4HKpzL":{"type":"text","settings":{"text":"<p>Products featured in The Essentials are recommendations only and are not medical advice.<\/p>"}}},"block_order":["text_4HKpzL"],"name":"t:sections.rich-text.presets.name","settings":{"desktop_content_position":"center","content_alignment":"center","color_scheme":"","full_width":true,"padding_top":0,"padding_bottom":52}},"rich_text_YDVfPT":{"type":"rich-text","blocks":{"heading_nAztdj":{"type":"heading","settings":{"heading":"The Great Books Project","heading_size":"h1"}},"text_HzEznG":{"type":"text","settings":{"text":"<p>Explore the books, ideas, and thinkers that shaped Western civilization. Every title links directly to the edition or translation I recommend.<\/p>"}},"button_g7jcAe":{"type":"button","settings":{"button_label":"Explore the Book List","button_link":"shopify:\/\/pages\/great-books-project","button_style_secondary":false,"button_label_2":"","button_link_2":"","button_style_secondary_2":false}}},"block_order":["heading_nAztdj","text_HzEznG","button_g7jcAe"],"name":"t:sections.rich-text.presets.name","settings":{"desktop_content_position":"center","content_alignment":"center","color_scheme":"scheme-f89dd22b-435a-4b44-8989-ec5f5a1e3111","full_width":true,"padding_top":40,"padding_bottom":52}},"rich_text_kqigMR":{"type":"rich-text","blocks":{"heading_bnYgrR":{"type":"heading","settings":{"heading":"Interested in Building with Rep America?","heading_size":"h1"}},"text_jbUjEg":{"type":"text","settings":{"text":"<p>We're always looking for American manufacturers, craftsmen, and makers interested in creating products that align with the Rep America mission.<\/p>"}},"button_T8mkwp":{"type":"button","settings":{"button_label":"Contact Rep America","button_link":"shopify:\/\/pages\/contact","button_style_secondary":false,"button_label_2":"","button_link_2":"","button_style_secondary_2":false}}},"block_order":["heading_bnYgrR","text_jbUjEg","button_T8mkwp"],"name":"t:sections.rich-text.presets.name","settings":{"desktop_content_position":"center","content_alignment":"center","color_scheme":"","full_width":true,"padding_top":40,"padding_bottom":52}}},"order":["main","image_banner_fXc3Vb","blocks_M9FRHP","rich_text_BxYcK7","featured_collection_pyckq7","rich_text_3CaDEA","rich_text_AaDJbX","multicolumn_g8NzEP","multicolumn_mTcm4j","multicolumn_kYqfVF","multicolumn_zNJaL4","multicolumn_X4bDBe","rich_text_GRYqfG","rich_text_YDVfPT","rich_text_kqigMR"]}
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "disabled": true,
+      "settings": {
+        "padding_top": 28,
+        "padding_bottom": 12
+      }
+    },
+    "image_banner_fXc3Vb": {
+      "type": "image-banner",
+      "blocks": {
+        "heading_ANeC3C": {
+          "type": "heading",
+          "settings": {
+            "heading": "<strong>THE WORKSHOP</strong>",
+            "heading_size": "hxl"
+          }
+        },
+        "text_fXQ937": {
+          "type": "text",
+          "settings": {
+            "text": "Craftsmanship • Essentials • Great Books",
+            "text_style": "subtitle"
+          }
+        }
+      },
+      "block_order": [
+        "heading_ANeC3C",
+        "text_fXQ937"
+      ],
+      "custom_css": [
+        ".banner__text p {color: rgb(255, 255, 255) !important;}"
+      ],
+      "name": "t:sections.image-banner.presets.name",
+      "settings": {
+        "image": "shopify://shop_images/Rep_America_Website_Banner_1774_x_887_px.png",
+        "image_overlay_opacity": 0,
+        "image_height": "small",
+        "image_behavior": "none",
+        "desktop_content_position": "middle-left",
+        "desktop_content_alignment": "left",
+        "show_text_box": false,
+        "color_scheme": "scheme-4",
+        "stack_images_on_mobile": true,
+        "mobile_content_alignment": "center",
+        "show_text_below": false
+      }
+    },
+    "blocks_M9FRHP": {
+      "type": "_blocks",
+      "blocks": {
+        "ai_gen_block_6f5998f_hxRD4y": {
+          "type": "ai_gen_block_6f5998f",
+          "settings": {
+            "separator_style": "solid",
+            "line_thickness": 1,
+            "line_color": "#121212",
+            "desktop_width_percent": 100,
+            "spacing_top": 20,
+            "spacing_bottom": 0
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "ai_gen_block_6f5998f_hxRD4y"
+      ],
+      "name": "Separator",
+      "settings": {}
+    },
+    "rich_text_BxYcK7": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_PHwtUn": {
+          "type": "heading",
+          "settings": {
+            "heading": "Rep Collection",
+            "heading_size": "h0"
+          }
+        },
+        "text_cyGVQP": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Made in the USA. Rep America Products built for people who believe in American Craftsmanship and wear their convictions proudly.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "heading_PHwtUn",
+        "text_cyGVQP"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "scheme-f89dd22b-435a-4b44-8989-ec5f5a1e3111",
+        "full_width": true,
+        "padding_top": 20,
+        "padding_bottom": 28
+      }
+    },
+    "featured_collection_pyckq7": {
+      "type": "featured-collection",
+      "name": "t:sections.featured-collection.presets.name",
+      "settings": {
+        "collection": "rep-america",
+        "products_to_show": 4,
+        "title": "",
+        "heading_size": "h1",
+        "description": "",
+        "show_description": false,
+        "description_style": "body",
+        "columns_desktop": 3,
+        "enable_desktop_slider": false,
+        "full_width": false,
+        "show_view_all": true,
+        "view_all_style": "solid",
+        "color_scheme": "",
+        "image_ratio": "adapt",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "quick_add": "none",
+        "columns_mobile": "2",
+        "swipe_on_mobile": false,
+        "padding_top": 0,
+        "padding_bottom": 36
+      }
+    },
+    "rich_text_3CaDEA": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_Xb7Jr7": {
+          "type": "heading",
+          "settings": {
+            "heading": "The Essentials",
+            "heading_size": "h0"
+          }
+        },
+        "text_GtnJr9": {
+          "type": "text",
+          "settings": {
+            "text": "<p>These are products I personally use. From health and reading to craftsmanship and everyday essentials, every product here has earned its place in The Essentials.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "heading_Xb7Jr7",
+        "text_GtnJr9"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "scheme-f89dd22b-435a-4b44-8989-ec5f5a1e3111",
+        "full_width": true,
+        "padding_top": 20,
+        "padding_bottom": 28
+      }
+    },
+    "rich_text_AaDJbX": {
+      "type": "rich-text",
+      "blocks": {
+        "text_Vxjiga": {
+          "type": "text",
+          "settings": {
+            "text": "<p><em>Rep America may earn commissions from qualifying purchases made through affiliate links at no additional cost to you.</em></p>"
+          }
+        }
+      },
+      "block_order": [
+        "text_Vxjiga"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "scheme-1",
+        "full_width": true,
+        "padding_top": 4,
+        "padding_bottom": 0
+      }
+    },
+    "multicolumn_g8NzEP": {
+      "type": "multicolumn",
+      "blocks": {
+        "column_TzPBnp": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/512HJgPlChL._AC_SL1181.jpg",
+            "title": "LEUCHTTURM1917 Notebook",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4gjEBzQ"
+          }
+        },
+        "column_zdWb3F": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/glucosent_book_light_1.jpg",
+            "title": "Best Book Light Ever",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4auKLJB"
+          }
+        },
+        "column_diYKpE": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/5159vPx3HRL._AC_SL1500.jpg",
+            "title": "Montblanc Ink Amethyst Purple",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4p9lUkI"
+          }
+        },
+        "column_4xagd9": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/412c-kA5wPL._AC_SL1000.jpg",
+            "title": "Traveler's Notebook - Blue",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4eY5tD9"
+          }
+        },
+        "column_z3d4U7": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/51Zs3D4MdWL._AC_SL1000.jpg",
+            "title": "Montblanc 149 Fountain Pen",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4eUnUbP"
+          }
+        }
+      },
+      "block_order": [
+        "column_TzPBnp",
+        "column_zdWb3F",
+        "column_diYKpE",
+        "column_4xagd9",
+        "column_z3d4U7"
+      ],
+      "name": "Reading & Writing",
+      "settings": {
+        "title": "Reading & Writing",
+        "heading_size": "h1",
+        "image_width": "full",
+        "image_ratio": "adapt",
+        "button_label": "",
+        "button_link": "",
+        "columns_desktop": 3,
+        "column_alignment": "left",
+        "background_style": "primary",
+        "color_scheme": "",
+        "columns_mobile": "2",
+        "swipe_on_mobile": true,
+        "padding_top": 12,
+        "padding_bottom": 36
+      }
+    },
+    "multicolumn_mTcm4j": {
+      "type": "multicolumn",
+      "blocks": {
+        "column_UFzjcA": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/51Aj2RIdouL._AC_SL1500.jpg",
+            "title": "Logitech MX Master 4",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/3TggJTT"
+          }
+        },
+        "column_iwDqgK": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/71LYHO3_wnL._AC_SL1356.jpg",
+            "title": "Shure SM7B",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4vUTQ6U"
+          }
+        },
+        "column_dAEtkW": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/71Qul5AZ51L._AC_SL1500.jpg",
+            "title": "Beyerdynamic DT 770 PRO 80 Ohm",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4wmL8ya"
+          }
+        },
+        "column_ApTcaM": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/71qPv9-yzoL._AC_SL1500.jpg",
+            "title": "Sound Absorbing Acoustic Panel",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4gpmh8m"
+          }
+        },
+        "column_aiAz7N": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/71FtSiqsK3L._AC_SL1500.jpg",
+            "title": "Anker Power Strip",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4gfJ4n1"
+          }
+        },
+        "column_c7tVhe": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/61opq_57R3L._AC_SL1500.jpg",
+            "title": "Nanlite PavoTube II 15C",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/3RhgLub"
+          }
+        },
+        "column_ih3cjD": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/1748428806_IMG_2503284.jpg",
+            "title": "Sony FX2",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4gNIkWo"
+          }
+        },
+        "column_UQ6NFC": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/1746725589_IMG_2489179.jpg",
+            "title": "Sony FX3",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4f8frlg"
+          }
+        },
+        "column_CQ7zgV": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/41O6NJyDr2L._AC_SL1080.jpg",
+            "title": "RØDE PSA1+",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4xZxWkq"
+          }
+        },
+        "column_RGbVfQ": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/61RBn61tXkL._AC_SL1500.jpg",
+            "title": "Teleprompter - Elgato",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4p1WDc4"
+          }
+        },
+        "column_WEKLQt": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/71d1dPPxL1L._AC_SL1500.jpg",
+            "title": "RØDE RØDECaster Duo",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4y3sU6q"
+          }
+        },
+        "column_JwfHQw": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/61mACcuCUSL._AC_SL1500.jpg",
+            "title": "Laptop Phone Holder",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/3TeCraU"
+          }
+        },
+        "column_DzgRnY": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/Square_10.png",
+            "title": "TOUR BOX Elite",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4wiNhed"
+          }
+        },
+        "column_6MkHzP": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/61o5DJi-MtL._AC_SL1500.jpg",
+            "title": "Laptop Stand",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/3SBZcWd"
+          }
+        },
+        "column_qC8CFn": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/Screenshot_2026-07-09_at_12.20.49_PM.jpg",
+            "title": "Amaran Halo 200x (Main Keylight)",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4bkKU2z"
+          }
+        },
+        "column_V9zwjc": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/Screenshot_2026-07-09_at_12.20.49_PM.jpg",
+            "title": "Amaran Halo 100x (2nd Keylight)",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4h4EwjF"
+          }
+        },
+        "column_gaU9Bg": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/61_5fRQBWbL._AC_SL1500.jpg",
+            "title": "Amaran Ray 60c (Backlight)",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4geY8kP"
+          }
+        },
+        "column_aCbqxY": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/818r9zIKhRL._AC_SL1500.jpg",
+            "title": "Sony FE PZ 16-35mm f/4 G Lens",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4h2WfrE"
+          }
+        },
+        "column_h9TGaF": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/1460613550_IMG_609259.jpg",
+            "title": "ZEISS Batis 25mm f/2.0",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4bxfdDa"
+          }
+        },
+        "column_DkzUx7": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/61Y1ZwnlP3L._AC_SL1500.jpg",
+            "title": "Sony FE 20-70mm f/4 G Lens",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4vmBg6U"
+          }
+        }
+      },
+      "block_order": [
+        "column_UFzjcA",
+        "column_iwDqgK",
+        "column_dAEtkW",
+        "column_ApTcaM",
+        "column_aiAz7N",
+        "column_c7tVhe",
+        "column_ih3cjD",
+        "column_UQ6NFC",
+        "column_CQ7zgV",
+        "column_RGbVfQ",
+        "column_WEKLQt",
+        "column_JwfHQw",
+        "column_DzgRnY",
+        "column_6MkHzP",
+        "column_qC8CFn",
+        "column_V9zwjc",
+        "column_gaU9Bg",
+        "column_aCbqxY",
+        "column_h9TGaF",
+        "column_DkzUx7"
+      ],
+      "name": "Studio Equipment",
+      "settings": {
+        "title": "Studio Equipment",
+        "heading_size": "h1",
+        "image_width": "full",
+        "image_ratio": "adapt",
+        "button_label": "",
+        "button_link": "",
+        "columns_desktop": 3,
+        "column_alignment": "left",
+        "background_style": "primary",
+        "color_scheme": "",
+        "columns_mobile": "2",
+        "swipe_on_mobile": true,
+        "padding_top": 0,
+        "padding_bottom": 36
+      }
+    },
+    "multicolumn_kYqfVF": {
+      "type": "multicolumn",
+      "blocks": {
+        "column_aFq6kX": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/Square_12.png",
+            "title": "Tea Infuser Strainer",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4v9zYMa"
+          }
+        },
+        "column_cmL4QC": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/81EzbM2x2LL._AC_SL1500.jpg",
+            "title": "Leather Cast Iron Pan Handle",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4wjpevH"
+          }
+        },
+        "column_hJzF4H": {
+          "type": "column",
+          "disabled": true,
+          "settings": {
+            "image": "shopify://shop_images/71mAIK7oxPL._AC_SL1500.jpg",
+            "title": "Sugarcane Straws",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4v9BL3Q"
+          }
+        },
+        "column_baYgLy": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/Square_11.png",
+            "title": "Yeti Cast Iron (Butter Pat)",
+            "text": "",
+            "link_label": "Yeti Site",
+            "link": "https://www.yeti.com/kitchen/cookware/21180000005.html"
+          }
+        },
+        "column_YMhCB4": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/71TENCAo71L._AC_SL1500.jpg",
+            "title": "Oral-B Electric Toothbrush",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4v4gmcl"
+          }
+        },
+        "column_VFH3Hr": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/61t7G8f2exL._AC_SL1500.jpg",
+            "title": "Cocofloss Woven Dental Floss",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4y3aOBC"
+          }
+        },
+        "column_9xdbXU": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/61bL9vCKjDL._AC_SL1500.jpg",
+            "title": "Breville Kettle Water Boiler",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4xTK9am"
+          }
+        },
+        "column_YK9dYJ": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/51iP2wIraBL._AC_SL1152.jpg",
+            "title": "Breville Air Fryer Oven",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4eYI3gX"
+          }
+        },
+        "column_tdTCPC": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/61iEZ50wxZL._SL1500.jpg",
+            "title": "Breville Barista Espresso Machine",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4aviuCO"
+          }
+        },
+        "column_F9iViK": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/51zp2ETVWSL._AC_SL1500.jpg",
+            "title": "Electrolux Steamer Iron",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/3Rjmi3o"
+          }
+        }
+      },
+      "block_order": [
+        "column_aFq6kX",
+        "column_cmL4QC",
+        "column_hJzF4H",
+        "column_baYgLy",
+        "column_YMhCB4",
+        "column_VFH3Hr",
+        "column_9xdbXU",
+        "column_YK9dYJ",
+        "column_tdTCPC",
+        "column_F9iViK"
+      ],
+      "name": "Houseware",
+      "settings": {
+        "title": "Houseware",
+        "heading_size": "h1",
+        "image_width": "full",
+        "image_ratio": "adapt",
+        "button_label": "",
+        "button_link": "",
+        "columns_desktop": 3,
+        "column_alignment": "left",
+        "background_style": "primary",
+        "color_scheme": "",
+        "columns_mobile": "2",
+        "swipe_on_mobile": true,
+        "padding_top": 12,
+        "padding_bottom": 36
+      }
+    },
+    "multicolumn_zNJaL4": {
+      "type": "multicolumn",
+      "blocks": {
+        "column_mQJ7jN": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/salt.jpg",
+            "title": "Redmond Real Sea Salt",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4geWyiT"
+          }
+        },
+        "column_GJL47p": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/71voHsxReoL._AC_SL1500.jpg",
+            "title": "ONNIT Alpha Brain Nootropic",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4b4LD7S"
+          }
+        },
+        "column_BybQaF": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/81mBPyN2csL._SL1500.jpg",
+            "title": "Quest Chocolate Chip Protein Cookie",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4vKeJC1"
+          }
+        },
+        "column_3RBAkB": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/71SGNJz5y8L._AC_SL1500.jpg",
+            "title": "Creatine Monohydrate",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4gOsdb6"
+          }
+        },
+        "column_mbiGBP": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/61tojSq7BIL._AC_SL1500.jpg",
+            "title": "AG1 Vitamin D3 K2",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4wlG1ON"
+          }
+        },
+        "column_UYBUit": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/610866ruGOL._SL1500.jpg",
+            "title": "Magnesium L-Threonate",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4eKGKU0"
+          }
+        },
+        "column_w66CVf": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/61IlOZlKHuL._AC_SL1500.jpg",
+            "title": "Magnesium Glycinate",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4v6fZy1"
+          }
+        },
+        "column_kmq9j3": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/71zWvXBMf5L._AC_SL1500.jpg",
+            "title": "Vitamin C 1000mg",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4gRm6Tl"
+          }
+        },
+        "column_XAB8r4": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/Square_7_b7cd76c1-d99e-4cd2-aa7d-faf8dee226ce.jpg",
+            "title": "Heart & Soil — Beef Organs",
+            "text": "",
+            "link_label": "Heart & Soil Site",
+            "link": "https://shop.heartandsoil.co/a/collections/products/?ref=medikation&utm_source=instagram&utm_medium=affiliate&utm_campaign=SARAL"
+          }
+        }
+      },
+      "block_order": [
+        "column_mQJ7jN",
+        "column_GJL47p",
+        "column_BybQaF",
+        "column_3RBAkB",
+        "column_mbiGBP",
+        "column_UYBUit",
+        "column_w66CVf",
+        "column_kmq9j3",
+        "column_XAB8r4"
+      ],
+      "name": "Health & Wellness",
+      "settings": {
+        "title": "Health & Wellness",
+        "heading_size": "h1",
+        "image_width": "full",
+        "image_ratio": "adapt",
+        "button_label": "",
+        "button_link": "",
+        "columns_desktop": 3,
+        "column_alignment": "left",
+        "background_style": "primary",
+        "color_scheme": "",
+        "columns_mobile": "2",
+        "swipe_on_mobile": true,
+        "padding_top": 0,
+        "padding_bottom": 36
+      }
+    },
+    "multicolumn_X4bDBe": {
+      "type": "multicolumn",
+      "blocks": {
+        "column_dKWhqJ": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/61gn5IVw1TL._AC_SL1201.jpg",
+            "title": "Sony RX1R III",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/44N7bSQ"
+          }
+        },
+        "column_qE7pkw": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/616ioGQ3giL._AC_SL1500.jpg",
+            "title": "Whoop Tracker",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4vfOWAD"
+          }
+        },
+        "column_3FkWim": {
+          "type": "column",
+          "settings": {
+            "image": "shopify://shop_images/Square_8.png",
+            "title": "Godox iT20",
+            "text": "",
+            "link_label": "Amazon",
+            "link": "https://amzn.to/4gTH5VC"
+          }
+        }
+      },
+      "block_order": [
+        "column_dKWhqJ",
+        "column_qE7pkw",
+        "column_3FkWim"
+      ],
+      "name": "EDC - Everyday Carry",
+      "settings": {
+        "title": "EDC - Everyday Carry",
+        "heading_size": "h1",
+        "image_width": "full",
+        "image_ratio": "adapt",
+        "button_label": "",
+        "button_link": "",
+        "columns_desktop": 3,
+        "column_alignment": "left",
+        "background_style": "primary",
+        "color_scheme": "",
+        "columns_mobile": "2",
+        "swipe_on_mobile": true,
+        "padding_top": 0,
+        "padding_bottom": 36
+      }
+    },
+    "rich_text_GRYqfG": {
+      "type": "rich-text",
+      "blocks": {
+        "text_4HKpzL": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Products featured in The Essentials are recommendations only and are not medical advice.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "text_4HKpzL"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "",
+        "full_width": true,
+        "padding_top": 0,
+        "padding_bottom": 52
+      }
+    },
+    "rich_text_YDVfPT": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_nAztdj": {
+          "type": "heading",
+          "settings": {
+            "heading": "The Great Books Project",
+            "heading_size": "h1"
+          }
+        },
+        "text_HzEznG": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Explore the books, ideas, and thinkers that shaped Western civilization. Every title links directly to the edition or translation I recommend.</p>"
+          }
+        },
+        "button_g7jcAe": {
+          "type": "button",
+          "settings": {
+            "button_label": "Explore the Book List",
+            "button_link": "shopify://pages/great-books-project-2",
+            "button_style_secondary": false,
+            "button_label_2": "",
+            "button_link_2": "",
+            "button_style_secondary_2": false
+          }
+        }
+      },
+      "block_order": [
+        "heading_nAztdj",
+        "text_HzEznG",
+        "button_g7jcAe"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "scheme-f89dd22b-435a-4b44-8989-ec5f5a1e3111",
+        "full_width": true,
+        "padding_top": 40,
+        "padding_bottom": 52
+      }
+    },
+    "rich_text_kqigMR": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_bnYgrR": {
+          "type": "heading",
+          "settings": {
+            "heading": "Interested in Building with Rep America?",
+            "heading_size": "h1"
+          }
+        },
+        "text_jbUjEg": {
+          "type": "text",
+          "settings": {
+            "text": "<p>We're always looking for American manufacturers, craftsmen, and makers interested in creating products that align with the Rep America mission.</p>"
+          }
+        },
+        "button_T8mkwp": {
+          "type": "button",
+          "settings": {
+            "button_label": "Contact Rep America",
+            "button_link": "shopify://pages/contact",
+            "button_style_secondary": false,
+            "button_label_2": "",
+            "button_link_2": "",
+            "button_style_secondary_2": false
+          }
+        }
+      },
+      "block_order": [
+        "heading_bnYgrR",
+        "text_jbUjEg",
+        "button_T8mkwp"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "",
+        "full_width": true,
+        "padding_top": 40,
+        "padding_bottom": 52
+      }
+    }
+  },
+  "order": [
+    "main",
+    "image_banner_fXc3Vb",
+    "blocks_M9FRHP",
+    "rich_text_BxYcK7",
+    "featured_collection_pyckq7",
+    "rich_text_3CaDEA",
+    "rich_text_AaDJbX",
+    "multicolumn_g8NzEP",
+    "multicolumn_mTcm4j",
+    "multicolumn_kYqfVF",
+    "multicolumn_zNJaL4",
+    "multicolumn_X4bDBe",
+    "rich_text_GRYqfG",
+    "rich_text_YDVfPT",
+    "rich_text_kqigMR"
+  ]
+}
