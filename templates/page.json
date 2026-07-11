@@ -874,7 +874,7 @@
           "type": "button",
           "settings": {
             "button_label": "Explore the Book List",
-            "button_link": "shopify://pages/great-books-project-2",
+            "button_link": "shopify://pages/great-books-project",
             "button_style_secondary": false,
             "button_label_2": "",
             "button_link_2": "",
