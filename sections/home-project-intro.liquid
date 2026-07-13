@@ -1,0 +1,475 @@
+{%- comment -%}
+  Home project intro — a quiet, centered invitation to a project (currently the Great Books).
+
+  Deliberately plain: eyebrow, serif heading, one line, one text link with an arrow. No cards,
+  no featured guides, no covers. The homepage introduces the project; the project page sells
+  the guides.
+
+  Optional background image with a dark overlay (currently the Great Books bookshelf hero,
+  reused from the Great Books page). With an image set, the section flips to light-on-dark;
+  without one it stays quiet on white. Both states are supported — don't assume the image.
+{%- endcomment -%}
+
+{%- assign bg = section.settings.image -%}
+{%- assign has_bg = false -%}
+{%- if bg != blank -%}{%- assign has_bg = true -%}{%- endif -%}
+
+<section
+  class="ra-section ra-project-intro{% if has_bg %} ra-project-intro--media{% endif %}"
+  id="ProjectIntro-{{ section.id }}"
+>
+  {%- if has_bg -%}
+    {%- comment -%}
+      Desktop and mobile get genuinely different crops of the same photograph — a wide
+      two-shelf frame, and a portrait crop of the lower shelf. A <picture> with a media
+      query swaps the file itself; object-position alone can't reframe a photo this
+      differently. If no mobile image is set, mobile falls back to the desktop file.
+    {%- endcomment -%}
+    <div class="ra-project-intro__bg" aria-hidden="true">
+      <picture>
+        {%- if section.settings.mobile_image != blank -%}
+          <source
+            media="(max-width: 989px)"
+            srcset="
+              {{ section.settings.mobile_image | image_url: width: 600 }} 600w,
+              {{ section.settings.mobile_image | image_url: width: 800 }} 800w,
+              {{ section.settings.mobile_image | image_url: width: 1000 }} 1000w
+            "
+            sizes="100vw"
+          >
+        {%- endif -%}
+        {{
+          bg
+          | image_url: width: 2000
+          | image_tag:
+            class: 'ra-project-intro__image',
+            widths: '750, 1100, 1500, 2000',
+            sizes: '100vw',
+            loading: 'eager',
+            alt: ''
+        }}
+      </picture>
+    </div>
+  {%- endif -%}
+
+  <div class="ra-container-sm ra-text-center ra-project-intro__inner">
+    {%- comment -%}
+      With an image, the copy sits inside a translucent panel rather than on a full-bleed
+      scrim: the shelf stays sharp and readable across the whole frame, and only the copy's
+      own footprint is darkened. Without an image the panel is inert (no background, no
+      border) and the section reads as plain centered text on white.
+    {%- endcomment -%}
+    <div class="ra-project-intro__panel">
+      {%- comment -%}
+        The pool of shade wraps THIS block only — heading, rules, eyebrow, lede. The button sits
+        outside it and carries its own fill, so it reads as a button rather than a shape floating
+        in a cloud of shadow.
+      {%- endcomment -%}
+      <div class="ra-project-intro__copy">
+      {%- comment -%}
+        Over a photograph the eyebrow drops BELOW the heading and sits between two red rules —
+        a masthead line, not a label floating above the title. Without an image it stays where
+        an eyebrow normally goes, above the heading, with no rules.
+      {%- endcomment -%}
+      {%- if section.settings.eyebrow != blank and has_bg == false -%}
+        <p class="ra-section-header__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+
+      {%- comment -%}
+        Heading is intentionally NOT escaped: it accepts a little inline markup so a single
+        word can be set in italic (e.g. "Built <em>the</em> West"). Admin-authored only.
+      {%- endcomment -%}
+      {%- if section.settings.heading != blank -%}
+        <h2 class="ra-section-header__title">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+
+      {%- if has_bg -%}
+        <span class="ra-project-intro__rule" aria-hidden="true"></span>
+
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="ra-section-header__eyebrow ra-project-intro__eyebrow--ruled">
+            {{- section.settings.eyebrow | escape -}}
+          </p>
+          <span class="ra-project-intro__rule ra-project-intro__rule--under" aria-hidden="true"></span>
+        {%- endif -%}
+      {%- endif -%}
+
+      {%- if section.settings.text != blank -%}
+        <div class="ra-project-intro__text">{{ section.settings.text }}</div>
+      {%- endif -%}
+      </div>
+
+      {%- comment -%}
+        Over a photograph this is a real (if quiet) button, outside the pool of shade.
+      {%- endcomment -%}
+      {%- if section.settings.button_label != blank and section.settings.button_link != blank -%}
+        <div class="ra-project-intro__actions">
+          <a class="ra-text-link" href="{{ section.settings.button_link }}">
+            {{- section.settings.button_label | escape -}}
+          </a>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{%- style -%}
+  .ra-project-intro__text {
+    margin-top: var(--ra-space-md);
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--ra-color-muted);
+  }
+
+  .ra-project-intro__actions {
+    margin-top: var(--ra-space-xl);
+  }
+
+  /* --- With a background image: a full-width feature, light text on dark ---
+     Height is driven by min-height (not padding) so the copy is centered inside the image
+     rather than stretching it. Tall enough to read as a destination section, not a divider.
+     The margin below gives the feature room to finish before American Craftsmanship begins. */
+  .ra-project-intro--media {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: {{ section.settings.banner_height }}px;
+    /* Padding is only a floor here — the copy is flex-centred inside min-height. Kept at 2xl
+       so the now-airier text stack still sits inside 520px rather than growing the section. */
+    padding-top: var(--ra-space-2xl);
+    padding-bottom: var(--ra-space-2xl);
+    /* Pulled up under the pillars above (which carry 72px of their own bottom padding) so the
+       two read as one movement — the pillars name the Great Books, this shows them. The
+       section below carries its own 72px of top padding, so this margin stays modest. */
+    margin-top: calc(-1 * var(--ra-space-xl));
+    margin-bottom: var(--ra-space-lg);
+    overflow: hidden;
+  }
+
+  /* Large, restrained display type — this is a feature spread, not a banner. */
+  /* The measure is capped in `em`, so it scales with the type: wide enough for two balanced
+     lines ("Read the Books That / Built the West"), narrow enough that the last word can't be
+     left stranded on a line of its own. */
+  .ra-project-intro--media .ra-section-header__title {
+    font-size: clamp(42px, 5.8vw, 76px);
+    line-height: 1.12;
+    margin: 0 auto;
+    max-width: 8.8em;
+    text-wrap: balance;
+  }
+
+  .ra-project-intro--media .ra-project-intro__text {
+    font-size: 20px;
+    line-height: 1.55;
+    max-width: 30em;
+    margin-top: 22px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Stack with positive z-indexes, not z-index:-1 — a negative index on the media layer
+     rendered it behind the section's own background box and the banner came out blank white. */
+  /* The top and bottom edges dissolve into the page rather than stopping at a hard rule, so
+     the feature reads as a plate on the page instead of a banner bolted to it. The fade is
+     ~30px — enough to soften the line, not enough to look like a vignette. The mask covers
+     the pool of shade too (it lives on this element's ::after), so they fade together. */
+  .ra-project-intro__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.55) 0,
+      #000 10px,
+      #000 calc(100% - 10px),
+      rgba(0, 0, 0, 0.55) 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.55) 0,
+      #000 10px,
+      #000 calc(100% - 10px),
+      rgba(0, 0, 0, 0.55) 100%
+    );
+  }
+
+  .ra-project-intro__bg picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ra-project-intro__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: {{ section.settings.focus_x }}% {{ section.settings.focus_y }}%;
+  }
+
+  /* The shelf carries the section, so it stays bright: only a whisper of a flat wash
+     (the `overlay_opacity` setting, now low) to keep the whole frame from glaring, plus a
+     soft elliptical pool of shade sized to the copy's own footprint. It has no edge — it
+     fades to nothing well before the frame — so there's no panel, no box, no border. */
+  /* The wash lives on a pseudo-element, not a child div: a theme rule elsewhere was
+     computing `display: none` on the overlay div and the banner rendered unreadable. */
+  .ra-project-intro__bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: rgba(0, 0, 0, {{ section.settings.overlay_opacity | divided_by: 100.0 }});
+  }
+
+  /* Shade rides the copy, not the frame. Each element carries its own soft pool — sized to
+     its own text because the boxes are inline-block, so they hug the words — instead of one
+     big blob over the middle of the shelf. Every pool fades to nothing inside its own
+     padding, so there is no edge to see, and lines that used to sit on bare image (the CTA,
+     the eyebrow) now carry shade of their own. This also fixes mobile for free: the shade
+     goes wherever the text goes, at any width. */
+  /* ONE pool behind the whole group, not one per line. `display: table` makes the panel
+     shrink-wrap its own text (block-level, so no baseline gaps), and the generous padding is
+     transparent room for the gradient to die out inside its own box.
+
+     The vertical radius stays UNDER 50% on purpose: a radial-gradient's percentages are radii
+     relative to the box, so anything over 50% gets clipped by the box edge mid-fade — which is
+     exactly what draws a hard horizontal line. At 46%/96% the pool reaches zero inside the
+     padding, so there is no edge anywhere. */
+  /* The copy sits inside `.ra-container-sm` (720px) — with the pool's padding that left only
+     ~570px of text width, which is what pushed the heading to three lines and the lede to two.
+     The feature overrides the container: the copy gets room to break the way it should. */
+  .ra-project-intro--media .ra-project-intro__inner {
+    max-width: 1060px;
+  }
+
+  .ra-project-intro--media .ra-project-intro__panel {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  /* The pool now hugs the copy only. `display: table` shrink-wraps it; the padding is
+     transparent room for the gradient to die inside its own box (a vertical radius over 50%
+     gets clipped by the box edge mid-fade — that's what draws a hard line). */
+  .ra-project-intro--media .ra-project-intro__copy {
+    display: table;
+    margin: 0 auto;
+    padding: 84px 80px;
+    background: radial-gradient(
+      ellipse 62% 49% at 50% 50%,
+      rgba(0, 0, 0, 0.76) 0%,
+      rgba(0, 0, 0, 0.74) 40%,
+      rgba(0, 0, 0, 0.62) 62%,
+      rgba(0, 0, 0, 0.36) 78%,
+      rgba(0, 0, 0, 0.14) 89%,
+      rgba(0, 0, 0, 0) 97%
+    );
+  }
+
+  .ra-project-intro__panel {
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
+  /* One short red hairline under the heading — the only ornament in the section. */
+  .ra-project-intro__rule {
+    display: block;
+    width: 84px;
+    height: 2px;
+    margin: 22px auto 0;
+    background: #c62436;
+  }
+
+  /* One block of copy — the gaps stay modest, but each line gets room to breathe. */
+  .ra-project-intro--media .ra-section-header__eyebrow {
+    margin: 0;
+    letter-spacing: 0.26em;
+  }
+
+  /* The eyebrow now lives between the two rules, so its spacing is symmetrical and it needs
+     no pool of its own — it sits in the middle of the group, where the shade is deepest. */
+  .ra-project-intro--media .ra-project-intro__eyebrow--ruled {
+    margin: 14px 0;
+  }
+
+  .ra-project-intro__rule--under {
+    margin-top: 0;
+  }
+
+  /* Negative, because the copy block's bottom padding is transparent fade-room, not spacing —
+     without this the button would sit an extra ~80px adrift. */
+  .ra-project-intro--media .ra-project-intro__actions {
+    margin-top: -44px;
+  }
+
+  /* A button, but a quiet one: a hairline pill over the photograph. It carries its own fill —
+     enough to hold the label against the spines now that it sits outside the pool of shade —
+     and goes ink-on-white on hover, matching the primary button elsewhere on the site. */
+  .ra-project-intro--media .ra-text-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 32px;
+    border: 1px solid rgba(255, 255, 255, 0.62);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.42);
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .ra-project-intro--media .ra-text-link:hover,
+  .ra-project-intro--media .ra-text-link:focus-visible {
+    background: #fff;
+    border-color: #fff;
+    color: #111;
+    text-shadow: none;
+  }
+
+  /* Gilded spines are the busiest possible backdrop, and the image is now bright — so each
+     line carries its own shadow. This is what buys the contrast a flat overlay used to,
+     without dimming the books. */
+  .ra-project-intro--media .ra-section-header__title {
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+
+  .ra-project-intro--media .ra-project-intro__text,
+  .ra-project-intro--media .ra-section-header__eyebrow,
+  .ra-project-intro--media .ra-text-link {
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  .ra-project-intro__inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Desktop only: nudge the copy *down* off dead centre, so it sits across the lower shelf —
+     the hero — and leaves the upper shelf and the glass line reading clearly above it.
+     (This was a -24px lift when the photo was a single row of spines; the two-shelf frame
+     wants the opposite.) A transform, so the section height and image framing don't move. */
+  @media screen and (min-width: 990px) {
+    .ra-project-intro--media .ra-project-intro__inner {
+      transform: translateY(-140px);
+    }
+  }
+
+  /* Over a photograph, every line is full white — the dimmed eyebrow (75%) and lede (88%)
+     were costing real legibility for no design benefit. */
+  .ra-project-intro--media .ra-section-header__eyebrow,
+  .ra-project-intro--media .ra-section-header__title,
+  .ra-project-intro--media .ra-project-intro__text,
+  .ra-project-intro--media .ra-text-link {
+    color: #fff;
+  }
+
+  @media screen and (max-width: 989px) {
+    .ra-project-intro--media {
+      min-height: {{ section.settings.banner_height | times: 0.72 | round }}px;
+      margin-bottom: var(--ra-space-3xl);
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    /* Mobile is framed for its own crop (~0.81:1), not scaled off the desktop height. */
+    .ra-project-intro--media {
+      min-height: 480px;
+      padding-top: var(--ra-space-lg);
+      padding-bottom: var(--ra-space-lg);
+      margin-bottom: var(--ra-space-2xl);
+    }
+
+    /* The pool needs less room to fade at this scale, and it works harder: a phone screen is
+       small, bright and often held outdoors, so the copy needs more separation from the spines
+       than it does on a desktop. */
+    .ra-project-intro--media .ra-project-intro__panel {
+      padding: 0;
+    }
+
+    .ra-project-intro--media .ra-project-intro__copy {
+      padding: 64px 28px;
+      background: radial-gradient(
+        ellipse 66% 48% at 50% 50%,
+        rgba(0, 0, 0, 0.86) 0%,
+        rgba(0, 0, 0, 0.82) 38%,
+        rgba(0, 0, 0, 0.68) 60%,
+        rgba(0, 0, 0, 0.42) 76%,
+        rgba(0, 0, 0, 0.16) 89%,
+        rgba(0, 0, 0, 0) 97%
+      );
+    }
+
+    .ra-project-intro--media .ra-project-intro__actions {
+      margin-top: -32px;
+    }
+
+
+    .ra-project-intro--media .ra-project-intro__inner {
+      transform: translateY(-26px);
+    }
+
+    .ra-project-intro--media .ra-section-header__title {
+      font-size: 50px;
+      line-height: 1.02;
+    }
+
+    .ra-project-intro--media .ra-project-intro__text {
+      font-size: 17px;
+    }
+  }
+{%- endstyle -%}
+
+{% schema %}
+{
+  "name": "Home project intro",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "The Great Books Project" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Read What Built Civilization." },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>A chronological reading journey through the books, ideas, and people that shaped the Western world.</p>"
+    },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Explore the Great Books" },
+    { "type": "text", "id": "button_link", "label": "Button link", "default": "/pages/great-books-project" },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Background image",
+      "info": "Optional. With an image, the section goes light-on-dark; without one it stays on white. Desktop crop — wide (~2.2:1)."
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Mobile background image",
+      "info": "Optional. A separate, portrait-ish crop (~0.85:1) used below 990px. Falls back to the desktop image if empty."
+    },
+    {
+      "type": "range",
+      "id": "banner_height",
+      "label": "Feature height",
+      "min": 200,
+      "max": 900,
+      "step": 10,
+      "unit": "px",
+      "default": 820
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay darkness",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 25
+    },
+    { "type": "range", "id": "focus_x", "label": "Image focus X", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 50 },
+    { "type": "range", "id": "focus_y", "label": "Image focus Y", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 50 }
+  ],
+  "presets": [
+    { "name": "Home project intro" }
+  ]
+}
+{% endschema %}

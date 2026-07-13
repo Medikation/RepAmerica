@@ -1,0 +1,142 @@
+{{ 'rep-america-great-books.css' | asset_url | stylesheet_tag }}
+
+{%- comment -%}
+  Great Books list — editorial index.
+
+  Replaces the old desktop <table> / mobile-card duplication with one responsive index of
+  rows: number, title, author · written · translation, and a secondary affiliate link.
+
+  IMPORTANT (SEO): the title links INTERNALLY to the work's own page — the article pages
+  written in Round 26. It used to link straight out to Amazon, which left all 108 pages
+  orphaned. The affiliate link now lives in a second, explicit "Amazon" link per row (and
+  again as the CTA on the page itself), so the affiliate click still happens, one step later.
+{%- endcomment -%}
+
+{%- assign gb_blog = section.settings.blog -%}
+{%- assign target_category = section.settings.list_category -%}
+
+<section class="ra-section ra-gb-list" id="GreatBooksList-{{ section.id }}">
+  <div class="ra-container-md">
+    <div class="ra-gb-list__header">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="ra-section-header__title ra-gb-list__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if section.settings.intro != blank -%}
+        <div class="ra-gb-list__intro">{{ section.settings.intro }}</div>
+      {%- endif -%}
+    </div>
+
+    {%- if gb_blog != blank -%}
+      {%- paginate gb_blog.articles by section.settings.limit -%}
+        {%- assign articles_asc = gb_blog.articles | reverse -%}
+        {%- assign row_counter = 0 -%}
+
+        <ol class="ra-gb-index">
+          {%- for article in articles_asc -%}
+            {%- assign cat = article.metafields.custom.list_category.value | default: article.metafields.custom.list_category -%}
+            {%- if cat != target_category -%}{%- continue -%}{%- endif -%}
+            {%- assign row_counter = row_counter | plus: 1 -%}
+            {%- assign author = article.metafields.custom.author.value | default: article.metafields.custom.author -%}
+            {%- assign edition = article.metafields.custom.translation.value | default: article.metafields.custom.translation -%}
+            {%- if edition == 'Original' -%}{%- assign edition = '' -%}{%- endif -%}
+            {%- assign written = article.metafields.custom.written_display.value | default: article.metafields.custom.written_display -%}
+            {%- assign buy_link = article.metafields.custom.affiliate_url.value | default: article.metafields.custom.affiliate_url -%}
+
+            <li class="ra-gb-index__row">
+              <a class="ra-gb-index__link" href="{{ article.url }}">
+                <span class="ra-gb-index__num">{{ row_counter }}</span>
+
+                {%- comment -%}
+                  Cover of the recommended edition, between the number and the title. The
+                  column is a fixed-size box and the image is contained inside it, so covers
+                  with different aspect ratios still line up as a column. A handful of works
+                  have no cover on file — the box collapses to nothing rather than showing a
+                  placeholder, and the row still aligns because the number column is fixed.
+                {%- endcomment -%}
+                {%- if article.image -%}
+                  <span class="ra-gb-index__cover">
+                    <img
+                      src="{{ article.image | image_url: width: 200 }}"
+                      alt=""
+                      loading="lazy"
+                    >
+                  </span>
+                {%- else -%}
+                  <span class="ra-gb-index__cover ra-gb-index__cover--empty"></span>
+                {%- endif -%}
+
+                <span class="ra-gb-index__body">
+                  <span class="ra-gb-index__title">{{ article.title }}</span>
+                  <span class="ra-gb-index__meta">
+                    {%- if author != blank -%}{{ author }}{%- endif -%}
+                    {%- if written != blank %} <span aria-hidden="true">·</span> {{ written }}{% endif -%}
+                    {%- if edition != blank %} <span aria-hidden="true">·</span> {{ edition }}{% endif -%}
+                  </span>
+                </span>
+              </a>
+
+              {%- if buy_link != blank -%}
+                <a
+                  class="ra-gb-index__buy"
+                  href="{{ buy_link }}"
+                  target="_blank"
+                  rel="nofollow sponsored noopener"
+                  aria-label="View {{ article.title | escape }} on Amazon — the recommended edition"
+                >View on Amazon</a>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ol>
+
+        {%- if paginate.pages > 1 -%}{%- render 'pagination', paginate: paginate -%}{%- endif -%}
+      {%- endpaginate -%}
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Great Books list",
+  "settings": [
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "Blog to pull books from",
+      "info": "Use the dedicated Great Books blog."
+    },
+    {
+      "type": "text",
+      "id": "list_category",
+      "label": "List category",
+      "info": "Must exactly match the List Category metafield value on the articles you want shown here (e.g. \"Great Books\" or \"Beyond the Great Books\").",
+      "default": "Great Books"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "The Great Books"
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "Intro / disclosure text",
+      "default": "<p>Each work has its own page: what it is, why it matters, and an honest comparison of the best translations. <strong>View on Amazon</strong> goes straight to the edition recommended for that work.</p><p>Purchases made through these links help support the Great Books Project at no additional cost to you.</p>"
+    },
+    {
+      "type": "range",
+      "id": "limit",
+      "min": 0,
+      "max": 250,
+      "step": 25,
+      "default": 250,
+      "label": "Max books to show"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Great Books list"
+    }
+  ]
+}
+{% endschema %}
