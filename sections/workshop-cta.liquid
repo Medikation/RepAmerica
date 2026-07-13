@@ -17,15 +17,22 @@
 
 {% schema %}
 {
-  "name":"About call to action",
-  "tag":"section",
-  "settings":[
-    {"type":"text","id":"eyebrow","label":"Eyebrow","default":"Join the Mission"},
-    {"type":"text","id":"heading","label":"Heading","default":"Help Build Something That Lasts."},
-    {"type":"richtext","id":"body","label":"Body","default":"<p>Watch the work. Read the ideas. Support the builders. Rep America is for people who believe strength is built through action.</p>"},
-    {"type":"text","id":"button_label","label":"Button label","default":"Explore Rep America"},
-    {"type":"url","id":"button_link","label":"Button link"}
+  "name": "Workshop call to action",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "The Great Books Project" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Explore the Book List." },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body",
+      "default": "<p>Explore the books, ideas, and thinkers that shaped Western civilization. Every title links directly to the edition or translation I recommend.</p>"
+    },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Explore the Book List" },
+    { "type": "url", "id": "button_link", "label": "Button link" }
   ],
-  "presets":[{"name":"About call to action"}]
+  "presets": [
+    { "name": "Workshop call to action" }
+  ]
 }
 {% endschema %}

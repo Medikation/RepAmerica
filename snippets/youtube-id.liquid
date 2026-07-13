@@ -1,0 +1,22 @@
+{%- comment -%}
+  Renders the bare YouTube video ID parsed out of a full URL, or nothing if it
+  doesn't match a known pattern. Caller should wrap the render in {% capture %}
+  and strip whitespace, e.g.:
+
+  {%- capture video_id -%}{%- render 'youtube-id', youtube_url: youtube_url -%}{%- endcapture -%}
+  {%- assign video_id = video_id | strip -%}
+
+  Accepts:
+  - youtube_url: full YouTube URL string (youtu.be, watch?v=, /embed/, /live/, /shorts/)
+{%- endcomment -%}
+{%- if youtube_url contains 'youtu.be/' -%}
+  {{- youtube_url | split: 'youtu.be/' | last | split: '?' | first | split: '&' | first -}}
+{%- elsif youtube_url contains 'watch?v=' -%}
+  {{- youtube_url | split: 'watch?v=' | last | split: '&' | first -}}
+{%- elsif youtube_url contains '/embed/' -%}
+  {{- youtube_url | split: '/embed/' | last | split: '?' | first | split: '&' | first -}}
+{%- elsif youtube_url contains '/live/' -%}
+  {{- youtube_url | split: '/live/' | last | split: '?' | first | split: '&' | first -}}
+{%- elsif youtube_url contains '/shorts/' -%}
+  {{- youtube_url | split: '/shorts/' | last | split: '?' | first | split: '&' | first -}}
+{%- endif -%}

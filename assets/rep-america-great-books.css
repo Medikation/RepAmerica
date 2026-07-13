@@ -1,0 +1,244 @@
+/* =========================================================
+   GREAT BOOKS PAGE — page-specific styling
+   Layers on top of the shared rep-america.css design tokens.
+   ========================================================= */
+
+/* Intro (philosophy paragraph + influence chain) */
+.ra-gb-intro__text {
+  margin-bottom: var(--ra-space-2xl);
+}
+
+/* Tighten the gap from the intro/chain down into the book list — the
+   shared .ra-section top/bottom padding (72px each) otherwise stacks up to
+   144px of empty space between the last chain line and the list heading. */
+.ra-gb-intro {
+  padding-bottom: 36px;
+}
+
+.ra-gb-list {
+  padding-top: 36px;
+}
+
+.ra-gb-chain {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 560px;
+  border-top: 1px solid var(--ra-color-border);
+}
+
+.ra-gb-chain__item {
+  position: relative;
+  padding: 18px 0 22px;
+  border-bottom: 1px solid var(--ra-color-border);
+  text-align: center;
+  font-family: var(--font-heading-family, Georgia, serif);
+  font-size: var(--ra-text-lg);
+  color: var(--ra-color-ink);
+}
+
+.ra-gb-chain__item:last-child {
+  border-bottom: 0;
+  padding-bottom: 18px;
+}
+
+/* Down arrow between lines so the chain reads as a sequence, not a clickable nav list. Same accent as About's philosophy chain arrows (#b01f2e). */
+.ra-gb-chain__item:not(:last-child)::after {
+  content: "↓";
+  position: absolute;
+  left: 50%;
+  bottom: -12px;
+  transform: translateX(-50%);
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: var(--ra-color-surface, #fff);
+  color: #b01f2e;
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* List header (heading + intro/disclosure, centered) */
+.ra-gb-list__header {
+  max-width: 720px;
+  margin: 0 auto 28px;
+  text-align: center;
+}
+
+.ra-gb-list__heading {
+  margin: 0 0 var(--ra-space-md);
+}
+
+.ra-gb-list__intro {
+  color: var(--ra-color-muted);
+  font-size: var(--ra-text-md);
+  line-height: 1.6;
+}
+
+.ra-gb-list__intro p {
+  margin: 0 0 0.6em;
+}
+
+.ra-gb-list__intro p:last-child {
+  margin-bottom: 0;
+}
+
+/* -----------------------------------------------------------
+   Editorial index (replaces the old desktop table + mobile cards).
+   One responsive list of rows: number · title · meta · Buy.
+   Title links to the work's own page; Buy is the affiliate link.
+----------------------------------------------------------- */
+.ra-gb-index {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--ra-color-border);
+}
+
+.ra-gb-index__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--ra-space-md);
+  border-bottom: 1px solid var(--ra-color-border);
+  transition: background-color 0.15s ease;
+}
+
+.ra-gb-index__row:hover {
+  background: var(--ra-color-soft);
+}
+
+.ra-gb-index__link {
+  display: flex;
+  align-items: center;
+  gap: var(--ra-space-md);
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 18px 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.ra-gb-index__num {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 2.75ch;
+  font-size: var(--ra-text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--ra-color-subtle);
+}
+
+/* Cover of the recommended edition. Fixed box, image contained inside it, so covers of
+   different aspect ratios still read as an even column down the page. */
+.ra-gb-index__cover {
+  flex: 0 0 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 66px;
+}
+
+.ra-gb-index__cover img {
+  max-width: 46px;
+  max-height: 66px;
+  width: auto;
+  height: auto;
+  border-radius: 2px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+}
+
+.ra-gb-index__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ra-gb-index__title {
+  font-family: var(--font-heading-family, Georgia, serif);
+  font-size: 23px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ra-color-ink);
+}
+
+.ra-gb-index__row:hover .ra-gb-index__title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.ra-gb-index__meta {
+  font-size: var(--ra-text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ra-color-subtle);
+}
+
+.ra-gb-index__buy {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border: 1px solid var(--ra-color-border);
+  border-radius: 999px;
+  font-size: var(--ra-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ra-color-subtle);
+  white-space: nowrap;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.ra-gb-index__buy:hover {
+  background: var(--ra-color-ink);
+  border-color: var(--ra-color-ink);
+  color: #fff;
+}
+
+@media screen and (max-width: 749px) {
+  .ra-gb-index__link {
+    padding: 15px 0;
+    gap: var(--ra-space-sm);
+  }
+
+  .ra-gb-index__cover {
+    flex: 0 0 38px;
+    height: 54px;
+  }
+
+  .ra-gb-index__cover img {
+    max-width: 38px;
+    max-height: 54px;
+  }
+
+  .ra-gb-index__title {
+    font-size: 19px;
+  }
+
+  .ra-gb-index__buy {
+    padding: 5px 11px;
+  }
+}
+
+/* Quote */
+.ra-gb-quote {
+  text-align: center;
+}
+
+.ra-gb-quote__text {
+  margin: 0;
+  font-family: var(--font-heading-family, Georgia, serif);
+  font-style: italic;
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.4;
+  color: var(--ra-color-ink);
+}
+
+@media screen and (max-width: 749px) {
+  .ra-gb-chain__item {
+    font-size: var(--ra-text-md);
+  }
+}

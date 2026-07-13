@@ -1,1 +1,81 @@
-{"sections":{"main":{"type":"main-page","disabled":true,"settings":{"padding_top":28,"padding_bottom":12}},"custom_liquid_yBBX7Y":{"type":"custom-liquid","name":"Liquid - Watch Video Grid","settings":{"custom_liquid":"{% assign watch_blog = blogs['watch'] %}\n\n<section class=\"ra-section ra-watch\">\n  <div class=\"ra-container\">\n    <div class=\"ra-section-header\">\n      <h1 class=\"ra-section-header__title\">Watch<\/h1>\n      <p class=\"ra-section-header__text\">\n        Independent commentary, livestreams, interviews, and conversations that go beyond the headlines.\n      <\/p>\n    <\/div>\n\n    <div class=\"ra-filters\" aria-label=\"Video categories\">\n      <button class=\"ra-filter is-active\" data-filter=\"all\" type=\"button\">All<\/button>\n      <button class=\"ra-filter\" data-filter=\"livestream\" type=\"button\">Livestream<\/button>\n      <button class=\"ra-filter\" data-filter=\"interviews\" type=\"button\">Interviews<\/button>\n      <button class=\"ra-filter\" data-filter=\"commentary\" type=\"button\">Commentary<\/button>\n    <\/div>\n\n    <div class=\"ra-grid-3\">\n      {% for article in watch_blog.articles limit: 24 %}\n        {% assign category = article.metafields.custom.category.value | default: article.metafields.custom.category | default: 'Commentary' %}\n        {% assign category_handle = category | handleize %}\n        {% assign youtube_url = article.metafields.custom.youtube_url.value | default: article.metafields.custom.youtube_url %}\n        {% assign video_id = '' %}\n\n        {% if youtube_url contains 'youtu.be\/' %}\n          {% assign video_id = youtube_url | split: 'youtu.be\/' | last | split: '?' | first | split: '&' | first %}\n        {% elsif youtube_url contains 'watch?v=' %}\n          {% assign video_id = youtube_url | split: 'watch?v=' | last | split: '&' | first %}\n        {% elsif youtube_url contains '\/embed\/' %}\n          {% assign video_id = youtube_url | split: '\/embed\/' | last | split: '?' | first | split: '&' | first %}\n        {% elsif youtube_url contains '\/live\/' %}\n          {% assign video_id = youtube_url | split: '\/live\/' | last | split: '?' | first | split: '&' | first %}\n        {% elsif youtube_url contains '\/shorts\/' %}\n          {% assign video_id = youtube_url | split: '\/shorts\/' | last | split: '?' | first | split: '&' | first %}\n        {% endif %}\n\n        <article class=\"ra-video-card\" data-category=\"{{ category_handle }}\">\n          <a href=\"{{ article.url }}\" class=\"ra-video-card__link\" aria-label=\"Watch {{ article.title | escape }}\">\n            <div class=\"ra-video-card__thumb\">\n              {% if video_id != blank %}\n                <img\n                  src=\"https:\/\/img.youtube.com\/vi\/{{ video_id }}\/hqdefault.jpg\"\n                  alt=\"{{ article.title | escape }}\"\n                  loading=\"lazy\"\n                >\n              {% elsif article.image %}\n                <img\n                  src=\"{{ article.image | image_url: width: 900 }}\"\n                  alt=\"{{ article.title | escape }}\"\n                  loading=\"lazy\"\n                >\n              {% endif %}\n            <\/div>\n\n            <div class=\"ra-video-card__body\">\n              <div class=\"ra-video-card__category\">{{ category }}<\/div>\n              <h2 class=\"ra-video-card__title\">{{ article.title }}<\/h2>\n              <div class=\"ra-video-card__meta\">{{ article.published_at | date: \"%b %-d, %Y\" }}<\/div>\n            <\/div>\n          <\/a>\n        <\/article>\n      {% endfor %}\n    <\/div>\n\n    <p class=\"ra-empty\" hidden>No videos found in this category.<\/p>\n  <\/div>\n<\/section>\n\n<script>\n  document.addEventListener('DOMContentLoaded', function () {\n    const filters = document.querySelectorAll('.ra-filter');\n    const cards = document.querySelectorAll('.ra-video-card');\n    const empty = document.querySelector('.ra-empty');\n\n    filters.forEach(button => {\n      button.addEventListener('click', () => {\n        const filter = button.dataset.filter;\n        let visibleCount = 0;\n\n        filters.forEach(btn => btn.classList.remove('is-active'));\n        button.classList.add('is-active');\n\n        cards.forEach(card => {\n          const match = filter === 'all' || card.dataset.category === filter;\n          card.style.display = match ? '' : 'none';\n          if (match) visibleCount++;\n        });\n\n        if (empty) {\n          empty.hidden = visibleCount !== 0;\n        }\n      });\n    });\n  });\n<\/script>","color_scheme":"","padding_top":12,"padding_bottom":44}}},"order":["main","custom_liquid_yBBX7Y"]}
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "disabled": true,
+      "settings": {
+        "padding_top": 28,
+        "padding_bottom": 12
+      }
+    },
+    "watch_hero": {
+      "type": "watch-hero",
+      "name": "Watch hero",
+      "settings": {
+        "eyebrow": "Independent Media",
+        "heading": "Watch Rep America",
+        "text": "<p>Independent media, timeless ideas, and the people building a stronger America \u2014 on camera.</p>",
+        "blog": "watch",
+        "featured_label": "Latest Episode"
+      }
+    },
+    "watch_video_grid": {
+      "type": "watch-video-grid",
+      "name": "Watch video grid",
+      "blocks": {
+        "filter_all": {
+          "type": "filter",
+          "settings": {
+            "label": "All",
+            "value": "all"
+          }
+        },
+        "filter_livestream": {
+          "type": "filter",
+          "settings": {
+            "label": "Livestream",
+            "value": "livestream"
+          }
+        },
+        "filter_interviews": {
+          "type": "filter",
+          "settings": {
+            "label": "Interviews",
+            "value": "interviews"
+          }
+        },
+        "filter_commentary": {
+          "type": "filter",
+          "settings": {
+            "label": "Commentary",
+            "value": "commentary"
+          }
+        },
+        "filter_shorts": {
+          "type": "filter",
+          "settings": {
+            "label": "Shorts",
+            "value": "shorts"
+          }
+        }
+      },
+      "block_order": [
+        "filter_all",
+        "filter_livestream",
+        "filter_interviews",
+        "filter_commentary",
+        "filter_shorts"
+      ],
+      "settings": {
+        "blog": "watch",
+        "limit": 250,
+        "heading": "All Episodes"
+      }
+    }
+  },
+  "order": [
+    "main",
+    "watch_hero",
+    "watch_video_grid"
+  ]
+}

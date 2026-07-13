@@ -1,0 +1,33 @@
+<section class="ra-section ra-workshop-disclaimer" id="WorkshopDisclaimer-{{ section.id }}">
+  <div class="ra-container-sm ra-text-center">
+    {%- if section.settings.text != blank -%}
+      <p class="ra-workshop-disclaimer__text">{{ section.settings.text }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- style -%}
+  .ra-workshop-disclaimer__text {
+    margin: 0;
+    font-size: var(--ra-text-sm);
+    color: var(--ra-color-subtle);
+  }
+{%- endstyle -%}
+
+{% schema %}
+{
+  "name": "Workshop disclaimer",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Text",
+      "default": "Products featured in The Essentials are recommendations only and are not medical advice."
+    }
+  ],
+  "presets": [
+    { "name": "Workshop disclaimer" }
+  ]
+}
+{% endschema %}

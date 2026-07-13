@@ -2,6 +2,60 @@
   max-width: 100%;
 }
 
+.contact .button::after,
+.contact .button::before {
+  /* Dawn renders a button's border (::after) AND its theme-wide drop shadow
+     (::before) as separate absolutely-positioned pseudo-elements, both sized
+     to the button's square bounding box (border-radius: 0) regardless of
+     the button's own border-radius. Our button is a rounded pill
+     (border-radius: 999px, set below), so both pseudo-elements' square
+     corners were poking out past the pill's rounded corners -- first
+     visible as a red ring (::after, reading the color scheme's red accent),
+     then still a mismatched square edge once recolored, and separately a
+     square drop-shadow (::before) creating the same "boxed" look even after
+     ::after was disabled. Disabling both entirely: the button already has
+     its own solid fill, so neither synthetic layer is needed, matching how
+     .ra-button looks everywhere else on the site (clean fill, soft natural
+     shadow only from .contact__button's own spacing, no pseudo-element
+     artifacts). */
+  content: none;
+  box-shadow: none;
+}
+
+.contact .title {
+  font-size: var(--ra-text-3xl, 48px);
+  letter-spacing: -0.02em;
+  color: var(--ra-color-ink, #111111);
+}
+
+.contact .field__input {
+  border-radius: var(--ra-radius-sm, 6px);
+  border-color: var(--ra-color-border, rgba(0, 0, 0, 0.14));
+}
+
+.contact .field__input:focus {
+  border-color: var(--ra-color-ink, #111111);
+  box-shadow: none;
+}
+
+.contact .field__label {
+  color: var(--ra-color-subtle, rgba(0, 0, 0, 0.42));
+}
+
+.contact .button {
+  border-radius: var(--ra-radius-pill, 999px);
+  background: var(--ra-color-ink, #111111);
+  border-color: var(--ra-color-ink, #111111);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.contact .button:hover {
+  opacity: 0.88;
+}
+
 .contact .form__message {
   align-items: flex-start;
 }

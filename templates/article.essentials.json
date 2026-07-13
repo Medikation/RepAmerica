@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "main": {
+      "type": "essentials-article",
+      "settings": {
+        "parent_label": "The Essentials",
+        "parent_url": "/pages/shop",
+        "disclosure": "Some links on this page are affiliate links. Purchases made through them help support Rep America at no additional cost to you."
+      }
+    }
+  },
+  "order": ["main"]
+}

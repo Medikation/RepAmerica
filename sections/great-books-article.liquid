@@ -1,0 +1,733 @@
+{%- comment -%}
+  Great Books article template.
+
+  Turns a Great Books blog article (previously a bare H1 — a data record behind the
+  Great Books Project table) into a real content page: eyebrow > H1 > work metadata
+  (author / written / translation) > written body > "the edition I recommend" CTA >
+  disclosure > related works from the same list.
+
+  Heading hierarchy: H1 (work) > H2 (body sections, authored in the article content)
+  > H2 (More from <list>) > H3 (related work titles).
+{%- endcomment -%}
+
+{%- assign gb_author = article.metafields.custom.author.value | default: article.metafields.custom.author -%}
+{%- assign gb_written = article.metafields.custom.written_display.value
+  | default: article.metafields.custom.written_display
+-%}
+{%- assign gb_translation = article.metafields.custom.translation.value
+  | default: article.metafields.custom.translation
+-%}
+{%- assign gb_url = article.metafields.custom.affiliate_url.value | default: article.metafields.custom.affiliate_url -%}
+{%- assign gb_list = article.metafields.custom.list_category.value
+  | default: article.metafields.custom.list_category
+  | default: 'Great Books'
+-%}
+{%- comment -%}
+  Works written in English carry "Original" in the translation metafield. Blank it out so
+  the page doesn't say "Original translation" — there is no translator to credit.
+{%- endcomment -%}
+{%- if gb_translation == 'Original' -%}{%- assign gb_translation = '' -%}{%- endif -%}
+
+{%- comment -%}
+  For works originally written in English the metafield names an editor/publisher, not a
+  translator, so calling it a "translation" is wrong. The body itself tells us which case
+  we're in: those pages carry a "Which edition to read" section instead.
+{%- endcomment -%}
+{%- assign edition_word = 'translation' -%}
+{%- if article.content contains 'Which edition to read' -%}
+  {%- assign edition_word = 'edition' -%}
+{%- endif -%}
+
+{%- assign gb_reading_time = article.metafields.custom.reading_time.value
+  | default: article.metafields.custom.reading_time
+-%}
+{%- assign gb_difficulty = article.metafields.custom.difficulty.value | default: article.metafields.custom.difficulty -%}
+{%- assign gb_language = article.metafields.custom.original_language.value
+  | default: article.metafields.custom.original_language
+-%}
+{%- assign gb_genre = article.metafields.custom.genre.value | default: article.metafields.custom.genre -%}
+{%- assign gb_period = article.metafields.custom.historical_period.value
+  | default: article.metafields.custom.historical_period
+-%}
+{%- assign gb_best_for = article.metafields.custom.best_for.value | default: article.metafields.custom.best_for -%}
+{%- assign gb_influenced_by = article.metafields.custom.influenced_by.value
+  | default: article.metafields.custom.influenced_by
+-%}
+{%- assign gb_influenced = article.metafields.custom.influenced.value | default: article.metafields.custom.influenced -%}
+
+{%- comment -%}
+  ONE paginate pass computes everything that needs to walk the blog in reading order:
+  the "Read next" cards (rendered near the bottom) and the single next work (shown in the
+  Quick Facts box at the top). Doing it once avoids a second paginate tag in the same
+  section, and Liquid `assign`s made inside a capture persist outside it.
+
+  Reading order = ascending published_at (the synthetic dates assigned by orig_order at
+  migration), so `| reverse` on Shopify's native descending order gives the list order.
+  Paginate must wrap the loop DIRECTLY — inside a {% capture %} it is ignored and the
+  silent 50-article cap comes back (this bit us: Odyssey was recommending Tocqueville).
+{%- endcomment -%}
+{%- assign passed_current = false -%}
+{%- assign related_count = 0 -%}
+{%- assign next_title = '' -%}
+{%- assign next_url = '' -%}
+{%- comment -%}
+  Chronological position within this list ("No. 12 of 65"). Computed, never stored: insert a
+  work into the list and every position downstream fixes itself.
+{%- endcomment -%}
+{%- assign list_total = 0 -%}
+{%- assign list_position = 0 -%}
+
+{%- paginate blog.articles by 250 -%}
+{%- assign reading_order = blog.articles | reverse -%}
+
+{%- for other in reading_order -%}
+  {%- assign other_list = other.metafields.custom.list_category.value
+    | default: other.metafields.custom.list_category
+  -%}
+  {%- if other_list != gb_list -%}{%- continue -%}{%- endif -%}
+  {%- assign list_total = list_total | plus: 1 -%}
+  {%- if other.handle == article.handle -%}
+    {%- assign list_position = list_total -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- capture related_items -%}
+  {%- for pass in (1..2) -%}
+    {%- for other in reading_order -%}
+      {%- if related_count >= 3 -%}{%- break -%}{%- endif -%}
+      {%- assign other_list = other.metafields.custom.list_category.value
+        | default: other.metafields.custom.list_category
+      -%}
+      {%- if other_list != gb_list -%}{%- continue -%}{%- endif -%}
+      {%- if other.handle == article.handle -%}
+        {%- assign passed_current = true -%}
+        {%- continue -%}
+      {%- endif -%}
+      {%- unless passed_current -%}{%- continue -%}{%- endunless -%}
+      {%- assign related_count = related_count | plus: 1 -%}
+      {%- if related_count == 1 -%}
+        {%- assign next_title = other.title -%}
+        {%- assign next_url = other.url -%}
+      {%- endif -%}
+      {%- assign other_author = other.metafields.custom.author.value | default: other.metafields.custom.author -%}
+      {%- assign other_written = other.metafields.custom.written_display.value
+        | default: other.metafields.custom.written_display
+      -%}
+
+      <li class="ra-gba__related-item">
+        <h3 class="ra-gba__related-title">
+          <a href="{{ other.url }}">{{ other.title }}</a>
+        </h3>
+        <span class="ra-gba__related-meta">
+          {{- other_author -}}
+          {%- if other_written != blank %} <span aria-hidden="true">·</span> {{ other_written }}{% endif -%}
+        </span>
+      </li>
+    {%- endfor -%}
+    {%- if related_count >= 3 -%}{%- break -%}{%- endif -%}
+    {%- comment -%}Wrap: on the second pass, start collecting from the top of the list.{%- endcomment -%}
+    {%- assign passed_current = true -%}
+  {%- endfor -%}
+{%- endcapture -%}
+{%- endpaginate -%}
+
+<article class="ra-section ra-gba">
+  <div class="ra-container-md">
+    <p class="ra-gba__eyebrow">
+      <a href="{{ section.settings.parent_url }}">{{ section.settings.parent_label | escape }}</a>
+      {%- if gb_list != blank %} <span aria-hidden="true">·</span> {{ gb_list }}{% endif -%}
+    </p>
+
+    <h1 class="ra-gba__title">{{ article.title }}</h1>
+
+    <p class="ra-gba__meta">
+      {%- if gb_author != blank -%}{{ gb_author }}{%- endif -%}
+      {%- if gb_written != blank %} <span aria-hidden="true">·</span> Written {{ gb_written }}{% endif -%}
+      {%- if gb_translation != blank %} <span aria-hidden="true">·</span> {{ gb_translation }} {{ edition_word }}{% endif -%}
+    </p>
+
+    {%- if article.excerpt != blank -%}
+      <div class="ra-gba__lede">{{ article.excerpt }}</div>
+    {%- endif -%}
+
+    {%- comment -%}
+      Cover of the recommended edition, beside the At a Glance box. The cover IS the link to
+      the recommended edition, with a small text link under it — no button up here. The page
+      is a reading guide, not a product listing: content first, one prominent CTA, at the end.
+
+      Standing rule: the cover shown here must always be the exact edition recommended, and it
+      links to that edition's affiliate URL.
+    {%- endcomment -%}
+    <div class="ra-gba__brief{% unless article.image %} ra-gba__brief--nocover{% endunless %}">
+      {%- if article.image -%}
+        <figure class="ra-gba__cover">
+          {%- if gb_url != blank -%}
+            <a href="{{ gb_url }}" target="_blank" rel="nofollow sponsored noopener">
+              <img
+                src="{{ article.image | image_url: width: 500 }}"
+                alt="{{ article.image.alt | default: article.title | escape }}"
+                loading="eager"
+              >
+            </a>
+            <figcaption class="ra-gba__cover-link">
+              <a href="{{ gb_url }}" target="_blank" rel="nofollow sponsored noopener">View on Amazon &rarr;</a>
+            </figcaption>
+          {%- else -%}
+            <img
+              src="{{ article.image | image_url: width: 500 }}"
+              alt="{{ article.image.alt | default: article.title | escape }}"
+              loading="eager"
+            >
+          {%- endif -%}
+        </figure>
+      {%- endif -%}
+
+    {%- comment -%}
+      Quick Facts — the whole page in one glance, above the fold. Each row renders only if
+      its metafield has a value, so a work missing (say) a difficulty rating just drops
+      that line rather than showing an empty label.
+    {%- endcomment -%}
+    <aside class="ra-gba__facts" aria-label="At a glance">
+      <p class="ra-gba__facts-title">At a Glance</p>
+      <dl class="ra-gba__facts-list">
+        {%- if gb_author != blank -%}
+          <div class="ra-gba__fact"><dt>Author</dt><dd>{{ gb_author }}</dd></div>
+        {%- endif -%}
+        {%- if gb_language != blank -%}
+          <div class="ra-gba__fact"><dt>Original language</dt><dd>{{ gb_language }}</dd></div>
+        {%- endif -%}
+        {%- if gb_written != blank -%}
+          <div class="ra-gba__fact"><dt>Written</dt><dd>{{ gb_written }}</dd></div>
+        {%- endif -%}
+        {%- if gb_genre != blank -%}
+          <div class="ra-gba__fact"><dt>Genre</dt><dd>{{ gb_genre }}</dd></div>
+        {%- endif -%}
+        {%- if gb_reading_time != blank -%}
+          <div class="ra-gba__fact"><dt>Reading time</dt><dd>{{ gb_reading_time }}</dd></div>
+        {%- endif -%}
+        {%- if gb_difficulty != blank -%}
+          <div class="ra-gba__fact"><dt>Reading difficulty</dt><dd>{{ gb_difficulty }}</dd></div>
+        {%- endif -%}
+        {%- if gb_period != blank -%}
+          <div class="ra-gba__fact"><dt>Historical period</dt><dd>{{ gb_period }}</dd></div>
+        {%- endif -%}
+        {%- if gb_best_for != blank -%}
+          <div class="ra-gba__fact"><dt>Best for</dt><dd>{{ gb_best_for }}</dd></div>
+        {%- endif -%}
+        {%- if gb_translation != blank -%}
+          <div class="ra-gba__fact">
+            <dt>Recommended {{ edition_word }}</dt>
+            <dd>{{ gb_translation }}</dd>
+          </div>
+        {%- endif -%}
+        {%- if list_position > 0 -%}
+          <div class="ra-gba__fact">
+            <dt>Reading order</dt>
+            <dd>
+              No. {{ list_position }} of {{ list_total }} in {{ gb_list }}
+              {%- if next_title != blank %} <span class="ra-gba__fact-next">Next: <a href="{{ next_url }}">{{ next_title }}</a></span>{% endif -%}
+            </dd>
+          </div>
+        {%- endif -%}
+        {%- if gb_influenced_by != blank -%}
+          <div class="ra-gba__fact"><dt>Influenced by</dt><dd>{{ gb_influenced_by }}</dd></div>
+        {%- endif -%}
+        {%- if gb_influenced != blank -%}
+          <div class="ra-gba__fact"><dt>Influenced</dt><dd>{{ gb_influenced }}</dd></div>
+        {%- endif -%}
+      </dl>
+    </aside>
+    </div>
+
+    {%- comment -%}
+      The guides carry a [[AMAZON]] marker at the end of the recommended edition's list item.
+      Swap it for a small editorial text link — not a button. One inline link, in the place
+      where a reader has just decided which edition they want.
+    {%- endcomment -%}
+    {%- capture amazon_inline -%}
+      <a class="ra-gba__inline-buy" href="{{ gb_url }}" target="_blank" rel="nofollow sponsored noopener">View on Amazon &rarr;</a>
+    {%- endcapture -%}
+    <div class="ra-gba__body rte">
+      {%- if gb_url != blank -%}
+        {{ article.content | replace: '[[AMAZON]]', amazon_inline }}
+      {%- else -%}
+        {{ article.content | replace: '[[AMAZON]]', '' }}
+      {%- endif -%}
+    </div>
+
+    {%- comment -%}
+      The ONE prominent call to action on the page, placed after the reader has finished the
+      guide. Everything above it is editorial; nothing above it is a button.
+    {%- endcomment -%}
+    {%- if gb_url != blank -%}
+      <div class="ra-gba__actions">
+        <a
+          class="ra-button ra-button--primary"
+          href="{{ gb_url }}"
+          target="_blank"
+          rel="nofollow sponsored noopener"
+        >View on Amazon</a>
+        {%- if gb_translation != blank -%}
+          <span class="ra-gba__actions-note">The {{ gb_translation }} {{ edition_word }} — the edition recommended for this work.</span>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- comment -%}
+      Collector's edition — renders ONLY when there's something real to show. The gate is
+      `collector_label`: no label, no section. Nothing here degrades into an empty box or a
+      placeholder on the ~100 works that will never have a collector's copy. Images, note,
+      images, note and video are each independently optional, so a bare label + one photo
+      works, and so does a full write-up with a video.
+
+      No purchase link by design: these editions are mostly out of print or limited runs,
+      so a "where I bought it" link would rot. The block documents the copy, it doesn't
+      sell it.
+    {%- endcomment -%}
+    {%- assign col_label = article.metafields.custom.collector_label.value
+      | default: article.metafields.custom.collector_label
+    -%}
+    {%- if col_label != blank -%}
+      {%- assign col_note = article.metafields.custom.collector_note.value
+        | default: article.metafields.custom.collector_note
+      -%}
+      {%- assign col_video = article.metafields.custom.collector_video.value
+        | default: article.metafields.custom.collector_video
+      -%}
+      {%- assign col_images = article.metafields.custom.collector_images.value -%}
+
+      <section class="ra-gba__collector" aria-label="The edition I own">
+        <p class="ra-gba__collector-eyebrow">{{ section.settings.collector_eyebrow | escape }}</p>
+        <h2 class="ra-gba__collector-title">{{ col_label }}</h2>
+
+        {%- if col_images != blank -%}
+          <div class="ra-gba__collector-images">
+            {%- for img in col_images -%}
+              <figure class="ra-gba__collector-image">
+                <img
+                  src="{{ img | image_url: width: 900 }}"
+                  alt="{{ img.alt | default: col_label | escape }} — {{ article.title | escape }}"
+                  loading="lazy"
+                >
+              </figure>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- if col_note != blank -%}
+          <div class="ra-gba__collector-note">{{ col_note | newline_to_br }}</div>
+        {%- endif -%}
+
+        {%- if col_video != blank -%}
+          {%- capture col_video_id -%}{%- render 'youtube-id', youtube_url: col_video -%}{%- endcapture -%}
+          {%- assign col_video_id = col_video_id | strip -%}
+          {%- if col_video_id != blank -%}
+            <div class="ra-gba__collector-video">
+              <iframe
+                src="https://www.youtube.com/embed/{{ col_video_id }}"
+                title="{{ col_label | escape }} — {{ article.title | escape }}"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+              ></iframe>
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+
+      </section>
+    {%- endif -%}
+
+    {%- if section.settings.disclosure != blank -%}
+      <p class="ra-gba__disclosure">{{ section.settings.disclosure | escape }}</p>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%}
+    "Read next" — rendered from the single paginate pass at the top of this section, which
+    already walked the blog in reading order and captured these rows.
+  {%- endcomment -%}
+  {%- if related_count > 0 -%}
+    <div class="ra-container-md ra-gba__related">
+      <h2 class="ra-gba__related-heading">Read next in {{ gb_list }}</h2>
+      <ul class="ra-gba__related-list">{{ related_items }}</ul>
+      <p class="ra-gba__back">
+        <a class="ra-text-link" href="{{ section.settings.parent_url }}">Back to {{ section.settings.parent_label | escape }}</a>
+      </p>
+    </div>
+  {%- endif -%}
+</article>
+
+{%- style -%}
+  .ra-gba__eyebrow {
+    margin: 0 0 var(--ra-space-sm);
+    font-size: var(--ra-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ra-color-subtle);
+  }
+
+  .ra-gba__eyebrow a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ra-gba__eyebrow a:hover {
+    color: var(--ra-color-ink);
+  }
+
+  .ra-gba__title {
+    margin: 0 0 var(--ra-space-xs);
+    font-size: clamp(34px, 5.5vw, 52px);
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    color: var(--ra-color-ink);
+  }
+
+  .ra-gba__meta {
+    margin: 0 0 var(--ra-space-xl);
+    font-size: var(--ra-text-sm);
+    letter-spacing: 0.02em;
+    color: var(--ra-color-subtle);
+  }
+
+  .ra-gba__lede {
+    margin-bottom: var(--ra-space-lg);
+    font-size: 21px;
+    line-height: 1.5;
+    color: var(--ra-color-muted);
+  }
+
+  /* Cover + Quick Facts sit side by side; the cover column disappears on works with no
+     cover on file, and the facts box takes the full width. */
+  .ra-gba__brief {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: var(--ra-space-xl);
+    align-items: start;
+    margin: var(--ra-space-xl) 0 var(--ra-space-2xl);
+  }
+
+  .ra-gba__brief--nocover {
+    grid-template-columns: 1fr;
+  }
+
+  .ra-gba__cover {
+    margin: 0;
+  }
+
+  .ra-gba__cover-link {
+    margin-top: var(--ra-space-sm);
+    text-align: center;
+    font-size: var(--ra-text-sm);
+  }
+
+  .ra-gba__cover-link a {
+    color: var(--ra-color-subtle);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ra-color-border, rgba(0, 0, 0, 0.18));
+    padding-bottom: 1px;
+  }
+
+  .ra-gba__cover-link a:hover {
+    color: var(--ra-color-ink);
+    border-color: var(--ra-color-ink);
+  }
+
+  /* Inline link on the recommended edition, inside the translation list. Deliberately quiet. */
+  .ra-gba__inline-buy {
+    white-space: nowrap;
+    font-size: var(--ra-text-sm);
+    color: var(--ra-color-subtle);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ra-color-border, rgba(0, 0, 0, 0.18));
+  }
+
+  .ra-gba__inline-buy:hover {
+    color: var(--ra-color-ink);
+    border-color: var(--ra-color-ink);
+  }
+
+  .ra-gba__cover img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 3px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Quick Facts */
+  .ra-gba__facts {
+    margin: 0;
+    padding: var(--ra-space-lg) var(--ra-space-xl);
+    border: 1px solid var(--ra-color-border, rgba(0, 0, 0, 0.14));
+    border-radius: 4px;
+    background: var(--ra-color-soft, #f7f7f5);
+  }
+
+  .ra-gba__facts-title {
+    margin: 0 0 var(--ra-space-md);
+    font-size: var(--ra-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ra-color-subtle);
+  }
+
+  .ra-gba__facts-list {
+    margin: 0;
+  }
+
+  .ra-gba__fact {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: var(--ra-space-md);
+    padding: 9px 0;
+    border-top: 1px solid var(--ra-color-border, rgba(0, 0, 0, 0.1));
+  }
+
+  .ra-gba__fact:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .ra-gba__fact dt {
+    margin: 0;
+    align-self: center;
+    font-size: var(--ra-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ra-color-subtle);
+  }
+
+  .ra-gba__fact dd {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.4;
+    color: var(--ra-color-ink);
+  }
+
+  .ra-gba__fact-next {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--ra-text-sm);
+    color: var(--ra-color-subtle);
+  }
+
+  .ra-gba__fact dd a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--ra-color-border);
+  }
+
+  .ra-gba__fact dd a:hover {
+    text-decoration-color: var(--ra-color-ink);
+  }
+
+  /* Collector's edition — only renders when the collector_label metafield is set */
+  .ra-gba__collector {
+    margin-top: var(--ra-space-4xl);
+    padding-top: var(--ra-space-xl);
+    border-top: 2px solid var(--ra-color-ink);
+  }
+
+  .ra-gba__collector-eyebrow {
+    margin: 0 0 var(--ra-space-xs);
+    font-size: var(--ra-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ra-color-subtle);
+  }
+
+  .ra-gba__collector-title {
+    margin: 0 0 var(--ra-space-lg);
+    font-size: 28px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--ra-color-ink);
+  }
+
+  .ra-gba__collector-images {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--ra-space-md);
+    margin-bottom: var(--ra-space-lg);
+  }
+
+  .ra-gba__collector-image {
+    margin: 0;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--ra-color-soft);
+  }
+
+  .ra-gba__collector-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .ra-gba__collector-note {
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--ra-color-muted);
+  }
+
+  .ra-gba__collector-video {
+    position: relative;
+    margin-top: var(--ra-space-lg);
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 4px;
+  }
+
+  .ra-gba__collector-video iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ra-gba__brief {
+      grid-template-columns: 1fr;
+      justify-items: center;
+    }
+
+    .ra-gba__cover {
+      max-width: 150px;
+    }
+
+    .ra-gba__facts {
+      width: 100%;
+      padding: var(--ra-space-md) var(--ra-space-lg);
+    }
+
+    .ra-gba__fact {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+  }
+
+  .ra-gba__body h2 {
+    margin: var(--ra-space-xl) 0 var(--ra-space-sm);
+    font-size: 26px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--ra-color-ink);
+  }
+
+  .ra-gba__body p,
+  .ra-gba__body li {
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--ra-color-muted);
+  }
+
+  .ra-gba__body blockquote {
+    margin: var(--ra-space-lg) 0;
+    padding-left: var(--ra-space-lg);
+    border-left: 2px solid var(--ra-color-border, rgba(0, 0, 0, 0.15));
+    font-style: italic;
+  }
+
+  .ra-gba__actions {
+    margin-top: var(--ra-space-2xl);
+  }
+
+  .ra-gba__actions-note {
+    display: block;
+    margin-top: var(--ra-space-sm);
+    font-size: var(--ra-text-sm);
+    color: var(--ra-color-subtle);
+  }
+
+  .ra-gba__disclosure {
+    margin-top: var(--ra-space-xl);
+    padding-top: var(--ra-space-md);
+    border-top: 1px solid var(--ra-color-border, rgba(0, 0, 0, 0.1));
+    font-size: var(--ra-text-sm);
+    color: var(--ra-color-subtle);
+  }
+
+  .ra-gba__related {
+    margin-top: var(--ra-space-4xl);
+  }
+
+  .ra-gba__related-heading {
+    margin: 0 0 var(--ra-space-lg);
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    color: var(--ra-color-ink);
+  }
+
+  .ra-gba__related-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ra-gba__related-item {
+    padding: var(--ra-space-md) 0;
+    border-top: 1px solid var(--ra-color-border, rgba(0, 0, 0, 0.1));
+  }
+
+  .ra-gba__related-title {
+    margin: 0 0 4px;
+    font-size: 21px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .ra-gba__related-title a {
+    color: var(--ra-color-ink);
+    text-decoration: none;
+  }
+
+  .ra-gba__related-title a:hover {
+    text-decoration: underline;
+  }
+
+  .ra-gba__related-meta {
+    font-size: var(--ra-text-sm);
+    color: var(--ra-color-subtle);
+  }
+
+  .ra-gba__back {
+    margin-top: var(--ra-space-xl);
+  }
+{%- endstyle -%}
+
+{% schema %}
+{
+  "name": "Great Books article",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "parent_label", "label": "Parent label", "default": "The Great Books Project" },
+    {
+      "type": "text",
+      "id": "collector_eyebrow",
+      "label": "Collector's edition eyebrow",
+      "default": "From my shelf",
+      "info": "Heading above the collector's-edition block. That block only appears on works where the Collector's edition — label metafield is filled in."
+    },
+    { "type": "text", "id": "parent_url", "label": "Parent URL", "default": "/pages/great-books-project" },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA label",
+      "default": "View the recommended edition"
+    },
+    {
+      "type": "text",
+      "id": "disclosure",
+      "label": "Affiliate disclosure",
+      "default": "Some links on this page are affiliate links. Purchases made through them help support the Great Books Project at no additional cost to you."
+    }
+  ]
+}
+{% endschema %}

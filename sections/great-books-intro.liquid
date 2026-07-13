@@ -1,0 +1,58 @@
+{{ 'rep-america-great-books.css' | asset_url | stylesheet_tag }}
+
+<section class="ra-section ra-gb-intro" id="GreatBooksIntro-{{ section.id }}">
+  <div class="ra-container-sm">
+    <div class="ra-intro__text ra-gb-intro__text">{{ section.settings.text }}</div>
+
+    {%- if section.blocks.size > 0 -%}
+      <ul class="ra-gb-chain" aria-label="How the great books influence one another">
+        {%- for block in section.blocks -%}
+          <li class="ra-gb-chain__item" {{ block.shopify_attributes }}>{{ block.settings.line | escape }}</li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Great Books intro",
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Intro text",
+      "default": "<p>This is an ongoing reading project and book list curated to better understand the ideas and individuals that built, shaped, and defined Western civilization.</p><p>The books are organized chronologically so the conversation between history's greatest thinkers can be followed as it unfolded across time.</p>"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "influence_line",
+      "name": "Influence line",
+      "settings": [
+        {
+          "type": "text",
+          "id": "line",
+          "label": "Line",
+          "default": "Homer influences Plato."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Great Books intro",
+      "blocks": [
+        {"type": "influence_line", "settings": {"line": "Homer influences Plato."}},
+        {"type": "influence_line", "settings": {"line": "Plato influences Aristotle."}},
+        {"type": "influence_line", "settings": {"line": "Aristotle shapes Cicero."}},
+        {"type": "influence_line", "settings": {"line": "Augustine carries Rome into Christianity."}},
+        {"type": "influence_line", "settings": {"line": "Aquinas reconciles faith and reason."}},
+        {"type": "influence_line", "settings": {"line": "Locke responds to Hobbes."}},
+        {"type": "influence_line", "settings": {"line": "Burke responds to Rousseau."}},
+        {"type": "influence_line", "settings": {"line": "Nietzsche responds to almost everyone."}}
+      ]
+    }
+  ]
+}
+{% endschema %}

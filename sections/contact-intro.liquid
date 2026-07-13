@@ -1,0 +1,24 @@
+<section class="ra-section ra-intro" id="ContactIntro-{{ section.id }}">
+  <div class="ra-container">
+    <div class="ra-intro__text">{{ section.settings.text }}</div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Contact intro",
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Guest appearances, media inquiries, sponsorships, partnerships, and American manufacturing opportunities are welcome.</p>"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Contact intro"
+    }
+  ]
+}
+{% endschema %}

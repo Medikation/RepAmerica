@@ -1,0 +1,237 @@
+{%- comment -%}
+  Essentials article template.
+
+  Turns an Essentials blog article (previously a bare H1 with no body — a data record
+  behind the Workshop grid) into a real content page: eyebrow > H1 > product image >
+  written body > affiliate CTA > disclosure > related items in the same category.
+
+  Heading hierarchy: H1 (product) > H2 (body sections, authored in the article content)
+  > H2 (More from <category>) > H3 (related product titles).
+{%- endcomment -%}
+
+{%- assign ea_category = article.metafields.custom.essentials_category.value
+  | default: article.metafields.custom.essentials_category
+-%}
+{%- assign ea_label = article.metafields.custom.link_label.value | default: article.metafields.custom.link_label -%}
+{%- assign ea_url = article.metafields.custom.link_url.value | default: article.metafields.custom.link_url -%}
+
+<article class="ra-section ra-ea">
+  <div class="ra-container-md">
+    <p class="ra-ea__eyebrow">
+      <a href="{{ section.settings.parent_url }}">{{ section.settings.parent_label | escape }}</a>
+      {%- if ea_category != blank %} <span aria-hidden="true">·</span> {{ ea_category }}{% endif -%}
+    </p>
+
+    <h1 class="ra-ea__title">{{ article.title }}</h1>
+
+    {%- if article.excerpt != blank -%}
+      <div class="ra-ea__lede">{{ article.excerpt }}</div>
+    {%- endif -%}
+
+    {%- if article.image -%}
+      <div class="ra-ea__image">
+        <img
+          src="{{ article.image | image_url: width: 900 }}"
+          alt="{{ article.image.alt | default: article.title | escape }}"
+          width="900"
+          height="900"
+          loading="eager"
+        >
+      </div>
+    {%- endif -%}
+
+    {%- if ea_url != blank -%}
+      <div class="ra-ea__actions">
+        <a
+          class="ra-button ra-button--primary"
+          href="{{ ea_url }}"
+          target="_blank"
+          rel="nofollow sponsored noopener"
+        >View{% if ea_label != blank %} on {{ ea_label }}{% endif %}</a>
+      </div>
+    {%- endif -%}
+
+    <div class="ra-ea__body rte">
+      {{ article.content }}
+    </div>
+
+    {%- if ea_url != blank -%}
+      <div class="ra-ea__actions ra-ea__actions--bottom">
+        <a
+          class="ra-button ra-button--primary"
+          href="{{ ea_url }}"
+          target="_blank"
+          rel="nofollow sponsored noopener"
+        >View{% if ea_label != blank %} on {{ ea_label }}{% endif %}</a>
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.disclosure != blank -%}
+      <p class="ra-ea__disclosure">{{ section.settings.disclosure | escape }}</p>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%}
+    Paginate lifts Liquid's silent 50-item cap on a bare `{% for %}` over blog.articles.
+    It has to wrap the loop directly — inside a {% capture %} it is ignored.
+  {%- endcomment -%}
+  {%- assign related_count = 0 -%}
+  {%- paginate blog.articles by 250 -%}
+  {%- capture related_cards -%}
+    {%- for other in blog.articles -%}
+      {%- if other.handle == article.handle -%}{%- continue -%}{%- endif -%}
+      {%- assign other_cat = other.metafields.custom.essentials_category.value
+        | default: other.metafields.custom.essentials_category
+      -%}
+      {%- if other_cat != ea_category -%}{%- continue -%}{%- endif -%}
+      {%- if related_count >= 3 -%}{%- break -%}{%- endif -%}
+      {%- assign related_count = related_count | plus: 1 -%}
+
+      <article class="ra-product-card">
+        <a href="{{ other.url }}" class="ra-product-card__link">
+          <div class="ra-product-card__image">
+            {%- if other.image -%}
+              <img src="{{ other.image | image_url: width: 600 }}" alt="{{ other.title | escape }}" loading="lazy">
+            {%- endif -%}
+          </div>
+        </a>
+        <div class="ra-product-card__body">
+          <h3 class="ra-product-card__title">
+            <a class="ra-ea__card-link" href="{{ other.url }}">{{ other.title }}</a>
+          </h3>
+        </div>
+      </article>
+    {%- endfor -%}
+  {%- endcapture -%}
+
+  {%- if related_count > 0 -%}
+    <div class="ra-container ra-ea__related">
+      <div class="ra-section-header ra-text-center">
+        <h2 class="ra-section-header__title">More from {{ ea_category }}</h2>
+      </div>
+      <div class="ra-grid-3">{{ related_cards }}</div>
+      <p class="ra-ea__back">
+        <a class="ra-text-link" href="{{ section.settings.parent_url }}">Back to {{ section.settings.parent_label | escape }}</a>
+      </p>
+    </div>
+  {%- endif -%}
+  {%- endpaginate -%}
+</article>
+
+{%- style -%}
+  .ra-ea__eyebrow {
+    margin: 0 0 var(--ra-space-sm);
+    font-size: var(--ra-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ra-color-subtle);
+  }
+
+  .ra-ea__eyebrow a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ra-ea__eyebrow a:hover {
+    color: var(--ra-color-ink);
+  }
+
+  .ra-ea__title {
+    margin: 0 0 var(--ra-space-md);
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--ra-color-ink);
+  }
+
+  .ra-ea__lede {
+    margin-bottom: var(--ra-space-lg);
+    font-size: 20px;
+    line-height: 1.5;
+    color: var(--ra-color-muted);
+  }
+
+  .ra-ea__image {
+    margin: 0 auto var(--ra-space-xl);
+    max-width: 480px;
+    background: var(--ra-color-surface);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .ra-ea__image img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .ra-ea__actions {
+    margin-bottom: var(--ra-space-xl);
+  }
+
+  .ra-ea__actions--bottom {
+    margin-top: var(--ra-space-xl);
+  }
+
+  .ra-ea__body {
+    color: var(--ra-color-ink);
+  }
+
+  .ra-ea__body h2 {
+    margin: var(--ra-space-xl) 0 var(--ra-space-sm);
+    font-size: 26px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .ra-ea__body p,
+  .ra-ea__body li {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--ra-color-muted);
+  }
+
+  .ra-ea__disclosure {
+    margin-top: var(--ra-space-xl);
+    padding-top: var(--ra-space-md);
+    border-top: 1px solid var(--ra-color-border, rgba(0, 0, 0, 0.1));
+    font-size: var(--ra-text-sm);
+    color: var(--ra-color-subtle);
+  }
+
+  .ra-ea__related {
+    margin-top: var(--ra-space-4xl);
+  }
+
+  .ra-ea__card-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ra-ea__card-link:hover {
+    text-decoration: underline;
+  }
+
+  .ra-ea__back {
+    margin-top: var(--ra-space-xl);
+    text-align: center;
+  }
+{%- endstyle -%}
+
+{% schema %}
+{
+  "name": "Essentials article",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "parent_label", "label": "Parent label", "default": "The Essentials" },
+    { "type": "text", "id": "parent_url", "label": "Parent URL", "default": "/pages/shop" },
+    {
+      "type": "text",
+      "id": "disclosure",
+      "label": "Affiliate disclosure",
+      "default": "Some links on this page are affiliate links. Purchases made through them help support Rep America at no additional cost to you."
+    }
+  ]
+}
+{% endschema %}

@@ -51,31 +51,20 @@
           >
             {{ article.title | escape }}
           </h1>
-          {% if article.metafields.custom.youtube_url != blank %}
-  {% assign youtube_url = article.metafields.custom.youtube_url.value %}
-
-  {% if youtube_url contains 'watch?v=' %}
-    {% assign video_id = youtube_url | split: 'watch?v=' | last | split: '&' | first %}
-  {% elsif youtube_url contains 'youtu.be/' %}
-    {% assign video_id = youtube_url | split: 'youtu.be/' | last | split: '?' | first %}
-    {% elsif youtube_url contains '/live/' %}
-  {% assign video_id = youtube_url | split: '/live/' | last | split: '?' | first %}
-  {% elsif youtube_url contains '/embed/' %}
-    {% assign video_id = youtube_url | split: '/embed/' | last | split: '?' | first %}
-  {% endif %}
-
-  {% if video_id %}
-    <div class="rep-video-embed">
-      <iframe
-        src="https://www.youtube.com/embed/{{ video_id }}"
-        title="{{ article.title | escape }}"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen>
-      </iframe>
-    </div>
-  {% endif %}
-{% endif %}
+          {%- assign youtube_url = article.metafields.custom.youtube_url.value | default: article.metafields.custom.youtube_url -%}
+          {%- capture video_id -%}{%- render 'youtube-id', youtube_url: youtube_url -%}{%- endcapture -%}
+          {%- assign video_id = video_id | strip -%}
+          {%- if video_id != blank -%}
+            <div class="rep-video-embed">
+              <iframe
+                src="https://www.youtube.com/embed/{{ video_id }}"
+                title="{{ article.title | escape }}"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen>
+              </iframe>
+            </div>
+          {%- endif -%}
           {%- if block.settings.blog_show_date -%}
             <span class="circle-divider caption-with-letter-spacing">
               {{- article.published_at | time_tag: format: 'date' -}}
@@ -316,6 +305,39 @@
 <script type="application/ld+json">
   {{ article | structured_data }}
 </script>
+
+{%- assign yt_url = article.metafields.custom.youtube_url.value | default: article.metafields.custom.youtube_url -%}
+{%- capture yt_video_id -%}{%- render 'youtube-id', youtube_url: yt_url -%}{%- endcapture -%}
+{%- assign yt_video_id = yt_video_id | strip -%}
+{%- if yt_video_id != blank -%}
+  {%- assign video_duration = article.metafields.custom.duration.value | default: article.metafields.custom.duration -%}
+  {%- assign video_description = article.excerpt | default: article.content | strip_html | truncatewords: 60 -%}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      "name": {{ article.title | strip_html | json }},
+      "description": {{ video_description | json }},
+      "thumbnailUrl": [{{ "https://img.youtube.com/vi/" | append: yt_video_id | append: "/maxresdefault.jpg" | json }}],
+      "uploadDate": {{ article.published_at | date: "%Y-%m-%dT%H:%M:%S%z" | json }},
+      "embedUrl": {{ "https://www.youtube.com/embed/" | append: yt_video_id | json }}
+      {%- if video_duration != blank -%}
+        {%- assign duration_parts = video_duration | split: ":" -%}
+        {%- assign duration_parts_size = duration_parts.size -%}
+        {%- if duration_parts_size == 2 -%}
+          {%- assign iso_minutes = duration_parts[0] -%}
+          {%- assign iso_seconds = duration_parts[1] -%}
+          ,"duration": "PT{{ iso_minutes }}M{{ iso_seconds }}S"
+        {%- elsif duration_parts_size == 3 -%}
+          {%- assign iso_hours = duration_parts[0] -%}
+          {%- assign iso_minutes = duration_parts[1] -%}
+          {%- assign iso_seconds = duration_parts[2] -%}
+          ,"duration": "PT{{ iso_hours }}H{{ iso_minutes }}M{{ iso_seconds }}S"
+        {%- endif -%}
+      {%- endif -%}
+    }
+  </script>
+{%- endif -%}
 
 {% schema %}
 {

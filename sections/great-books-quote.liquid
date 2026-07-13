@@ -1,0 +1,26 @@
+{{ 'rep-america-great-books.css' | asset_url | stylesheet_tag }}
+
+<section class="ra-section ra-gb-quote" id="GreatBooksQuote-{{ section.id }}">
+  <div class="ra-container-sm">
+    <p class="ra-gb-quote__text">{{ section.settings.text | escape }}</p>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Great Books quote",
+  "settings": [
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Quote",
+      "default": "A civilization that forgets the books that built it eventually forgets itself."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Great Books quote"
+    }
+  ]
+}
+{% endschema %}

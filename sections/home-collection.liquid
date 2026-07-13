@@ -1,0 +1,163 @@
+{%- comment -%}
+  Home collection — the Rep Collection hats on the homepage.
+
+  Replaces Dawn's `featured-collection` here (the Shop page still uses that one). Built as
+  its own section so the homepage can do what the user asked and Dawn can't do cleanly:
+  no section heading, the grid centered rather than left-packed, sitting tight under the
+  "Made in the USA · Built to Last · Limited Runs" trust line above, no prices — each card
+  says "View product" — and a single "View the collection" link underneath all three.
+
+  Prices are deliberately absent: the homepage's job is to send people to the product page,
+  not to price-shop them in a teaser.
+{%- endcomment -%}
+
+{%- assign home_collection = collections[section.settings.collection] -%}
+{%- assign show_count = section.settings.products_to_show | default: 3 -%}
+
+<section class="ra-section ra-home-collection" id="HomeCollection-{{ section.id }}">
+  <div class="ra-container">
+    <div class="ra-home-collection__grid">
+      {%- for product in home_collection.products limit: show_count -%}
+        <article class="ra-home-collection__card">
+          <a class="ra-home-collection__media" href="{{ product.url }}" tabindex="-1" aria-hidden="true">
+            {%- if product.featured_media -%}
+              <img
+                src="{{ product.featured_media | image_url: width: 800 }}"
+                alt="{{ product.featured_media.alt | default: product.title | escape }}"
+                loading="lazy"
+              >
+            {%- endif -%}
+          </a>
+
+          <h3 class="ra-home-collection__title">
+            <a href="{{ product.url }}">{{ product.title | escape }}</a>
+          </h3>
+
+          {%- comment -%}
+            Per-card link is optional — leave "Card link label" blank and the cards are just
+            image + title (both still link to the product). Currently blank by design: the
+            single "View the collection" link below the row carries the call to action.
+          {%- endcomment -%}
+          {%- if section.settings.item_label != blank -%}
+            <a class="ra-text-link ra-home-collection__cue" href="{{ product.url }}">
+              {{- section.settings.item_label | escape -}}
+            </a>
+          {%- endif -%}
+        </article>
+      {%- endfor -%}
+    </div>
+
+    {%- if section.settings.cta_label != blank -%}
+      <div class="ra-home-collection__actions">
+        <a
+          class="ra-text-link"
+          href="{{ section.settings.cta_url | default: home_collection.url }}"
+        >{{ section.settings.cta_label | escape }}</a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- style -%}
+  /* Tight to the trust line above it — this section is the second half of that block,
+     not a separate statement. Its own top padding is zeroed, and the negative margin eats
+     most of the *preceding* section's bottom padding (`.ra-section` = var(--ra-space-3xl)),
+     which is the only way to close the gap from here: CSS can't reach a previous sibling. */
+  .ra-home-collection {
+    padding-top: 0;
+    margin-top: calc(-1 * var(--ra-space-3xl));
+  }
+
+  .ra-home-collection__grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--ra-space-2xl);
+    margin: 0 auto;
+    max-width: 980px;
+  }
+
+  .ra-home-collection__card {
+    flex: 0 1 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .ra-home-collection__media {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--ra-color-soft);
+  }
+
+  .ra-home-collection__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* A touch smaller and lighter than the section heading — these are labels under the
+     photos, not headlines competing with "Products That Reflect Our Values". */
+  .ra-home-collection__title {
+    margin: var(--ra-space-sm) 0 0;
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--ra-color-muted);
+  }
+
+  .ra-home-collection__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ra-home-collection__title a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .ra-home-collection__actions {
+    margin-top: var(--ra-space-lg);
+    text-align: center;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ra-home-collection__grid {
+      gap: var(--ra-space-xl);
+    }
+
+    .ra-home-collection__card {
+      flex: 0 1 100%;
+    }
+  }
+{%- endstyle -%}
+
+{% schema %}
+{
+  "name": "Home collection",
+  "tag": "section",
+  "settings": [
+    { "type": "collection", "id": "collection", "label": "Collection" },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 3
+    },
+    { "type": "text", "id": "item_label", "label": "Card link label", "default": "View product" },
+    { "type": "text", "id": "cta_label", "label": "Link below the grid", "default": "View the collection" },
+    { "type": "text", "id": "cta_url", "label": "Link URL", "default": "/collections/rep-america" }
+  ],
+  "presets": [
+    { "name": "Home collection" }
+  ]
+}
+{% endschema %}

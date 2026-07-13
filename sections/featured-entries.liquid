@@ -1,0 +1,265 @@
+{%- comment -%}
+  Featured entries — a reusable "way in" to the Great Books / Essentials article pages.
+
+  Point it at a blog, add up to four blocks naming an article handle plus a one-line reason
+  to start there, and it renders an editorial 3-up. Built because the 157 new article pages
+  had no human route into them: the lists link to them now, but a 108-row list is not an
+  invitation. This is the invitation.
+
+  Used on: the Great Books page ("Start here") and the Home page ("The Reading Project").
+{%- endcomment -%}
+
+{%- assign entries_blog = section.settings.blog -%}
+
+<section class="ra-section ra-fe" id="FeaturedEntries-{{ section.id }}">
+  <div class="ra-container">
+    <div class="ra-section-header ra-text-center ra-fe__header">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="ra-section-header__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+      {%- if section.settings.heading != blank -%}
+        <h2 class="ra-section-header__title">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if section.settings.text != blank -%}
+        <div class="ra-section-header__text">{{ section.settings.text }}</div>
+      {%- endif -%}
+    </div>
+
+    <div class="ra-fe__grid">
+      {%- comment -%}
+        Fetch each entry through Liquid's global `articles` object, keyed
+        "blog-handle/article-handle". Do NOT try to find it by looping blog.articles:
+        that loop silently caps at the 50 most recent articles, so anything early in a
+        long reading list (Meditations, The Republic) is invisible to it — and paginate
+        doesn't lift the cap on the index template. This lookup has no such limit.
+      {%- endcomment -%}
+      {%- for block in section.blocks -%}
+        {%- capture entry_key -%}{{ entries_blog.handle }}/{{ block.settings.handle }}{%- endcapture -%}
+        {%- assign entry = articles[entry_key] -%}
+        {%- if entry == blank or entry.title == blank -%}{%- continue -%}{%- endif -%}
+        {%- assign author = entry.metafields.custom.author.value | default: entry.metafields.custom.author -%}
+        {%- assign written = entry.metafields.custom.written_display.value
+          | default: entry.metafields.custom.written_display
+        -%}
+        {%- assign category = entry.metafields.custom.essentials_category.value
+          | default: entry.metafields.custom.essentials_category
+        -%}
+
+        <article class="ra-fe__card" {{ block.shopify_attributes }}>
+          {%- comment -%}
+            Media style "book" renders the article image as a small standing book cover
+            (natural aspect, ~80px tall, drop shadow) — people click books when they see
+            books. "square" is the product-card treatment, for Essentials.
+          {%- endcomment -%}
+          {%- if entry.image -%}
+            <a
+              class="ra-fe__image ra-fe__image--{{ section.settings.media_style | default: 'book' }}"
+              href="{{ entry.url }}"
+              tabindex="-1"
+              aria-hidden="true"
+            >
+              <img src="{{ entry.image | image_url: width: 400 }}" alt="" loading="lazy">
+            </a>
+          {%- endif -%}
+
+          {%- comment -%}
+            Eyebrow: a per-card label set on the block (e.g. "Epic Poetry", "Stoicism") when
+            you want to say what *kind* of book it is. Falls back to author · year, or the
+            Essentials category, when the block leaves it blank.
+          {%- endcomment -%}
+          <p class="ra-fe__eyebrow">
+            {%- if block.settings.eyebrow != blank -%}
+              {{ block.settings.eyebrow }}
+            {%- elsif author != blank -%}
+              {{ author }}{% if written != blank %} <span aria-hidden="true">·</span> {{ written }}{% endif %}
+            {%- elsif category != blank -%}
+              {{ category }}
+            {%- endif -%}
+          </p>
+
+          <h3 class="ra-fe__title">
+            <a href="{{ entry.url }}">{{ entry.title }}</a>
+          </h3>
+
+          {%- if block.settings.blurb != blank -%}
+            <p class="ra-fe__blurb">{{ block.settings.blurb | escape }}</p>
+          {%- endif -%}
+
+          <a class="ra-text-link ra-fe__cue" href="{{ entry.url }}">{{ section.settings.cue_label | escape }}</a>
+        </article>
+      {%- endfor -%}
+    </div>
+
+    {%- if section.settings.cta_label != blank and section.settings.cta_url != blank -%}
+      <div class="ra-fe__actions">
+        <a class="ra-button ra-button--secondary" href="{{ section.settings.cta_url }}">
+          {{- section.settings.cta_label | escape -}}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- style -%}
+  .ra-fe__header {
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: var(--ra-space-2xl);
+    max-width: 640px;
+  }
+
+  .ra-fe__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--ra-space-2xl);
+  }
+
+  .ra-fe__card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ra-fe__image {
+    display: block;
+    margin-bottom: var(--ra-space-md);
+  }
+
+  /* Book cover: small, uncropped, standing on the page with a soft shadow. */
+  .ra-fe__image--book img {
+    display: block;
+    height: 84px;
+    width: auto;
+    border-radius: 2px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+  }
+
+  /* Square: the product-card treatment (Essentials). */
+  .ra-fe__image--square {
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--ra-color-soft);
+  }
+
+  .ra-fe__image--square img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ra-fe__eyebrow {
+    margin: 0;
+    font-size: var(--ra-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ra-color-subtle);
+  }
+
+  .ra-fe__title {
+    margin: 0;
+    font-size: 26px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .ra-fe__title a {
+    color: var(--ra-color-ink);
+    text-decoration: none;
+  }
+
+  .ra-fe__title a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .ra-fe__blurb {
+    margin: 4px 0 10px;
+    font-size: var(--ra-text-md, 17px);
+    line-height: 1.5;
+    color: var(--ra-color-muted);
+  }
+
+  .ra-fe__cue {
+    align-self: flex-start;
+    margin-top: auto;
+  }
+
+  .ra-fe__actions {
+    margin-top: var(--ra-space-2xl);
+    text-align: center;
+  }
+
+  @media screen and (max-width: 989px) {
+    .ra-fe__grid {
+      grid-template-columns: 1fr;
+      gap: var(--ra-space-xl);
+    }
+
+    .ra-fe__image--square {
+      aspect-ratio: 16 / 9;
+    }
+  }
+{%- endstyle -%}
+
+{% schema %}
+{
+  "name": "Featured entries",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "Blog to pull entries from",
+      "info": "Great Books or Essentials."
+    },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Start here" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Three ways in" },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Intro",
+      "default": "<p>A hundred books is a wall, not a door. These three are the door.</p>"
+    },
+    {
+      "type": "select",
+      "id": "media_style",
+      "label": "Image style",
+      "options": [
+        { "value": "book", "label": "Book cover (small, uncropped)" },
+        { "value": "square", "label": "Square (product)" }
+      ],
+      "default": "book"
+    },
+    { "type": "text", "id": "cue_label", "label": "Card link label", "default": "Read the guide" },
+    { "type": "text", "id": "cta_label", "label": "Button label", "default": "See the full list" },
+    { "type": "text", "id": "cta_url", "label": "Button URL", "default": "/pages/great-books-project" }
+  ],
+  "blocks": [
+    {
+      "type": "entry",
+      "name": "Entry",
+      "settings": [
+        {
+          "type": "text",
+          "id": "handle",
+          "label": "Article handle",
+          "info": "The end of the article's URL, e.g. the-epic-of-gilgamesh"
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Card eyebrow",
+          "info": "e.g. \"Epic Poetry\", \"Stoicism\". Leave blank to fall back to author · year."
+        },
+        { "type": "text", "id": "blurb", "label": "Why start here" }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    { "name": "Featured entries" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,52 @@
+<section class="ra-section ra-workshop-essentials-intro" id="{{ section.settings.anchor | default: 'the-essentials' }}">
+  <div class="ra-container-sm ra-text-center">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="ra-section-header__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+    {%- endif -%}
+    {%- if section.settings.heading != blank -%}
+      <h2 class="ra-section-header__title">{{ section.settings.heading | escape }}</h2>
+    {%- endif -%}
+    {%- if section.settings.text != blank -%}
+      <div class="ra-intro__text">{{ section.settings.text }}</div>
+    {%- endif -%}
+    {%- if section.settings.disclosure != blank -%}
+      <p class="ra-workshop-essentials-intro__disclosure">{{ section.settings.disclosure }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- style -%}
+  .ra-workshop-essentials-intro__disclosure {
+    margin-top: var(--ra-space-md);
+    font-size: var(--ra-text-sm);
+    font-style: italic;
+    color: var(--ra-color-subtle);
+  }
+{%- endstyle -%}
+
+{% schema %}
+{
+  "name": "Workshop essentials intro",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "Anchor ID", "default": "the-essentials" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "What I Actually Use" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "The Essentials" },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>These are products I personally use. From health and reading to craftsmanship and everyday essentials, every product here has earned its place in The Essentials.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "disclosure",
+      "label": "Affiliate disclosure",
+      "default": "<p>Rep America may earn commissions from qualifying purchases made through affiliate links at no additional cost to you.</p>"
+    }
+  ],
+  "presets": [
+    { "name": "Workshop essentials intro" }
+  ]
+}
+{% endschema %}

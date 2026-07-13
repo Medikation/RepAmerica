@@ -1360,6 +1360,47 @@
     ]
   },
   {
+    "name": "Social sharing images",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Images shown when a page is shared via text or social media. Each page below falls back to the general image if it doesn't have its own set."
+      },
+      {
+        "type": "image_picker",
+        "id": "share_image_fallback",
+        "label": "General fallback image",
+        "info": "Used for any page without a specific image set below (e.g. Contact)."
+      },
+      {
+        "type": "image_picker",
+        "id": "share_image_home",
+        "label": "Home page image"
+      },
+      {
+        "type": "image_picker",
+        "id": "share_image_about",
+        "label": "About page image"
+      },
+      {
+        "type": "image_picker",
+        "id": "share_image_great_books",
+        "label": "Great Books page image"
+      },
+      {
+        "type": "image_picker",
+        "id": "share_image_workshop",
+        "label": "Workshop page image"
+      },
+      {
+        "type": "url",
+        "id": "share_image_watch_url",
+        "label": "Watch page image URL",
+        "info": "A direct image URL (e.g. a YouTube thumbnail link) rather than an uploaded file, since this is usually a specific video thumbnail."
+      }
+    ]
+  },
+  {
     "name": "t:settings_schema.search_input.name",
     "settings": [
       {

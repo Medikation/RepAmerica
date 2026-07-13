@@ -12,8 +12,12 @@
 <div class="collection-hero{% if section.settings.show_collection_image and collection.image %} collection-hero--with-image{% endif %} color-{{ section.settings.color_scheme }} gradient">
   <div class="collection-hero__inner page-width {% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}">
     <div class="collection-hero__text-wrapper">
+      {%- comment -%}
+        SEO: Dawn prefixes the H1 with a visually-hidden "Collection: " label, which Google
+        reads as part of the H1 text ("Collection: Rep America Hats"). Removed so the H1 is
+        just the collection name. The <title>/meta still identify the page type.
+      {%- endcomment -%}
       <h1 class="collection-hero__title">
-        <span class="visually-hidden">{{ 'sections.collection_template.title' | t }}: </span>
         {{- collection.title | escape -}}
       </h1>
 

@@ -175,6 +175,35 @@
 }
 
 /* -----------------------------
+   4b. Intro / Statement Block
+----------------------------- */
+
+.ra-intro {
+  padding: var(--ra-space-2xl) 0;
+}
+
+.ra-intro__text {
+  max-width: var(--ra-container-sm);
+  margin: 0 auto;
+  text-align: center;
+  font-size: var(--ra-text-xl);
+  line-height: 1.6;
+  color: var(--ra-color-muted);
+}
+
+.ra-intro__text p {
+  margin: 0 0 1em;
+}
+
+.ra-intro__text p:last-child {
+  margin-bottom: 0;
+}
+
+.ra-intro__text a {
+  color: var(--ra-color-ink);
+}
+
+/* -----------------------------
    5. Buttons / Links
 ----------------------------- */
 
@@ -356,6 +385,20 @@
   transform: scale(1);
 }
 
+.ra-video-card__duration {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.6;
+}
+
 .ra-video-card__body {
   padding-top: var(--ra-space-md);
 }
@@ -384,6 +427,131 @@
 .ra-video-card__meta {
   font-size: var(--ra-text-sm);
   color: var(--ra-color-subtle);
+}
+
+/* -----------------------------
+   7b. Featured Video
+----------------------------- */
+
+.ra-featured-video {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: var(--ra-space-2xl);
+  align-items: center;
+  margin-bottom: var(--ra-space-3xl);
+}
+
+.ra-featured-video__link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ra-featured-video__thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--ra-radius-lg);
+  background: var(--ra-color-soft);
+}
+
+.ra-featured-video__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--ra-transition-med);
+}
+
+.ra-featured-video:hover .ra-featured-video__thumb img {
+  transform: scale(1.02);
+}
+
+.ra-featured-video__play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--ra-radius-pill);
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 20px;
+  transition:
+    transform var(--ra-transition-fast),
+    background var(--ra-transition-fast);
+}
+
+.ra-featured-video:hover .ra-featured-video__play {
+  transform: translate(-50%, -50%) scale(1.06);
+  background: var(--ra-color-ink);
+}
+
+.ra-featured-video__duration {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.ra-featured-video__eyebrow {
+  margin-bottom: var(--ra-space-sm);
+  font-size: var(--ra-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ra-color-subtle);
+}
+
+.ra-featured-video__title {
+  margin: 0 0 var(--ra-space-sm);
+  font-size: var(--ra-text-2xl);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--ra-color-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ra-featured-video__excerpt {
+  margin: 0 0 var(--ra-space-lg);
+  font-size: var(--ra-text-md);
+  line-height: 1.55;
+  color: var(--ra-color-muted);
+}
+
+.ra-featured-video__meta {
+  margin-bottom: var(--ra-space-lg);
+  font-size: var(--ra-text-sm);
+  color: var(--ra-color-subtle);
+}
+
+@media screen and (max-width: 749px) {
+  .ra-featured-video {
+    grid-template-columns: 1fr;
+    gap: var(--ra-space-lg);
+    margin-bottom: var(--ra-space-2xl);
+  }
+
+  .ra-featured-video__play {
+    width: 52px;
+    height: 52px;
+    font-size: 16px;
+  }
+
+  .ra-featured-video__title {
+    font-size: var(--ra-text-xl);
+  }
 }
 
 /* -----------------------------
@@ -439,6 +607,53 @@
   line-height: 1.2;
   letter-spacing: -0.02em;
   color: var(--ra-color-ink);
+}
+
+/* Native Shopify product cards (Rep Collection, collection pages, etc.) —
+   Dawn renders the visible title as .card__heading.h5 at 13px, noticeably
+   smaller than the Essentials cards. Match the .ra-product-card__title scale
+   so both grids read as one system. */
+.product-card-wrapper .card__heading,
+.product-card-wrapper .card__heading.h5 {
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* Essentials cards: title links to the item's own page; the affiliate link is a
+   separate, explicit second action underneath. */
+.ra-product-card__title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ra-product-card__title-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ra-product-card__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ra-space-md);
+  flex-wrap: wrap;
+}
+
+.ra-product-card__buy {
+  font-size: var(--ra-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ra-color-subtle);
+  border-bottom: 1px solid var(--ra-color-border);
+  padding-bottom: 2px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.ra-product-card__buy:hover {
+  color: var(--ra-color-ink);
+  border-color: var(--ra-color-ink);
 }
 
 .ra-product-card__text {
@@ -516,6 +731,8 @@
 
 .ra-hero__visual img,
 .ra-hero__visual video {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;

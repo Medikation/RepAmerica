@@ -1,0 +1,109 @@
+{%- assign essentials_blog = section.settings.blog -%}
+{%- assign target_category = section.settings.category -%}
+
+<section class="ra-section ra-workshop-list" id="WorkshopList-{{ section.id }}">
+  <div class="ra-container">
+    {%- if section.settings.heading != blank -%}
+      <div class="ra-section-header ra-text-center ra-workshop-list__header">
+        {%- comment -%}
+          SEO: H3, not H2 — the five category lists are subsections of the "The Essentials"
+          H2 rendered by workshop-essentials-intro, so the page reads
+          H1 (The Workshop) > H2 (The Essentials) > H3 (category) > H4 (product).
+          Styling is class-driven, so the visual size is unchanged.
+        {%- endcomment -%}
+        <h3 class="ra-section-header__title">{{ section.settings.heading | escape }}</h3>
+      </div>
+    {%- endif -%}
+
+    {%- if essentials_blog != blank -%}
+      {%- paginate essentials_blog.articles by 250 -%}
+        {%- assign articles_asc = essentials_blog.articles | reverse -%}
+
+        <div class="ra-grid-3 ra-workshop-list__grid">
+          {%- for article in articles_asc -%}
+            {%- assign cat = article.metafields.custom.essentials_category.value | default: article.metafields.custom.essentials_category -%}
+            {%- if cat == target_category -%}
+              {%- assign link_label = article.metafields.custom.link_label.value | default: article.metafields.custom.link_label -%}
+              {%- assign link_url = article.metafields.custom.link_url.value | default: article.metafields.custom.link_url -%}
+
+              {%- comment -%}
+                SEO/navigation: the card now links INTERNALLY to the item's own page (written
+                in Round 26) — it used to link straight out to Amazon, which left every
+                Essentials page orphaned. The affiliate link is still here as an explicit
+                second action, and again as the CTA on the page itself.
+              {%- endcomment -%}
+              <article class="ra-product-card">
+                <a
+                  href="{{ article.url }}"
+                  class="ra-product-card__link"
+                  aria-label="Read about {{ article.title | escape }}"
+                >
+                  <div class="ra-product-card__image">
+                    {%- if article.image -%}
+                      <img
+                        src="{{ article.image | image_url: width: 600 }}"
+                        alt="{{ article.title | escape }}"
+                        loading="lazy"
+                      >
+                    {%- endif -%}
+                  </div>
+                </a>
+                <div class="ra-product-card__body">
+                  <h4 class="ra-product-card__title">
+                    <a class="ra-product-card__title-link" href="{{ article.url }}">{{ article.title }}</a>
+                  </h4>
+                  <div class="ra-product-card__actions">
+                    <a class="ra-text-link" href="{{ article.url }}">Why I use it</a>
+                    {%- if link_url != blank -%}
+                      <a
+                        class="ra-product-card__buy"
+                        href="{{ link_url }}"
+                        target="_blank"
+                        rel="nofollow sponsored noopener"
+                        aria-label="Buy {{ article.title | escape }}{% if link_label != blank %} on {{ link_label }}{% endif %}"
+                      >Buy{% if link_label != blank %} on {{ link_label }}{% endif %}</a>
+                    {%- endif -%}
+                  </div>
+                </div>
+              </article>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endpaginate -%}
+    {%- endif -%}
+  </div>
+</section>
+
+{%- style -%}
+  .ra-workshop-list__header {
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: var(--ra-space-xl);
+  }
+{%- endstyle -%}
+
+{% schema %}
+{
+  "name": "Workshop essentials list",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "Blog to pull products from",
+      "info": "Use the dedicated Essentials blog."
+    },
+    {
+      "type": "text",
+      "id": "category",
+      "label": "Category",
+      "info": "Must exactly match the Essentials Category metafield value on the articles you want shown here.",
+      "default": "Reading & Writing"
+    },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Reading & Writing" }
+  ],
+  "presets": [
+    { "name": "Workshop essentials list" }
+  ]
+}
+{% endschema %}

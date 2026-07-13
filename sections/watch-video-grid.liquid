@@ -1,0 +1,179 @@
+{%- assign watch_blog = section.settings.blog | default: blogs['watch'] -%}
+
+<section class="ra-section ra-watch-grid" id="WatchGrid-{{ section.id }}">
+  <div class="ra-container">
+    {%- if section.settings.heading != blank -%}
+      <div class="ra-section-header ra-text-center ra-watch-grid__header">
+        <h2 class="ra-section-header__title">{{ section.settings.heading | escape }}</h2>
+      </div>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="ra-filters" aria-label="Video categories">
+        {%- for block in section.blocks -%}
+          <button
+            class="ra-filter{% if forloop.first %} is-active{% endif %}"
+            data-filter="{{ block.settings.value | default: 'all' | handleize }}"
+            type="button"
+            {{ block.shopify_attributes }}
+          >{{ block.settings.label }}</button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- paginate watch_blog.articles by section.settings.limit -%}
+      <div class="ra-grid-3">
+        {%- for article in watch_blog.articles -%}
+          {%- assign category = article.metafields.custom.category.value | default: article.metafields.custom.category | default: 'Commentary' -%}
+          {%- assign category_handle = category | handleize -%}
+          {%- assign youtube_url = article.metafields.custom.youtube_url.value | default: article.metafields.custom.youtube_url -%}
+          {%- capture video_id -%}{%- render 'youtube-id', youtube_url: youtube_url -%}{%- endcapture -%}
+          {%- assign video_id = video_id | strip -%}
+          {%- assign duration = article.metafields.custom.duration.value | default: article.metafields.custom.duration -%}
+
+          <article class="ra-video-card" data-category="{{ category_handle }}">
+            <a href="{{ article.url }}" class="ra-video-card__link" aria-label="Watch {{ article.title | escape }}">
+              <div class="ra-video-card__thumb">
+                {%- if video_id != blank -%}
+                  <img
+                    src="https://img.youtube.com/vi/{{ video_id }}/hqdefault.jpg"
+                    alt="{{ article.title | escape }}"
+                    loading="lazy"
+                  >
+                {%- elsif article.image -%}
+                  <img
+                    src="{{ article.image | image_url: width: 900 }}"
+                    alt="{{ article.title | escape }}"
+                    loading="lazy"
+                  >
+                {%- endif -%}
+                {%- if duration != blank -%}
+                  <span class="ra-video-card__duration">{{ duration }}</span>
+                {%- endif -%}
+              </div>
+
+              <div class="ra-video-card__body">
+                <div class="ra-video-card__category">{{ category }}</div>
+                <h3 class="ra-video-card__title">{{ article.title }}</h3>
+                <div class="ra-video-card__meta">{{ article.published_at | date: "%b %-d, %Y" }}</div>
+              </div>
+            </a>
+          </article>
+        {%- else -%}
+          <p class="ra-empty">No videos published yet — check back soon.</p>
+        {%- endfor -%}
+      </div>
+
+      <p class="ra-empty" id="WatchEmpty-{{ section.id }}" hidden>No videos found in this category.</p>
+
+      {%- if paginate.pages > 1 -%}
+        {%- render 'pagination', paginate: paginate -%}
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</section>
+
+<script>
+  (function () {
+    var root = document.getElementById('WatchGrid-{{ section.id }}');
+    if (!root) return;
+
+    var filters = root.querySelectorAll('.ra-filter');
+    var cards = root.querySelectorAll('.ra-video-card');
+    var empty = document.getElementById('WatchEmpty-{{ section.id }}');
+
+    filters.forEach(function (button) {
+      button.addEventListener('click', function () {
+        var filter = button.dataset.filter;
+        var visibleCount = 0;
+
+        filters.forEach(function (btn) {
+          btn.classList.remove('is-active');
+        });
+        button.classList.add('is-active');
+
+        cards.forEach(function (card) {
+          var match = filter === 'all' || card.dataset.category === filter;
+          card.style.display = match ? '' : 'none';
+          if (match) visibleCount++;
+        });
+
+        if (empty) {
+          empty.hidden = visibleCount !== 0;
+        }
+      });
+    });
+  })();
+</script>
+
+{%- style -%}
+  .ra-watch-grid__header {
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: var(--ra-space-xl);
+  }
+{%- endstyle -%}
+
+{% schema %}
+{
+  "name": "Watch video grid",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "All Episodes",
+      "info": "Renders as the H2 above the grid. Video card titles sit under it as H3s, so the page reads H1 > H2 > H3 for SEO. Leave blank to hide."
+    },
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "Blog to pull videos from",
+      "info": "Each article becomes a video card. Uses the article's 'youtube_url' metafield for the thumbnail/link when present, otherwise falls back to the article's featured image."
+    },
+    {
+      "type": "range",
+      "id": "limit",
+      "label": "Videos per page",
+      "min": 0,
+      "max": 250,
+      "step": 25,
+      "default": 250,
+      "info": "250 is Shopify's hard cap per page. Once the Watch archive grows past ~250 published videos, older videos will only be reachable via the page-number links below the grid, and the category filter buttons only filter the videos already loaded on the current page."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "filter",
+      "name": "Filter",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "All"
+        },
+        {
+          "type": "text",
+          "id": "value",
+          "label": "Matches category",
+          "default": "all",
+          "info": "Use \"all\" for the show-everything filter. Otherwise this should match the handleized version of the article's category metafield, e.g. \"livestream\"."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Watch video grid",
+      "blocks": [
+        { "type": "filter", "settings": { "label": "All", "value": "all" } },
+        { "type": "filter", "settings": { "label": "Livestream", "value": "livestream" } },
+        { "type": "filter", "settings": { "label": "Interviews", "value": "interviews" } },
+        { "type": "filter", "settings": { "label": "Commentary", "value": "commentary" } },
+        { "type": "filter", "settings": { "label": "Shorts", "value": "shorts" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
