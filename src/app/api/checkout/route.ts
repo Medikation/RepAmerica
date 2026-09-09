@@ -35,7 +35,9 @@ export async function POST(req: Request) {
   if (!variant.available) return NextResponse.json({ error: "Sold out" }, { status: 409 });
 
   const product = variant.product;
-  const productUrl = `${SITE}/products/${product.handle}`;
+  // Send the buyer back to whichever host they checked out from (the Vercel preview before cutover, repamerica.com after).
+  const origin = (() => { const o = req.headers.get("origin") ?? (req.headers.get("referer") ? new URL(req.headers.get("referer")!).origin : null); return o && /^https:\/\/(repamerica\.com|www\.repamerica\.com|[a-z0-9-]+\.vercel\.app)$/.test(o) ? o : SITE; })();
+  const productUrl = `${origin}/products/${product.handle}`;
   const isDefault = !variant.title || variant.title === "Default Title";
   const name = isDefault ? product.title : `${product.title} - ${variant.title}`;
   const image = variant.image_src ?? [...(product.images ?? [])].sort((a, b) => a.position - b.position)[0]?.src;
@@ -60,7 +62,7 @@ export async function POST(req: Request) {
       ],
       shipping_address_collection: { allowed_countries: ["US"] },
       phone_number_collection: { enabled: false },
-      success_url: `${SITE}/pages/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/pages/thank-you?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: productUrl,
       metadata: { variant_id: String(variant.id), product_id: String(product.id), product_handle: product.handle, quantity: String(quantity) },
     });
