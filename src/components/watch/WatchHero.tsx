@@ -1,4 +1,6 @@
 import type { Article } from "@/lib/data";
+import Image from "next/image";
+import { youtubeBlurDataUrl } from "@/lib/thumb";
 import { excerptOf, metaString, shortDate, videoId } from "./utils";
 
 export interface WatchHeroSettings {
@@ -9,7 +11,7 @@ export interface WatchHeroSettings {
 }
 
 /** Port of sections/watch-hero.liquid. `featured` = newest watch article (the Liquid's `watch_blog.articles.first`). */
-export default function WatchHero({ id, settings, featured }: { id: string; settings: WatchHeroSettings; featured: Article | null }) {
+export default async function WatchHero({ id, settings, featured }: { id: string; settings: WatchHeroSettings; featured: Article | null }) {
   const domId = `WatchHero-${id}`;
   const css = `
   #${domId} .ra-section-header__eyebrow {
@@ -79,6 +81,7 @@ export default function WatchHero({ id, settings, featured }: { id: string; sett
 
   const article = featured;
   const vid = article ? videoId(article) : "";
+  const blur = vid ? await youtubeBlurDataUrl(vid) : undefined;
   const category = article ? metaString(article, "category") || "Commentary" : "";
   const duration = article ? metaString(article, "duration") : "";
   const excerpt = article ? excerptOf(article, 22) : "";
@@ -100,7 +103,7 @@ export default function WatchHero({ id, settings, featured }: { id: string; sett
               <a href={url} className="ra-featured-video__link" aria-label={`Watch ${article.title}`}>
                 <div className="ra-featured-video__thumb">
                   {vid ? (
-                    <img src={`https://img.youtube.com/vi/${vid}/maxresdefault.jpg`} alt={article.title} loading="eager" />
+                    <Image src={`https://img.youtube.com/vi/${vid}/maxresdefault.jpg`} alt={article.title} width={1280} height={720} priority sizes="(max-width: 749px) 100vw, 60vw" placeholder={blur ? "blur" : "empty"} blurDataURL={blur} />
                   ) : article.image_url ? (
                     <img src={article.image_url} alt={article.title} loading="eager" />
                   ) : null}
