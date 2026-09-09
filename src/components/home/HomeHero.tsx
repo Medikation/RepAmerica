@@ -1,5 +1,6 @@
 import type { Article } from "@/lib/data";
 import HeroPlayer from "./HeroPlayer";
+import { youtubeBlurDataUrl } from "@/lib/thumb";
 import { articleUrl, articleVideoId, isBlank, str } from "./util";
 
 export interface HomeHeroSettings {
@@ -9,7 +10,7 @@ export interface HomeHeroSettings {
 }
 
 /** Port of sections/home-hero.liquid. `latest` = newest article of the configured video blog. */
-export default function HomeHero({ id, settings, latest }: { id: string; settings: HomeHeroSettings; latest: Article | null }) {
+export default async function HomeHero({ id, settings, latest }: { id: string; settings: HomeHeroSettings; latest: Article | null }) {
   const eyebrow = str(settings.eyebrow).trim();
   const heading = str(settings.heading).trim();
   const text = str(settings.text);
@@ -19,6 +20,7 @@ export default function HomeHero({ id, settings, latest }: { id: string; setting
   const hasBtn1 = !isBlank(settings.button_label) && !isBlank(settings.button_link);
   const hasBtn2 = !isBlank(settings.button_label_2) && !isBlank(settings.button_link_2);
 
+  const latestBlur = latestId ? await youtubeBlurDataUrl(latestId) : undefined;
   return (
     <section id={`shopify-section-${id}`} className="shopify-section">
       <section id={`HomeHero-${id}`} className="ra-home-hero" aria-labelledby={`HomeHeroHeading-${id}`}>
@@ -74,7 +76,7 @@ export default function HomeHero({ id, settings, latest }: { id: string; setting
                     {settings.video_label}
                   </p>
                 )}
-                <HeroPlayer videoId={latestId} title={latest.title} duration={latestDuration} />
+                <HeroPlayer videoId={latestId} title={latest.title} duration={latestDuration} blurDataURL={latestBlur} />
                 <a className="ra-home-hero__video-title" href={articleUrl(latest)}>{latest.title}</a>
               </div>
             )}
