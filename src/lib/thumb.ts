@@ -5,7 +5,7 @@ export async function youtubeBlurDataUrl(videoId: string): Promise<string | unde
     const res = await fetch(`https://img.youtube.com/vi/${videoId}/default.jpg`, { next: { revalidate: 3600 } });
     if (!res.ok) return undefined;
     const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length > 20_000) return undefined; // not tiny -> don't inline
+    if (buf.length > 20_000) return undefined; // not tiny → don't inline
     return `data:image/jpeg;base64,${buf.toString("base64")}`;
   } catch {
     return undefined;
