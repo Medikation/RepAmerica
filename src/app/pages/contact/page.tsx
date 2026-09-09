@@ -45,7 +45,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
   return (
     <>
       {sections.map(({ id, section }) => {
-        const sid = `template--page.contact__${id}`;
+        const sid = `template--page-contact__${id}`;
         switch (section.type) {
           case "contact-hero":
             return <ContactHero key={id} id={sid} settings={section.settings} />;

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ArticleCard from "@/components/ArticleCard";
 import { getArticles, getSetting, type Blog } from "@/lib/data";
+import WatchPagination from "@/components/watch/WatchPagination";
 import { buildMetadata } from "@/lib/seo";
 
 export const revalidate = 300;
@@ -22,17 +23,25 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ blog: string }> }): Promise<Metadata> {
   const { blog } = await params;
   if (!isBlog(blog)) return {};
-  return buildMetadata({ title: BLOGS[blog], path: `/blogs/${blog}`, shareKey: blog === "great-books" ? "great_books" : blog === "watch" ? "watch" : undefined });
+  const BLOG_SEO: Record<string, { title: string; description: string }> = { watch: { title: "Watch | Rep America", description: "Watch the latest political commentary, livestreams, interviews, and breaking news analysis from Rep America." } };
+  const seo = BLOG_SEO[blog];
+  return buildMetadata({ title: seo?.title ?? BLOGS[blog], description: seo?.description, path: `/blogs/${blog}`, shareKey: blog === "great-books" ? "great_books" : blog === "watch" ? "watch" : undefined });
 }
 
-export default async function BlogIndex({ params }: { params: Promise<{ blog: string }> }) {
+export default async function BlogIndex({ params, searchParams }: { params: Promise<{ blog: string }>; searchParams: Promise<{ page?: string }> }) {
   const { blog } = await params;
+  const { page: pageParam } = await searchParams;
   if (!isBlog(blog)) notFound();
   // templates/blog.watch.json exists alongside the default blog.json; fall back to the default template.
-  const [articles, template] = await Promise.all([
+  const [allArticles, template] = await Promise.all([
     getArticles(blog, { desc: true }),
     getSetting<BlogTemplate>(`template:blog.${blog}`).catch(() => getSetting<BlogTemplate>("template:blog")),
   ]);
+  // Shopify paginated the blog index 6 per page ({% paginate blog.articles by 6 %}).
+  const PER_PAGE = 6;
+  const pages = Math.max(1, Math.ceil(allArticles.length / PER_PAGE));
+  const current = Math.min(pages, Math.max(1, parseInt(pageParam ?? "1", 10) || 1));
+  const articles = allArticles.slice((current - 1) * PER_PAGE, current * PER_PAGE);
   const s = template.sections.main?.settings ?? {};
   const pt = s.padding_top ?? 36;
   const pb = s.padding_bottom ?? 36;
@@ -62,6 +71,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ blog: st
             </div>
           ))}
         </div>
+        {pages > 1 && <WatchPagination basePath={`/blogs/${blog}`} current={current} pages={pages} />}
       </div>
     </div>
   );

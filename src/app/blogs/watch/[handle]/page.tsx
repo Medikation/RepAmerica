@@ -28,7 +28,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ handle: string }> }): Promise<Metadata> {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params; const handle = decodeURIComponent(rawHandle);
   const article = await getArticle("watch", handle);
   if (!article) return {};
   const vid = videoId(article);
@@ -57,7 +57,7 @@ function isoDuration(d: string): string | null {
 
 /** Port of sections/main-article.liquid as configured by templates/article.json (Watch videos). */
 export default async function WatchArticlePage({ params }: { params: Promise<{ handle: string }> }) {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params; const handle = decodeURIComponent(rawHandle);
   const [article, template] = await Promise.all([getArticle("watch", handle), getSetting<ArticleTemplate>("template:article")]);
   if (!article) notFound();
 

@@ -14,7 +14,7 @@ interface Section { type: string; disabled?: boolean; settings: Record<string, u
 interface Template { sections: Record<string, Section>; order: string[] }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildMetadata({ path: "/", shareKey: "home" });
+  return buildMetadata({ path: "/", shareKey: "home", title: "Rep America with Medi: Commentary, Great Books, American Made Products", noSuffix: true });
 }
 
 const asBlog = (v: unknown): Blog => (v === "watch" || v === "great-books" || v === "essentials" ? v : "watch");

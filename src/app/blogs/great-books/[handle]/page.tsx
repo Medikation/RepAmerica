@@ -21,7 +21,7 @@ export async function generateStaticParams(): Promise<Params[]> {
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params; const handle = decodeURIComponent(rawHandle);
   const article = await getArticle("great-books", handle);
   if (!article) return {};
   // Every guide carries its own seo_title (already ending in "| Rep America"), so no " – Rep America" suffix is added.
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 /** Port of templates/article.great-books.json → sections/great-books-article.liquid. */
 export default async function GreatBooksArticlePage({ params }: { params: Promise<Params> }) {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params; const handle = decodeURIComponent(rawHandle);
   const [article, all, template] = await Promise.all([
     getArticle("great-books", handle),
     getArticles("great-books"),

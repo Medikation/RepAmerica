@@ -16,7 +16,7 @@ export default function WorkshopEssentialsIntro({ id, settings: s }: { id: strin
           {s.eyebrow ? <p className="ra-section-header__eyebrow">{s.eyebrow}</p> : null}
           {s.heading ? <h2 className="ra-section-header__title">{s.heading}</h2> : null}
           {s.text ? <div className="ra-intro__text" dangerouslySetInnerHTML={{ __html: s.text }} /> : null}
-          {s.disclosure ? <p className="ra-workshop-essentials-intro__disclosure" dangerouslySetInnerHTML={{ __html: s.disclosure }} /> : null}
+          {s.disclosure ? <div className="ra-workshop-essentials-intro__disclosure" dangerouslySetInnerHTML={{ __html: s.disclosure }} /> : null}
         </div>
       </section>
       <style dangerouslySetInnerHTML={{ __html: css }} />

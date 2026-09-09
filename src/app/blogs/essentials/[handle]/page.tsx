@@ -17,7 +17,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ handle: string }> }): Promise<Metadata> {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params; const handle = decodeURIComponent(rawHandle);
   const article = await getArticle("essentials", handle);
   if (!article) return {};
   const description = article.seo_description ?? (stripHtml(article.summary) || stripHtml(article.body_html).slice(0, 320));
@@ -135,7 +135,7 @@ const CSS = `
 
 /** Port of sections/essentials-article.liquid (templates/article.essentials.json). */
 export default async function EssentialsArticlePage({ params }: { params: Promise<{ handle: string }> }) {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params; const handle = decodeURIComponent(rawHandle);
   const [article, template, all] = await Promise.all([
     getArticle("essentials", handle),
     getSetting<EssentialsTemplate>("template:article.essentials"),
@@ -156,7 +156,7 @@ export default async function EssentialsArticlePage({ params }: { params: Promis
   const related = all.filter((o) => o.handle !== article.handle && metaString(o, "essentials_category") === category).slice(0, 3);
 
   return (
-    <section id="shopify-section-template--article.essentials__main" className="shopify-section">
+    <section id="shopify-section-template--article-essentials__main" className="shopify-section">
       <article className="ra-section ra-ea">
         <div className="ra-container-md">
           <p className="ra-ea__eyebrow">

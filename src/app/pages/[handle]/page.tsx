@@ -18,7 +18,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ handle: string }> }): Promise<Metadata> {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params; const handle = decodeURIComponent(rawHandle);
   if (DEDICATED.has(handle)) return {};
   const page = await getPage(handle);
   if (!page) return {};
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
 }
 
 export default async function GenericPage({ params }: { params: Promise<{ handle: string }> }) {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params; const handle = decodeURIComponent(rawHandle);
   if (DEDICATED.has(handle)) notFound();
   const [page, template] = await Promise.all([getPage(handle), getSetting<PageTemplate>("template:page")]);
   if (!page) notFound();

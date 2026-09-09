@@ -22,7 +22,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ handle: string }> }): Promise<Metadata> {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params; const handle = decodeURIComponent(rawHandle);
   const product = await getProduct(handle);
   if (!product) return {};
   const description = stripHtml(product.body_html).slice(0, 320) || null;
@@ -48,7 +48,7 @@ const paddingStyle = (id: string, top: number, bottom: number) => `.section-${id
     }`;
 
 export default async function ProductPage({ params }: { params: Promise<{ handle: string }> }) {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params; const handle = decodeURIComponent(rawHandle);
   const [product, template] = await Promise.all([getProduct(handle), getSetting<ProductTemplate>("template:product")]);
   if (!product) notFound();
 

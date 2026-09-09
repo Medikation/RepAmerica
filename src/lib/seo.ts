@@ -15,7 +15,7 @@ export async function buildMetadata(opts: {
   if (opts.shareKey === "watch") image = theme.share_image_watch_url;
   else if (opts.shareKey) image = theme[`share_image_${opts.shareKey}`] ?? image;
   image = image ?? theme.share_image_fallback;
-  const title = opts.title ? (opts.noSuffix ? opts.title : `${opts.title} – ${SHOP_NAME}`) : SHOP_NAME;
+  const title = opts.title ? (opts.noSuffix || /rep america/i.test(opts.title) ? opts.title : `${opts.title} – ${SHOP_NAME}`) : SHOP_NAME;
   const description = opts.description ?? SHOP_DESCRIPTION;
   const url = `${SITE}${opts.path}`;
   return {

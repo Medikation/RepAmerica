@@ -44,7 +44,7 @@ async function loadSession(sessionId: string | undefined) {
 export default async function ThankYouPage({ searchParams }: { searchParams: Promise<{ session_id?: string }> }) {
   const { session_id } = await searchParams;
   const order = await loadSession(session_id);
-  const sectionId = "template--page.thank-you__main";
+  const sectionId = "template--page-thank-you__main";
 
   return (
     <section id={`shopify-section-${sectionId}`} className="shopify-section section">

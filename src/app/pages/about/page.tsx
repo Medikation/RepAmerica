@@ -27,7 +27,7 @@ export default async function AboutPage() {
   return (
     <>
       {sections.map(({ id, section }) => {
-        const sid = `template--page.about__${id}`;
+        const sid = `template--page-about__${id}`;
         switch (section.type) {
           case "about-hero-cinematic-v4":
             return <AboutHero key={id} id={sid} settings={section.settings as AboutHeroSettings} />;

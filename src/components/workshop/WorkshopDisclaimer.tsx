@@ -10,7 +10,7 @@ export default function WorkshopDisclaimer({ id, settings: s }: { id: string; se
     <section id={`shopify-section-${id}`} className="shopify-section">
       <section className="ra-section ra-workshop-disclaimer" id={`WorkshopDisclaimer-${id}`}>
         <div className="ra-container-sm ra-text-center">
-          {s.text ? <p className="ra-workshop-disclaimer__text" dangerouslySetInnerHTML={{ __html: s.text }} /> : null}
+          {s.text ? <div className="ra-workshop-disclaimer__text" dangerouslySetInnerHTML={{ __html: s.text }} /> : null}
         </div>
       </section>
       <style dangerouslySetInnerHTML={{ __html: css }} />

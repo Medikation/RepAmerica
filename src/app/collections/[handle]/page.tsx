@@ -19,7 +19,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ handle: string }> }): Promise<Metadata> {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params; const handle = decodeURIComponent(rawHandle);
   const collection = await getCollection(handle);
   if (!collection) return {};
   return buildMetadata({
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
 }
 
 export default async function CollectionPage({ params }: { params: Promise<{ handle: string }> }) {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params; const handle = decodeURIComponent(rawHandle);
   const [collection, template] = await Promise.all([getCollection(handle), getSetting<CollectionTemplate>("template:collection")]);
   if (!collection) notFound();
 
