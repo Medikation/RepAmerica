@@ -1,69 +1,58 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import type { Metadata } from "next";
+import { getArticles, getSetting, orderedSections, type Blog } from "@/lib/data";
+import { buildMetadata } from "@/lib/seo";
+import HomeHero, { type HomeHeroSettings } from "@/components/home/HomeHero";
+import HomeProjectIntro, { type HomeProjectIntroSettings } from "@/components/home/HomeProjectIntro";
+import HomeWorkshopIntro, { type HomeWorkshopIntroSection } from "@/components/home/HomeWorkshopIntro";
+import HomeLatest, { type HomeLatestSettings } from "@/components/home/HomeLatest";
+import HomePillars, { type HomePillarsSection } from "@/components/home/HomePillars";
+import HomeCta, { type HomeCtaSettings } from "@/components/home/HomeCta";
 
-export default function Home() {
+export const revalidate = 300;
+
+interface Section { type: string; disabled?: boolean; settings: Record<string, unknown>; blocks?: Record<string, { type: string; settings: Record<string, unknown> }>; block_order?: string[] }
+interface Template { sections: Record<string, Section>; order: string[] }
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildMetadata({ path: "/", shareKey: "home" });
+}
+
+const asBlog = (v: unknown): Blog => (v === "watch" || v === "great-books" || v === "essentials" ? v : "watch");
+
+async function HomeSection({ id, section }: { id: string; section: Section }) {
+  const sid = `template--index__${id}`;
+  switch (section.type) {
+    case "home-hero": {
+      const s = section.settings as HomeHeroSettings;
+      const latest = (await getArticles(asBlog(s.video_blog), { desc: true }))[0] ?? null;
+      return <HomeHero id={sid} settings={s} latest={latest} />;
+    }
+    case "home-project-intro":
+      return <HomeProjectIntro id={sid} settings={section.settings as HomeProjectIntroSettings} />;
+    case "home-workshop-intro":
+      return <HomeWorkshopIntro id={sid} section={section as unknown as HomeWorkshopIntroSection} />;
+    case "home-latest": {
+      const s = section.settings as HomeLatestSettings;
+      const articles = await getArticles(asBlog(s.blog), { desc: true });
+      return <HomeLatest id={sid} settings={s} articles={articles} />;
+    }
+    case "home-pillars":
+      return <HomePillars id={sid} section={section as unknown as HomePillarsSection} />;
+    case "home-cta":
+      return <HomeCta id={sid} settings={section.settings as HomeCtaSettings} />;
+    default:
+      return null;
+  }
+}
+
+export default async function HomePage() {
+  const template = await getSetting<Template>("template:index");
+  const sections = orderedSections(template).filter(({ section }) => section && !section.disabled);
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.tsx</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <>
+      {sections.map(({ id, section }) => (
+        <HomeSection key={id} id={id} section={section} />
+      ))}
+    </>
   );
 }
