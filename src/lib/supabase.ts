@@ -1,7 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Public values (the anon key is designed to be public; RLS guards the data). Env vars override.
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://udeivbgtpfccbtstvsxa.supabase.co";
+const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkZWl2Ymd0cGZjY2J0c3R2c3hhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NjU0ODksImV4cCI6MjEwNDU0MTQ4OX0._MA9g87gg-NQQljdctJKdsIiEu8q-f2V8jXKIOijxS8";
 
 /** Read-only client (anon key, RLS: published content only). Safe on the server and the client. */
 export const supabase = createClient(url, anon, { auth: { persistSession: false } });
