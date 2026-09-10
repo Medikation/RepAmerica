@@ -82,8 +82,45 @@ export default async function ProductPage({ params }: { params: Promise<{ handle
   const interactive = new Set(["inventory", "price", "variant_picker", "quantity_selector", "buy_buttons"]);
   let interactiveRendered = false;
 
+  // Product structured data (Shopify emitted Product/Offer/Brand; restored here so Google keeps price/availability rich results).
+  const variants = [...(product.variants ?? [])].sort((a, b) => a.position - b.position);
+  const prices = variants.map((v) => v.price_cents / 100);
+  const anyAvailable = variants.some((v) => v.available);
+  const productLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.title,
+    url: `https://repamerica.com/products/${product.handle}`,
+    description: stripHtml(product.body_html).slice(0, 5000) || undefined,
+    image: images.map((i) => i.src),
+    brand: product.vendor ? { "@type": "Brand", name: product.vendor } : undefined,
+    sku: variants.find((v) => v.sku)?.sku || undefined,
+    offers:
+      variants.length > 1
+        ? {
+            "@type": "AggregateOffer",
+            priceCurrency: "USD",
+            lowPrice: Math.min(...prices).toFixed(2),
+            highPrice: Math.max(...prices).toFixed(2),
+            offerCount: variants.length,
+            availability: anyAvailable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            url: `https://repamerica.com/products/${product.handle}`,
+          }
+        : variants[0]
+          ? {
+              "@type": "Offer",
+              priceCurrency: "USD",
+              price: prices[0].toFixed(2),
+              availability: variants[0].available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+              url: `https://repamerica.com/products/${product.handle}`,
+              sku: variants[0].sku || undefined,
+            }
+          : undefined,
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }} />
       <section id={`shopify-section-${mainId}`} className="shopify-section section">
         <product-info
           id={`MainProduct-${mainId}`}
