@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PageTracker from "@/components/PageTracker";
 import { SHOP_NAME, SHOP_DESCRIPTION } from "@/lib/seo";
 import { getSetting } from "@/lib/data";
 
@@ -30,6 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {children}
         </main>
         <Footer />
+        <PageTracker />
       </body>
     </html>
   );
