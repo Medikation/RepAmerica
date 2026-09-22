@@ -9,6 +9,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://repamerica.com";
+// Flat US shipping per order (Shopify charged $5.00 flat). Override with SHIPPING_FLAT_CENTS; 0 = free shipping.
+const SHIPPING_FLAT_CENTS = Number.isFinite(Number(process.env.SHIPPING_FLAT_CENTS)) ? Math.max(0, Math.floor(Number(process.env.SHIPPING_FLAT_CENTS))) : 500;
 
 export async function POST(req: Request) {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -61,6 +63,16 @@ export async function POST(req: Request) {
         },
       ],
       shipping_address_collection: { allowed_countries: ["US"] },
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            display_name: SHIPPING_FLAT_CENTS === 0 ? "Free shipping" : "Flat rate shipping (USPS)",
+            fixed_amount: { amount: SHIPPING_FLAT_CENTS, currency: "usd" },
+            delivery_estimate: { minimum: { unit: "business_day", value: 3 }, maximum: { unit: "business_day", value: 7 } },
+          },
+        },
+      ],
       phone_number_collection: { enabled: false },
       success_url: `${origin}/pages/thank-you?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: productUrl,
