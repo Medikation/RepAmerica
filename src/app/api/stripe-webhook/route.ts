@@ -79,5 +79,47 @@ export async function POST(req: Request) {
     console.error("[stripe-webhook] insert failed", error);
     return NextResponse.json({ error: "Could not record order" }, { status: 500 });
   }
+  await notifyNewOrder(row);
   return NextResponse.json({ received: true });
+}
+
+// Push a new-order alert to the team via ntfy (phone app) and, through ntfy's e-mail relay, to the team inbox.
+// Never fails the webhook — Stripe must still get a 200 once the order is stored.
+async function notifyNewOrder(row: {
+  email: string | null;
+  name: string | null;
+  amount_cents: number;
+  currency: string;
+  shipping: { name: string | null; address: Stripe.Address | null } | null;
+  line_items: { description: string | null; quantity: number | null }[];
+}) {
+  const topic = process.env.NTFY_TOPIC || "repamerica-orders-a6c7d9d2";
+  const alertEmail = process.env.ORDER_ALERT_EMAIL || "team@repamerica.com";
+  const items = row.line_items.map((li) => `${li.quantity ?? 1}× ${li.description ?? "item"}`).join(", ") || "order";
+  const total = `$${(row.amount_cents / 100).toFixed(2)} ${row.currency.toUpperCase()}`;
+  const a = row.shipping?.address;
+  const where = a ? [a.line1, a.line2, `${a.city ?? ""}, ${a.state ?? ""} ${a.postal_code ?? ""}`.trim(), a.country].filter(Boolean).join("\n") : "(no shipping address)";
+  const body = `${items}\nTotal: ${total}\n\nShip to:\n${row.name ?? ""}\n${where}\n${row.email ?? ""}\n\nOrders table: https://supabase.com/dashboard/project/udeivbgtpfccbtstvsxa/editor`;
+  // ntfy.sh only relays e-mail for authenticated accounts: set NTFY_TOKEN (ntfy.sh → Account → Access tokens) to enable it.
+  const token = process.env.NTFY_TOKEN;
+  const headers: Record<string, string> = {
+    Title: `New Rep America order — ${items} (${total})`,
+    Priority: "high",
+    Tags: "tada,package",
+    Click: "https://dashboard.stripe.com/payments",
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    headers.Email = alertEmail;
+  }
+  try {
+    await fetch(`https://ntfy.sh/${topic}`, {
+      method: "POST",
+      headers,
+      body,
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch (e) {
+    console.error("[stripe-webhook] ntfy notification failed", e);
+  }
 }
