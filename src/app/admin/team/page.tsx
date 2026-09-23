@@ -29,33 +29,30 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
           <div><CopyButton text={sp.link} label="Copy link" /></div>
         </div>
       ) : null}
-      <div style={{ overflowX: "auto" }}>
-      <table>
-        <thead><tr><th>E-mail</th><th>Last sign-in</th><th>Actions</th></tr></thead>
-        <tbody>
-          {admins.map((a) => (
-            <tr key={a.id}>
-              <td>{a.email}{a.id === state.user!.id ? <span className="muted"> (you)</span> : null}</td>
-              <td className="muted">{a.lastSignIn ? new Date(a.lastSignIn).toLocaleString("en-US", { timeZone: "America/Los_Angeles" }) : "never"}</td>
-              <td>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <form action={inviteAdmin}>
-                    <input type="hidden" name="email" value={a.email} />
-                    <input type="hidden" name="type" value="recovery" />
-                    <button className="btn btn--ghost btn--sm" type="submit">Reset-password link</button>
-                  </form>
-                  {a.id !== state.user!.id ? (
-                    <form action={deleteAdmin}>
-                      <input type="hidden" name="id" value={a.id} />
-                      <button className="btn btn--ghost btn--sm" type="submit">Remove</button>
-                    </form>
-                  ) : null}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="cards">
+        {admins.map((a) => (
+          <article key={a.id} className="card" style={{ gridTemplateColumns: "1fr" }}>
+            <div className="card__head">
+              <div>
+                <div className="card__id" style={{ fontSize: "1.5rem" }}>{a.email}{a.id === state.user!.id ? <span className="muted"> (you)</span> : null}</div>
+                <div className="muted">Last sign-in: {a.lastSignIn ? new Date(a.lastSignIn).toLocaleString("en-US", { timeZone: "America/Los_Angeles", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "never"}</div>
+              </div>
+            </div>
+            <div className="row">
+              <form action={inviteAdmin}>
+                <input type="hidden" name="email" value={a.email} />
+                <input type="hidden" name="type" value="recovery" />
+                <button className="btn btn--ghost btn--sm" type="submit">Reset-password link</button>
+              </form>
+              {a.id !== state.user!.id ? (
+                <form action={deleteAdmin}>
+                  <input type="hidden" name="id" value={a.id} />
+                  <button className="btn btn--ghost btn--sm" type="submit">Remove</button>
+                </form>
+              ) : null}
+            </div>
+          </article>
+        ))}
       </div>
       <h2 style={{ fontSize: "1.8rem", marginTop: 32 }}>Add a teammate</h2>
       <form action={inviteAdmin} className="stack" style={{ maxWidth: 420 }}>
