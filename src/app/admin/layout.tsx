@@ -14,11 +14,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         .ra-admin { max-width: 1100px; margin: 0 auto; padding: 20px 16px 64px; font-family: Inter, Helvetica, Arial, sans-serif; box-sizing: border-box; overflow-wrap: anywhere; }
         @media (min-width: 750px) { .ra-admin { padding: 28px 32px 80px; } }
         .ra-admin * { box-sizing: border-box; }
-        .ra-admin__bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 16px; border-bottom:1px solid #ddd; padding-bottom:12px; margin-bottom:20px; }
+        .ra-admin__bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; border-bottom:1px solid #ddd; padding-bottom:12px; margin-bottom:20px; }
         .ra-admin__bar nav a { margin-right:16px; text-decoration:none; font-weight:600; font-size:1.5rem; }
-        .ra-admin__bar form { display:flex; align-items:center; gap:10px; min-width:0; }
-        .ra-admin__bar form span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .ra-admin__bar form button { background:none; border:1px solid #999; padding:6px 12px; border-radius:4px; cursor:pointer; font:inherit; font-size:1.3rem; white-space:nowrap; }
+        .ra-admin__account { display:flex; align-items:center; gap:10px; flex-wrap:wrap; min-width:0; }
+        .ra-admin__account span { font-size:1.3rem; color:#777; overflow-wrap:anywhere; }
+        .ra-admin__account button { flex:0 0 auto; background:#fff; color:#111; border:1px solid #999; padding:6px 12px; border-radius:6px; cursor:pointer; font-family:inherit; font-size:1.3rem; font-weight:600; line-height:1.2; min-height:0; min-width:0; }
         .ra-admin h1 { font-size:2.4rem; margin:0 0 14px; }
         .ra-admin .muted { color:#777; font-size:1.3rem; }
         .ra-admin .pill { display:inline-block; padding:2px 9px; border-radius:999px; font-size:1.2rem; font-weight:600; white-space:nowrap; }
@@ -58,8 +58,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin/team">Team</Link>
         </nav>
         {"user" in state && state.user ? (
-          <form action={signOut}>
-            <span className="muted" style={{ marginRight: 12 }}>{state.user.email}</span>
+          <form action={signOut} className="ra-admin__account">
+            <span>{state.user.email}</span>
             <button type="submit">Sign out</button>
           </form>
         ) : null}
