@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabase";
+import { sendEmail, orderConfirmationEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,14 +73,15 @@ export async function POST(req: Request) {
     line_items: lineItems,
   };
 
-  const { error } = await db.from("orders").insert(row);
+  const { data: inserted, error } = await db.from("orders").insert(row).select("id").single();
   if (error) {
     // Unique violation on stripe_session_id = concurrent duplicate delivery; anything else should make Stripe retry.
     if (error.code === "23505") return NextResponse.json({ received: true, duplicate: true });
     console.error("[stripe-webhook] insert failed", error);
     return NextResponse.json({ error: "Could not record order" }, { status: 500 });
   }
-  await notifyNewOrder(row);
+  const label = `#${inserted?.id ?? "?"}`;
+  await Promise.all([notifyNewOrder(row, label), confirmToCustomer(row, label, session.total_details?.amount_shipping ?? null)]);
   return NextResponse.json({ received: true });
 }
 
@@ -92,18 +94,18 @@ async function notifyNewOrder(row: {
   currency: string;
   shipping: { name: string | null; address: Stripe.Address | null } | null;
   line_items: { description: string | null; quantity: number | null }[];
-}) {
+}, label: string) {
   const topic = process.env.NTFY_TOPIC || "repamerica-orders-a6c7d9d2";
   const alertEmail = process.env.ORDER_ALERT_EMAIL || "team@repamerica.com";
   const items = row.line_items.map((li) => `${li.quantity ?? 1}× ${li.description ?? "item"}`).join(", ") || "order";
   const total = `$${(row.amount_cents / 100).toFixed(2)} ${row.currency.toUpperCase()}`;
   const a = row.shipping?.address;
   const where = a ? [a.line1, a.line2, `${a.city ?? ""}, ${a.state ?? ""} ${a.postal_code ?? ""}`.trim(), a.country].filter(Boolean).join("\n") : "(no shipping address)";
-  const body = `${items}\nTotal: ${total}\n\nShip to:\n${row.name ?? ""}\n${where}\n${row.email ?? ""}\n\nOrders table: https://supabase.com/dashboard/project/udeivbgtpfccbtstvsxa/editor`;
+  const body = `Order ${label}\n${items}\nTotal: ${total}\n\nShip to:\n${row.name ?? ""}\n${where}\n${row.email ?? ""}\n\nOrders table: https://supabase.com/dashboard/project/udeivbgtpfccbtstvsxa/editor`;
   // ntfy.sh only relays e-mail for authenticated accounts: set NTFY_TOKEN (ntfy.sh → Account → Access tokens) to enable it.
   const token = process.env.NTFY_TOKEN;
   const headers: Record<string, string> = {
-    Title: `New Rep America order — ${items} (${total})`,
+    Title: `New Rep America order ${label} — ${items} (${total})`,
     Priority: "high",
     Tags: "tada,package",
     Click: "https://dashboard.stripe.com/payments",
@@ -121,5 +123,26 @@ async function notifyNewOrder(row: {
     });
   } catch (e) {
     console.error("[stripe-webhook] ntfy notification failed", e);
+  }
+}
+
+function addressLines(row: { name: string | null; shipping: { name: string | null; address: Stripe.Address | null } | null }) {
+  const a = row.shipping?.address;
+  return [row.shipping?.name ?? row.name ?? "", a?.line1, a?.line2, a ? `${a.city ?? ""}, ${a.state ?? ""} ${a.postal_code ?? ""}`.trim() : null, a?.country && a.country !== "US" ? a.country : null]
+    .filter((l): l is string => !!l && l.trim() !== "").join("\n");
+}
+
+// Branded order confirmation to the buyer (Stripe's own receipt, if enabled, is separate). Never fails the webhook.
+async function confirmToCustomer(row: {
+  email: string | null; name: string | null; amount_cents: number;
+  shipping: { name: string | null; address: Stripe.Address | null } | null;
+  line_items: { description: string | null; quantity: number | null; amount_total: number }[];
+}, label: string, shippingCents: number | null) {
+  if (!row.email) return;
+  try {
+    const m = orderConfirmationEmail({ label, name: row.name, email: row.email, address: addressLines(row), lines: row.line_items, amount_cents: row.amount_cents, shipping_cents: shippingCents });
+    await sendEmail({ to: row.email, ...m });
+  } catch (e) {
+    console.error("[stripe-webhook] confirmation e-mail failed", e);
   }
 }

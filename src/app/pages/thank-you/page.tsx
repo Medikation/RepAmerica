@@ -57,7 +57,7 @@ export default async function ThankYouPage({ searchParams }: { searchParams: Pro
             <>
               <p>
                 Your order is confirmed.
-                {order.email ? <> A receipt has been sent to {order.email}.</> : null}
+                {order.email ? <> A confirmation has been sent to {order.email}.</> : null}
               </p>
               <h2 className="h4">Order {order.id.slice(-8).toUpperCase()}</h2>
               <table>

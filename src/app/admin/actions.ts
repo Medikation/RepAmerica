@@ -70,8 +70,8 @@ export async function markShipped(formData: FormData) {
 
   let emailed = "";
   if (notify && order.email && tracking) {
-    const items = ((order.line_items ?? []) as { description: string | null; quantity: number | null }[]).map((li) => `${li.quantity ?? 1}× ${li.description ?? "item"}`).join(", ");
-    const m = shippedEmail({ name: order.name, items, tracking, address: orderAddress(order.shipping, order.name) });
+    const lines = (order.line_items ?? []) as { description: string | null; quantity: number | null; amount_total?: number | null }[];
+    const m = shippedEmail({ label: order.shopify_name ?? `#${order.id}`, name: order.name, email: order.email, address: orderAddress(order.shipping, order.name), lines, amount_cents: order.amount_cents ?? 0, tracking });
     const r = await sendEmail({ to: order.email, ...m });
     emailed = r.ok ? "&emailed=1" : r.skipped ? "&emailed=skipped" : "&emailed=failed";
   }
