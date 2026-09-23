@@ -1,4 +1,5 @@
 import { setPassword } from "@/app/admin/actions";
+import PasswordInput from "@/components/admin/PasswordInput";
 
 export const dynamic = "force-dynamic";
 
@@ -18,11 +19,11 @@ export default async function SetPasswordPage({ searchParams }: { searchParams: 
         <input type="hidden" name="type" value={type === "invite" ? "invite" : "recovery"} />
         <label>
           <div className="muted">New password (10+ characters)</div>
-          <input type="password" name="password" autoComplete="new-password" minLength={10} required />
+          <PasswordInput name="password" autoComplete="new-password" minLength={10} required />
         </label>
         <label>
           <div className="muted">Confirm</div>
-          <input type="password" name="confirm" autoComplete="new-password" minLength={10} required />
+          <PasswordInput name="confirm" autoComplete="new-password" minLength={10} required />
         </label>
         <button className="btn" type="submit">Save and sign in</button>
       </form>

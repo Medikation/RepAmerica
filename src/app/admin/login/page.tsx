@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAdmin } from "@/lib/adminAuth";
 import { signIn } from "@/app/admin/actions";
+import PasswordInput from "@/components/admin/PasswordInput";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </label>
         <label>
           <div className="muted">Password</div>
-          <input type="password" name="password" autoComplete="current-password" required />
+          <PasswordInput name="password" autoComplete="current-password" required />
         </label>
         <button className="btn" type="submit">Sign in</button>
       </form>
