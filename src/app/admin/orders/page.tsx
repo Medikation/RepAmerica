@@ -1,0 +1,130 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getAdmin } from "@/lib/adminAuth";
+import { supabaseAdmin } from "@/lib/supabase";
+import { trackingUrl } from "@/lib/email";
+import { markShipped, reopenOrder, saveNotes } from "@/app/admin/actions";
+import CopyButton from "@/components/admin/CopyButton";
+
+export const dynamic = "force-dynamic";
+
+type Line = { description: string | null; quantity: number | null; amount_total?: number };
+type Order = {
+  id: number;
+  created_at: string;
+  email: string | null;
+  name: string | null;
+  amount_cents: number | null;
+  currency: string | null;
+  status: "paid" | "fulfilled" | "refunded" | "canceled" | null;
+  shipping: { name?: string | null; address?: Record<string, string | null> | null } | null;
+  line_items: Line[] | null;
+  fulfilled_at: string | null;
+  tracking: string | null;
+  notes: string | null;
+  payment_intent: string | null;
+};
+
+const money = (c: number | null) => `$${((c ?? 0) / 100).toFixed(2)}`;
+const when = (iso: string) => new Date(iso).toLocaleString("en-US", { timeZone: "America/Los_Angeles", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+
+function addressText(o: Order) {
+  const a = o.shipping?.address;
+  const lines = [o.shipping?.name ?? o.name ?? "", a?.line1, a?.line2, a ? `${a.city ?? ""}, ${a.state ?? ""} ${a.postal_code ?? ""}`.trim() : null, a?.country && a.country !== "US" ? a.country : null];
+  return lines.filter((l): l is string => !!l && l.trim() !== "").join("\n");
+}
+
+export default async function OrdersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const sp = await searchParams;
+  const state = await getAdmin();
+  if (!state.user) redirect(state.canRefresh ? `/admin/refresh?next=${encodeURIComponent("/admin/orders")}` : "/admin/login?next=/admin/orders");
+
+  const view = sp.view === "all" ? "all" : "open";
+  let q = supabaseAdmin().from("orders").select("*").order("created_at", { ascending: false }).limit(200);
+  if (view === "open") q = q.eq("status", "paid");
+  const { data, error } = await q;
+  const orders = (data ?? []) as Order[];
+
+  const flash =
+    sp.shipped ? `Order #${sp.shipped} marked shipped${sp.emailed === "1" ? " and the customer was e-mailed" : sp.emailed === "skipped" ? " (customer e-mail skipped — RESEND_API_KEY not set)" : sp.emailed === "failed" ? " (customer e-mail FAILED — check logs)" : ""}.` :
+    sp.saved ? `Notes saved for order #${sp.saved}.` :
+    sp.error ? `Something went wrong (${sp.error}).` : null;
+
+  return (
+    <div>
+      <h1>Orders</h1>
+      <div className="tabs" style={{ marginBottom: 16 }}>
+        <Link href="/admin/orders" aria-current={view === "open" ? "page" : undefined}>To ship</Link>
+        <Link href="/admin/orders?view=all" aria-current={view === "all" ? "page" : undefined}>All orders</Link>
+      </div>
+      {flash ? <div className={`notice${sp.error || sp.emailed === "failed" ? " notice--error" : ""}`}>{flash}</div> : null}
+      {error ? <div className="notice notice--error">Could not load orders: {error.message}</div> : null}
+      {orders.length === 0 ? <p className="muted">{view === "open" ? "Nothing to ship — all caught up." : "No orders yet."}</p> : null}
+      {orders.length > 0 ? (
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Items</th>
+              <th>Ship to</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((o) => {
+              const addr = addressText(o);
+              const items = (o.line_items ?? []).map((li) => `${li.quantity ?? 1}× ${li.description ?? "item"}`).join(", ");
+              const status = o.status ?? "paid";
+              const turl = o.tracking ? trackingUrl(o.tracking) : null;
+              return (
+                <tr key={o.id}>
+                  <td>
+                    <strong>#{o.id}</strong>
+                    <div className="muted">{when(o.created_at)}</div>
+                    <div>{money(o.amount_cents)}</div>
+                    {o.payment_intent ? <div className="muted"><a href={`https://dashboard.stripe.com/payments/${o.payment_intent}`} target="_blank" rel="noreferrer">Stripe ↗</a></div> : null}
+                  </td>
+                  <td>{items || <span className="muted">—</span>}</td>
+                  <td>
+                    <div className="addr">{addr || <span className="muted">(no address)</span>}</div>
+                    {o.email ? <div className="muted"><a href={`mailto:${o.email}`}>{o.email}</a></div> : null}
+                    {addr ? <div style={{ marginTop: 6 }}><CopyButton text={addr} /></div> : null}
+                  </td>
+                  <td>
+                    <span className={`pill pill--${status}`}>{status === "paid" ? "To ship" : status}</span>
+                    {o.fulfilled_at ? <div className="muted">Shipped {when(o.fulfilled_at)}</div> : null}
+                    {o.tracking ? <div className="muted">{turl ? <a href={turl} target="_blank" rel="noreferrer">{o.tracking}</a> : o.tracking}</div> : null}
+                  </td>
+                  <td>
+                    {status === "paid" ? (
+                      <form action={markShipped} className="stack">
+                        <input type="hidden" name="id" value={o.id} />
+                        <input type="text" name="tracking" placeholder="Tracking number" autoComplete="off" />
+                        <label className="muted" style={{ display: "block" }}>
+                          <input type="checkbox" name="notify" defaultChecked={!!o.email} /> E-mail customer
+                        </label>
+                        <button className="btn btn--sm" type="submit">Mark shipped</button>
+                      </form>
+                    ) : status === "fulfilled" ? (
+                      <form action={reopenOrder}>
+                        <input type="hidden" name="id" value={o.id} />
+                        <button className="btn btn--ghost btn--sm" type="submit">Reopen</button>
+                      </form>
+                    ) : null}
+                    <form action={saveNotes} className="stack" style={{ marginTop: 10 }}>
+                      <input type="hidden" name="id" value={o.id} />
+                      <input type="hidden" name="view" value={view} />
+                      <textarea name="notes" rows={2} placeholder="Notes" defaultValue={o.notes ?? ""} />
+                      <button className="btn btn--ghost btn--sm" type="submit">Save notes</button>
+                    </form>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      ) : null}
+    </div>
+  );
+}

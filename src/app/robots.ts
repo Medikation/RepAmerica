@@ -4,7 +4,7 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://repamerica.com";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: "*", allow: "/", disallow: ["/api/"] }],
+    rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/admin/"] }],
     sitemap: `${SITE}/sitemap.xml`,
   };
 }
