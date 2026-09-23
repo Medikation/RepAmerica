@@ -53,7 +53,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   return (
     <div>
       <h1>Orders</h1>
-      <div className="tabs" style={{ marginBottom: 16 }}>
+      <div className="tabs">
         <Link href="/admin/orders" aria-current={view === "open" ? "page" : undefined}>To ship</Link>
         <Link href="/admin/orders?view=all" aria-current={view === "all" ? "page" : undefined}>All orders</Link>
       </div>
@@ -61,69 +61,75 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       {error ? <div className="notice notice--error">Could not load orders: {error.message}</div> : null}
       {orders.length === 0 ? <p className="muted">{view === "open" ? "Nothing to ship — all caught up." : "No orders yet."}</p> : null}
       {orders.length > 0 ? (
-        <table>
-          <thead>
-            <tr>
-              <th>Order</th>
-              <th>Items</th>
-              <th>Ship to</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((o) => {
-              const addr = addressText(o);
-              const items = (o.line_items ?? []).map((li) => `${li.quantity ?? 1}× ${li.description ?? "item"}`).join(", ");
-              const status = o.status ?? "paid";
-              const turl = o.tracking ? trackingUrl(o.tracking) : null;
-              return (
-                <tr key={o.id}>
-                  <td>
-                    <strong>#{o.id}</strong>
-                    <div className="muted">{when(o.created_at)}</div>
-                    <div>{money(o.amount_cents)}</div>
-                    {o.payment_intent ? <div className="muted"><a href={`https://dashboard.stripe.com/payments/${o.payment_intent}`} target="_blank" rel="noreferrer">Stripe ↗</a></div> : null}
-                  </td>
-                  <td>{items || <span className="muted">—</span>}</td>
-                  <td>
+        <div className="cards">
+          {orders.map((o) => {
+            const addr = addressText(o);
+            const items = (o.line_items ?? []).map((li) => `${li.quantity ?? 1}× ${li.description ?? "item"}`).join(", ");
+            const status = o.status ?? "paid";
+            const turl = o.tracking ? trackingUrl(o.tracking) : null;
+            return (
+              <article key={o.id} className={`card${status !== "paid" ? " card--done" : ""}`}>
+                <div className="stack">
+                  <div className="card__head">
+                    <div>
+                      <div className="card__id">Order #{o.id}</div>
+                      <div className="muted">{when(o.created_at)}</div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div className="card__total">{money(o.amount_cents)}</div>
+                      <span className={`pill pill--${status}`}>{status === "paid" ? "To ship" : status}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <h3>Items</h3>
+                    <div className="items">{items || <span className="muted">—</span>}</div>
+                  </div>
+                  <div className="row">
+                    {o.payment_intent ? <a className="btn btn--ghost btn--sm" href={`https://dashboard.stripe.com/payments/${o.payment_intent}`} target="_blank" rel="noreferrer">Open in Stripe ↗</a> : null}
+                    {o.email ? <a className="btn btn--ghost btn--sm" href={`mailto:${o.email}`}>E-mail customer</a> : null}
+                  </div>
+                </div>
+
+                <div className="stack">
+                  <div>
+                    <h3>Ship to</h3>
                     <div className="addr">{addr || <span className="muted">(no address)</span>}</div>
-                    {o.email ? <div className="muted"><a href={`mailto:${o.email}`}>{o.email}</a></div> : null}
-                    {addr ? <div style={{ marginTop: 6 }}><CopyButton text={addr} /></div> : null}
-                  </td>
-                  <td>
-                    <span className={`pill pill--${status}`}>{status === "paid" ? "To ship" : status}</span>
-                    {o.fulfilled_at ? <div className="muted">Shipped {when(o.fulfilled_at)}</div> : null}
-                    {o.tracking ? <div className="muted">{turl ? <a href={turl} target="_blank" rel="noreferrer">{o.tracking}</a> : o.tracking}</div> : null}
-                  </td>
-                  <td>
-                    {status === "paid" ? (
-                      <form action={markShipped} className="stack">
-                        <input type="hidden" name="id" value={o.id} />
-                        <input type="text" name="tracking" placeholder="Tracking number" autoComplete="off" />
-                        <label className="muted" style={{ display: "block" }}>
-                          <input type="checkbox" name="notify" defaultChecked={!!o.email} /> E-mail customer
-                        </label>
-                        <button className="btn btn--sm" type="submit">Mark shipped</button>
-                      </form>
-                    ) : status === "fulfilled" ? (
-                      <form action={reopenOrder}>
-                        <input type="hidden" name="id" value={o.id} />
-                        <button className="btn btn--ghost btn--sm" type="submit">Reopen</button>
-                      </form>
-                    ) : null}
-                    <form action={saveNotes} className="stack" style={{ marginTop: 10 }}>
+                    {o.email ? <div className="muted">{o.email}</div> : null}
+                  </div>
+                  {addr ? <div><CopyButton text={addr} /></div> : null}
+                  {o.fulfilled_at ? <div className="muted">Shipped {when(o.fulfilled_at)}</div> : null}
+                  {o.tracking ? <div className="muted">Tracking: {turl ? <a href={turl} target="_blank" rel="noreferrer">{o.tracking}</a> : o.tracking}</div> : null}
+                </div>
+
+                <div className="stack">
+                  {status === "paid" ? (
+                    <form action={markShipped} className="stack">
+                      <h3>Ship it</h3>
                       <input type="hidden" name="id" value={o.id} />
-                      <input type="hidden" name="view" value={view} />
-                      <textarea name="notes" rows={2} placeholder="Notes" defaultValue={o.notes ?? ""} />
-                      <button className="btn btn--ghost btn--sm" type="submit">Save notes</button>
+                      <input type="text" name="tracking" placeholder="Tracking number" autoComplete="off" inputMode="text" />
+                      <label className="muted" style={{ display: "block" }}>
+                        <input type="checkbox" name="notify" defaultChecked={!!o.email} /> E-mail the customer a shipping notice
+                      </label>
+                      <button className="btn" type="submit">Mark shipped</button>
                     </form>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  ) : status === "fulfilled" ? (
+                    <form action={reopenOrder}>
+                      <input type="hidden" name="id" value={o.id} />
+                      <button className="btn btn--ghost btn--sm" type="submit">Reopen order</button>
+                    </form>
+                  ) : null}
+                  <form action={saveNotes} className="stack">
+                    <h3>Notes</h3>
+                    <input type="hidden" name="id" value={o.id} />
+                    <input type="hidden" name="view" value={view} />
+                    <textarea name="notes" rows={2} placeholder="Internal notes" defaultValue={o.notes ?? ""} />
+                    <button className="btn btn--ghost btn--sm" type="submit">Save notes</button>
+                  </form>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       ) : null}
     </div>
   );

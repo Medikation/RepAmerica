@@ -25,10 +25,11 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
       {sp.link ? (
         <div className="notice stack">
           <div><strong>One-time set-password link for {sp.for}</strong> — send it to them (it expires in 24 hours and works once):</div>
-          <input type="text" readOnly value={sp.link} />
+          <input type="text" readOnly value={sp.link} style={{ fontSize: "1.2rem" }} />
           <div><CopyButton text={sp.link} label="Copy link" /></div>
         </div>
       ) : null}
+      <div style={{ overflowX: "auto" }}>
       <table>
         <thead><tr><th>E-mail</th><th>Last sign-in</th><th>Actions</th></tr></thead>
         <tbody>
@@ -55,6 +56,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
           ))}
         </tbody>
       </table>
+      </div>
       <h2 style={{ fontSize: "1.8rem", marginTop: 32 }}>Add a teammate</h2>
       <form action={inviteAdmin} className="stack" style={{ maxWidth: 420 }}>
         <input type="hidden" name="type" value="invite" />
