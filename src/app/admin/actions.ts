@@ -75,7 +75,7 @@ export async function markShipped(formData: FormData) {
     const r = await sendEmail({ to: order.email, ...m });
     emailed = r.ok ? "&emailed=1" : r.skipped ? "&emailed=skipped" : "&emailed=failed";
   }
-  redirect(`/admin/orders?shipped=${id}${emailed}`);
+  redirect(`/admin/orders?shipped=${encodeURIComponent(order.shopify_name ?? `#${id}`)}${emailed}`);
 }
 
 export async function reopenOrder(formData: FormData) {

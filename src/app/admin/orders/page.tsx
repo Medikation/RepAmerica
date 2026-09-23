@@ -23,6 +23,8 @@ type Order = {
   tracking: string | null;
   notes: string | null;
   payment_intent: string | null;
+  shopify_id: number | null;
+  shopify_name: string | null;
 };
 
 const money = (c: number | null) => `$${((c ?? 0) / 100).toFixed(2)}`;
@@ -46,7 +48,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const orders = (data ?? []) as Order[];
 
   const flash =
-    sp.shipped ? `Order #${sp.shipped} marked shipped${sp.emailed === "1" ? " and the customer was e-mailed" : sp.emailed === "skipped" ? " (customer e-mail skipped — RESEND_API_KEY not set)" : sp.emailed === "failed" ? " (customer e-mail FAILED — check logs)" : ""}.` :
+    sp.shipped ? `Order ${sp.shipped} marked shipped${sp.emailed === "1" ? " and the customer was e-mailed" : sp.emailed === "skipped" ? " (customer e-mail skipped — RESEND_API_KEY not set)" : sp.emailed === "failed" ? " (customer e-mail FAILED — check logs)" : ""}.` :
     sp.saved ? `Notes saved for order #${sp.saved}.` :
     sp.error ? `Something went wrong (${sp.error}).` : null;
 
@@ -72,7 +74,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                 <div className="stack">
                   <div className="card__head">
                     <div>
-                      <div className="card__id">Order #{o.id}</div>
+                      <div className="card__id">Order {o.shopify_name ?? `#${o.id}`}{o.shopify_id ? <span className="muted" style={{ fontWeight: 400 }}> · Shopify</span> : null}</div>
                       <div className="muted">{when(o.created_at)}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
@@ -86,6 +88,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                   </div>
                   <div className="row">
                     {o.payment_intent ? <a className="btn btn--ghost btn--sm" href={`https://dashboard.stripe.com/payments/${o.payment_intent}`} target="_blank" rel="noreferrer">Open in Stripe ↗</a> : null}
+                    {o.shopify_id ? <a className="btn btn--ghost btn--sm" href={`https://admin.shopify.com/store/rep-america/orders/${o.shopify_id}`} target="_blank" rel="noreferrer">Open in Shopify ↗</a> : null}
                     {o.email ? <a className="btn btn--ghost btn--sm" href={`mailto:${o.email}`}>E-mail customer</a> : null}
                   </div>
                 </div>
