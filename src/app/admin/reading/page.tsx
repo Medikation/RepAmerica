@@ -38,8 +38,8 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
     const log = byArticle.get(a.id) ?? null;
     return { key: `a${a.id}`, n, title: a.title, author: a.meta?.author ?? null, handle: a.handle, log, copies: log ? copiesByLog.get(log.id) ?? [] : [] };
   };
-  const coreRows = articles.filter((a) => !isBeyond(a)).map(toRow);
-  const beyondRows = articles.filter(isBeyond).map(toRow);
+  const coreRows = articles.filter((a) => !isBeyond(a)).map((a, i) => toRow(a, i + 1));
+  const beyondRows = articles.filter(isBeyond).map((a, i) => toRow(a, i + 1));
   const otherRows: Row[] = logList.filter((l) => l.article_id == null).sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")).map((l, i) => ({ key: `l${l.id}`, n: i + 1, title: l.title ?? "", author: l.author, handle: null, log: l, copies: copiesByLog.get(l.id) ?? [] }));
   const all = [...coreRows, ...beyondRows, ...otherRows];
 
