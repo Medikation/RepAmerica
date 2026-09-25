@@ -135,3 +135,29 @@ export async function deleteAdmin(formData: FormData) {
   }
   redirect("/admin/team?removed=1");
 }
+
+/** Reading tracker (/admin/reading): owner's private progress on the Great Books list. Lives in `reading_log`
+ *  (service-role only — never exposed through the public anon key). Called from the client row on every change. */
+export async function saveReading(input: { articleId: number; status: string; finishedMonth: string; paid: string; edition: string; notes: string }) {
+  await requireAdmin();
+  const articleId = Number(input.articleId);
+  if (!Number.isInteger(articleId) || articleId <= 0) return { ok: false as const, error: "bad id" };
+  const status = ["unread", "reading", "read"].includes(input.status) ? input.status : "unread";
+  const fm = /^\d{4}-\d{2}$/.test(input.finishedMonth) ? `${input.finishedMonth}-01` : null;
+  const paidNum = String(input.paid ?? "").replace(/[^0-9.]/g, "");
+  const paid_cents = paidNum === "" ? null : Math.round(Number(paidNum) * 100);
+  const row = {
+    article_id: articleId,
+    status,
+    finished_month: status === "read" ? fm : null,
+    paid_cents: Number.isFinite(paid_cents as number) ? paid_cents : null,
+    edition: String(input.edition ?? "").trim().slice(0, 200) || null,
+    notes: String(input.notes ?? "").trim().slice(0, 2000) || null,
+  };
+  const { error } = await supabaseAdmin().from("reading_log").upsert(row, { onConflict: "article_id" });
+  if (error) {
+    console.error("[admin] saveReading failed", error);
+    return { ok: false as const, error: error.message };
+  }
+  return { ok: true as const };
+}

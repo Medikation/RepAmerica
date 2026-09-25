@@ -55,6 +55,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="ra-admin__bar">
         <nav>
           <Link href="/admin/orders">Orders</Link>
+          <Link href="/admin/reading">Reading</Link>
           <Link href="/admin/team">Team</Link>
         </nav>
         {"user" in state && state.user ? (
