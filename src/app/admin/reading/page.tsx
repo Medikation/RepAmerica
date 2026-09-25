@@ -57,16 +57,22 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
   const copyCount = (copies ?? []).length;
   const spent = ((copies ?? []) as Copy[]).reduce((s, c) => s + (c.paid_cents ?? 0), 0);
   const lastFinished = logList.filter((l) => l.status === "read" && l.finished_month).sort((a, b) => (a.finished_month! < b.finished_month! ? 1 : -1))[0];
-  const lastBought = ((copies ?? []) as Copy[]).filter((c) => c.purchased_on).sort((a, b) => (a.purchased_on! < b.purchased_on! ? 1 : -1))[0];
-  const lastBoughtTitle = lastBought ? all.find((r) => r.log?.id === lastBought.log_id)?.title : null;
+  const recent = ((copies ?? []) as Copy[]).filter((c) => c.purchased_on).sort((a, b) => (a.purchased_on! < b.purchased_on! ? 1 : -1)).slice(0, 3)
+    .map((c) => ({ id: c.id, title: all.find((r) => r.log?.id === c.log_id)?.title ?? "", paid: c.paid_cents, on: c.purchased_on! }));
 
   return (
     <div>
       <style>{`
-        .ra-admin .rl-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:0 0 18px; }
-        @media (min-width:750px){ .ra-admin .rl-stats { grid-template-columns:repeat(4,1fr); } }
-        .ra-admin .rl-stat { border:1px solid #e2e2e2; border-radius:10px; padding:12px 14px; background:#fff; }
-        .ra-admin .rl-stat b { display:block; font-size:2.2rem; line-height:1.1; }
+        .ra-admin .rl-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 18px; }
+        @media (min-width:750px){ .ra-admin .rl-stats { grid-template-columns:1fr 1fr 2fr; } }
+        .ra-admin .rl-stat { border:1px solid #e2e2e2; border-radius:10px; padding:10px 14px; background:#fff; }
+        .ra-admin .rl-stat b { display:block; font-size:2rem; line-height:1.1; }
+        .ra-admin .rl-stat--recent { grid-column:1 / -1; }
+        @media (min-width:750px){ .ra-admin .rl-stat--recent { grid-column:auto; } }
+        .ra-admin .rl-recent { display:flex; gap:10px; align-items:baseline; font-size:1.25rem; line-height:1.5; }
+        .ra-admin .rl-recent em { font-style:normal; font-weight:600; color:#111; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .ra-admin .rl-recent i { font-style:normal; font-variant-numeric:tabular-nums; }
+        .ra-admin .rl-recent u { text-decoration:none; color:#999; white-space:nowrap; }
         .ra-admin .rl-stat b small { font-size:1.3rem; color:#777; font-weight:600; }
         .ra-admin .rl-stat span { font-size:1.2rem; color:#777; }
         .ra-admin .rl-progress { height:6px; background:#eee; border-radius:999px; overflow:hidden; margin:6px 0 0; }
@@ -103,10 +109,12 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
       <p className="muted">Your library and progress on the Great Books list. Private — nothing here shows on the site. Tell Claude when you buy or finish something and this updates.</p>
 
       <div className="rl-stats">
-        <div className="rl-stat"><b>{readCount} <small>/ {all.length}</small></b><span>books read</span><div className="rl-progress"><i style={{ width: `${Math.round((readCount / Math.max(all.length, 1)) * 100)}%` }} /></div></div>
-        <div className="rl-stat"><b style={{ fontSize: "1.4rem" }}>{reading.length ? reading.map((r) => r.title).join(", ") : "—"}</b><span>in progress</span></div>
+        <div className="rl-stat"><b>{readCount} <small>/ {all.length}</small></b><span>books read{lastFinished ? ` · last ${monthLabel(lastFinished.finished_month!)}` : ""}</span><div className="rl-progress"><i style={{ width: `${Math.round((readCount / Math.max(all.length, 1)) * 100)}%` }} /></div></div>
         <div className="rl-stat"><b>{ownedCount} <small>/ {all.length}</small></b><span>owned · {copyCount} copies · {money(spent)}</span><div className="rl-progress"><i style={{ width: `${Math.round((ownedCount / Math.max(all.length, 1)) * 100)}%`, background: "#999" }} /></div></div>
-        <div className="rl-stat"><b style={{ fontSize: "1.5rem" }}>{lastBought ? `${lastBoughtTitle ?? ""}` : "—"}</b><span>last bought{lastBought?.purchased_on ? ` · ${dateLabel(lastBought.purchased_on)}` : ""}{lastFinished ? ` · last finished ${monthLabel(lastFinished.finished_month!)}` : ""}</span></div>
+        <div className="rl-stat rl-stat--recent">
+          <span>Last bought</span>
+          {recent.map((c) => <div key={c.id} className="rl-recent"><em>{c.title}</em><i>{c.paid != null ? money(c.paid) : "—"}</i><u>{dateLabel(c.on)}</u></div>)}
+        </div>
       </div>
 
       <div className="tabs">
