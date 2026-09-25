@@ -1,14 +1,15 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { saveReading } from "@/app/admin/actions";
+import { saveReading, deleteOtherBook } from "@/app/admin/actions";
 
 export type ReadingRowData = {
-  articleId: number;
+  articleId: number | null;   // null = off-list book
+  logId: number | null;       // reading_log.id once a row exists
   n: number;
   title: string;
   author: string | null;
-  handle: string;
+  handle: string | null;
   status: "unread" | "reading" | "read";
   finishedMonth: string; // "YYYY-MM" or ""
   owned: boolean;
@@ -36,7 +37,7 @@ export default function ReadingRow({ row }: { row: ReadingRowData }) {
     setS(next);
     setState("saving");
     start(async () => {
-      const r = await saveReading({ articleId: next.articleId, status: next.status, finishedMonth: next.finishedMonth, paid: next.paid, edition: next.edition, notes: next.notes, owned: next.owned, purchasedOn: next.purchasedOn, translation: next.translation, secondCopy: next.secondCopy });
+      const r = await saveReading({ articleId: next.articleId, logId: next.logId, title: next.title, author: next.author ?? "", status: next.status, finishedMonth: next.finishedMonth, paid: next.paid, edition: next.edition, notes: next.notes, owned: next.owned, purchasedOn: next.purchasedOn, translation: next.translation, secondCopy: next.secondCopy });
       setState(r.ok ? "saved" : "error");
       if (r.ok) { setSaved(next); router.refresh(); setTimeout(() => setState("idle"), 1200); }
     });
@@ -54,7 +55,7 @@ export default function ReadingRow({ row }: { row: ReadingRowData }) {
     <div className={cls}>
       <div className="rl-n">{s.n}</div>
       <div className="rl-title">
-        <a href={`/blogs/great-books/${s.handle}`} target="_blank" rel="noreferrer">{s.title}</a>
+        {s.handle ? <a href={`/blogs/great-books/${s.handle}`} target="_blank" rel="noreferrer">{s.title}</a> : <span className="rl-title__plain">{s.title}</span>}
         {s.author ? <span className="muted"> — {s.author}</span> : null}
         <div className="rl-summary">
           {s.status === "read" && s.finishedMonth ? <span className="rl-chip rl-chip--read">Finished {MONTH_FMT(s.finishedMonth)}</span> : null}
@@ -84,6 +85,16 @@ export default function ReadingRow({ row }: { row: ReadingRowData }) {
           <label>Translation<input type="text" placeholder="Translator" value={s.translation} onChange={(e) => setS({ ...s, translation: e.target.value })} onBlur={blur("translation")} /></label>
           <label>Second copy<input type="text" placeholder="Edition, price, date, translator" value={s.secondCopy} onChange={(e) => setS({ ...s, secondCopy: e.target.value })} onBlur={blur("secondCopy")} /></label>
           <label className="rl-details__wide">Notes<input type="text" placeholder="Anything else" value={s.notes} onChange={(e) => setS({ ...s, notes: e.target.value })} onBlur={blur("notes")} /></label>
+          {s.articleId == null && s.logId ? (
+            <>
+              <label>Title<input type="text" value={s.title} onChange={(e) => setS({ ...s, title: e.target.value })} onBlur={blur("title")} /></label>
+              <label>Author<input type="text" value={s.author ?? ""} onChange={(e) => setS({ ...s, author: e.target.value })} onBlur={blur("author")} /></label>
+              <form action={deleteOtherBook} className="rl-details__remove" onSubmit={(e) => { if (!confirm(`Remove "${s.title}" from your list?`)) e.preventDefault(); }}>
+                <input type="hidden" name="id" value={s.logId} />
+                <button type="submit" className="btn btn--ghost btn--sm">Remove book</button>
+              </form>
+            </>
+          ) : null}
         </div>
       ) : null}
     </div>
