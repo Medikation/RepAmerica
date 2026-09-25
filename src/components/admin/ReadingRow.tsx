@@ -1,5 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { saveReading } from "@/app/admin/actions";
 
 export type ReadingRowData = {
@@ -20,6 +21,7 @@ export default function ReadingRow({ row }: { row: ReadingRowData }) {
   const [s, setS] = useState(row);
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [pending, start] = useTransition();
+  const router = useRouter();
 
   const commit = (next: ReadingRowData) => {
     setS(next);
@@ -27,7 +29,7 @@ export default function ReadingRow({ row }: { row: ReadingRowData }) {
     start(async () => {
       const r = await saveReading({ articleId: next.articleId, status: next.status, finishedMonth: next.finishedMonth, paid: next.paid, edition: next.edition, notes: next.notes });
       setState(r.ok ? "saved" : "error");
-      if (r.ok) setTimeout(() => setState("idle"), 1200);
+      if (r.ok) { router.refresh(); setTimeout(() => setState("idle"), 1200); }
     });
   };
 

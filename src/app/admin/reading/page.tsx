@@ -71,7 +71,7 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
           .ra-admin .rl-head { display:grid; font-size:1.1rem; text-transform:uppercase; letter-spacing:.05em; color:#888; font-weight:600; border-bottom:1px solid #e5e5e5; }
         }
         @media (max-width:899px){
-          .ra-admin .rl-row { grid-template-columns: 34px 1fr; grid-template-areas: "n title" "status status" "month paid" "notes notes" "state state"; }
+          .ra-admin .rl-row { grid-template-columns: 34px 1fr 1fr; grid-template-areas: "n title title" "status status status" "month month paid" "notes notes notes" "state state state"; }
           .ra-admin .rl-n { grid-area:n; } .ra-admin .rl-title { grid-area:title; } .ra-admin .rl-status { grid-area:status; }
           .ra-admin .rl-month { grid-area:month; } .ra-admin .rl-paid { grid-area:paid; } .ra-admin .rl-notes { grid-area:notes; } .ra-admin .rl-state { grid-area:state; }
         }
@@ -85,7 +85,7 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
         .ra-admin .seg:last-child { border-right:0; }
         .ra-admin .seg--on { background:#111; color:#fff; }
         .ra-admin .seg:disabled { opacity:.6; cursor:default; }
-        .ra-admin .rl-month input, .ra-admin .rl-paid input, .ra-admin .rl-notes input { font:inherit; font-size:1.3rem; padding:7px 9px; border:1px solid #bbb; border-radius:6px; width:100%; }
+        .ra-admin .rl-month input, .ra-admin .rl-paid input, .ra-admin .rl-notes input { font:inherit; font-size:1.3rem; padding:7px 9px; border:1px solid #bbb; border-radius:6px; width:100%; min-width:0; -webkit-appearance:none; appearance:none; background:#fff; min-height:36px; }
         .ra-admin .rl-month input:disabled { background:#f5f5f5; color:#aaa; }
         .ra-admin .rl-paid { display:flex; align-items:center; gap:4px; }
         .ra-admin .rl-dollar { color:#777; font-size:1.3rem; }
