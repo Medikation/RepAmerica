@@ -46,7 +46,10 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
   const status = (r: Row) => r.log?.status ?? "unread";
   const owned = (r: Row) => !!r.log?.owned || r.copies.length > 0;
   const view = ["read", "reading", "unread", "owned", "wishlist"].includes(sp.view ?? "") ? (sp.view as string) : "all";
-  const keep = (r: Row) => view === "all" || (view === "owned" ? owned(r) : view === "wishlist" ? !owned(r) : status(r) === view);
+  const q = (sp.q ?? "").trim().toLowerCase();
+  const matches = (r: Row) => !q || [r.title, r.author, r.log?.translation, r.log?.notes, ...r.copies.flatMap((c) => [c.edition, c.translation, c.source, c.notes, c.purchased_on ? String(new Date(c.purchased_on + "T12:00:00Z").getUTCFullYear()) : null])].some((v) => (v ?? "").toLowerCase().includes(q));
+  const keep = (r: Row) => matches(r) && (view === "all" || (view === "owned" ? owned(r) : view === "wishlist" ? !owned(r) : status(r) === view));
+  const qs = (v: string) => `${v === "all" ? "/admin/reading" : `/admin/reading?view=${v}`}${q ? `${v === "all" ? "?" : "&"}q=${encodeURIComponent(sp.q ?? "")}` : ""}`;
 
   const readCount = all.filter((r) => status(r) === "read").length;
   const reading = all.filter((r) => status(r) === "reading");
@@ -68,6 +71,9 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
         .ra-admin .rl-stat span { font-size:1.2rem; color:#777; }
         .ra-admin .rl-progress { height:6px; background:#eee; border-radius:999px; overflow:hidden; margin:6px 0 0; }
         .ra-admin .rl-progress i { display:block; height:100%; background:#111; }
+        .ra-admin .rl-search { display:flex; gap:8px; margin:-4px 0 6px; align-items:center; }
+        .ra-admin .rl-search input { flex:1; font:inherit; font-size:1.4rem; padding:9px 12px; border:1px solid #bbb; border-radius:6px; min-width:0; -webkit-appearance:none; appearance:none; }
+        .ra-admin .rl-search a.btn { text-decoration:none; display:inline-block; }
         .ra-admin .rl-section { margin-top:22px; }
         .ra-admin .rl-h { font-size:1.2rem; text-transform:uppercase; letter-spacing:.08em; color:#888; margin:0 0 4px; font-weight:600; cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px; user-select:none; padding:6px 0; }
         .ra-admin .rl-h::-webkit-details-marker { display:none; }
@@ -105,16 +111,22 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
 
       <div className="tabs">
         {([["all", "All"], ["read", "Read"], ["reading", "Reading"], ["unread", "Not yet"], ["owned", "Own"], ["wishlist", "Don't own"]] as const).map(([v, label]) => (
-          <Link key={v} href={v === "all" ? "/admin/reading" : `/admin/reading?view=${v}`} aria-current={view === v ? "page" : undefined}>{label}</Link>
+          <Link key={v} href={qs(v)} aria-current={view === v ? "page" : undefined}>{label}</Link>
         ))}
       </div>
+      <form method="get" action="/admin/reading" className="rl-search">
+        {view !== "all" ? <input type="hidden" name="view" value={view} /> : null}
+        <input type="search" name="q" defaultValue={sp.q ?? ""} placeholder="Search titles, authors, editions, sellers, years…" autoComplete="off" />
+        {q ? <Link href={view === "all" ? "/admin/reading" : `/admin/reading?view=${view}`} className="btn btn--ghost btn--sm">Clear</Link> : <button type="submit" className="btn btn--sm">Search</button>}
+      </form>
+      {q && !all.some(keep) ? <div className="notice">Nothing matches “{sp.q}”.</div> : null}
 
       {([["Great Books", coreRows, "great"], ["Beyond the Great Books", beyondRows, "beyond"], ["Not on either list", otherRows, "other"]] as const).map(([label, rows, key]) => {
         const list = (rows as Row[]).filter(keep);
         if (!list.length) return null;
         return (
           <details key={key} id={key} className="rl-section" open>
-            <summary className="rl-h"><span className="rl-h__caret" aria-hidden />{label} <span style={{ color: "#bbb" }}>· {list.length}{view !== "all" ? ` of ${(rows as Row[]).length}` : ""} · {money(list.reduce((s, r) => s + r.copies.reduce((t, c) => t + (c.paid_cents ?? 0), 0), 0))}</span></summary>
+            <summary className="rl-h"><span className="rl-h__caret" aria-hidden />{label} <span style={{ color: "#bbb" }}>· {list.length}{view !== "all" || q ? ` of ${(rows as Row[]).length}` : ""} · {money(list.reduce((s, r) => s + r.copies.reduce((t, c) => t + (c.paid_cents ?? 0), 0), 0))}</span></summary>
             {list.map((r) => {
               const st = status(r);
               return (
