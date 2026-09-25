@@ -25,7 +25,7 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
   const [{ data: arts }, { data: logs }, { data: copies }] = await Promise.all([
     db.from("articles").select("id, handle, title, published_at, meta").eq("blog", "great-books").eq("is_published", true).order("published_at", { ascending: true }),
     db.from("reading_log").select("*"),
-    db.from("reading_copies").select("*").order("purchased_on", { ascending: true, nullsFirst: false }),
+    db.from("reading_copies").select("*").order("sort_order", { ascending: true, nullsFirst: false }).order("purchased_on", { ascending: true, nullsFirst: false }),
   ]);
   const logList = (logs ?? []) as Log[];
   const byArticle = new Map<number, Log>(logList.filter((l) => l.article_id != null).map((l) => [l.article_id as number, l]));
