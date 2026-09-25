@@ -114,7 +114,7 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
         if (!list.length) return null;
         return (
           <details key={key} id={key} className="rl-section" open>
-            <summary className="rl-h"><span className="rl-h__caret" aria-hidden />{label} <span style={{ color: "#bbb" }}>· {list.length}{view !== "all" ? ` of ${(rows as Row[]).length}` : ""}</span></summary>
+            <summary className="rl-h"><span className="rl-h__caret" aria-hidden />{label} <span style={{ color: "#bbb" }}>· {list.length}{view !== "all" ? ` of ${(rows as Row[]).length}` : ""} · {money(list.reduce((s, r) => s + r.copies.reduce((t, c) => t + (c.paid_cents ?? 0), 0), 0))}</span></summary>
             {list.map((r) => {
               const st = status(r);
               return (
