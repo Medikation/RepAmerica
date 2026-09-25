@@ -138,7 +138,7 @@ export async function deleteAdmin(formData: FormData) {
 
 /** Reading tracker (/admin/reading): owner's private progress on the Great Books list. Lives in `reading_log`
  *  (service-role only — never exposed through the public anon key). Called from the client row on every change. */
-export async function saveReading(input: { articleId: number; status: string; finishedMonth: string; paid: string; edition: string; notes: string }) {
+export async function saveReading(input: { articleId: number; status: string; finishedMonth: string; paid: string; edition: string; notes: string; owned: boolean; purchasedOn: string; translation: string; secondCopy: string }) {
   await requireAdmin();
   const articleId = Number(input.articleId);
   if (!Number.isInteger(articleId) || articleId <= 0) return { ok: false as const, error: "bad id" };
@@ -153,6 +153,10 @@ export async function saveReading(input: { articleId: number; status: string; fi
     paid_cents: Number.isFinite(paid_cents as number) ? paid_cents : null,
     edition: String(input.edition ?? "").trim().slice(0, 200) || null,
     notes: String(input.notes ?? "").trim().slice(0, 2000) || null,
+    owned: !!input.owned,
+    purchased_on: /^\d{4}-\d{2}-\d{2}$/.test(input.purchasedOn) ? input.purchasedOn : null,
+    translation: String(input.translation ?? "").trim().slice(0, 200) || null,
+    second_copy: String(input.secondCopy ?? "").trim().slice(0, 500) || null,
   };
   const { error } = await supabaseAdmin().from("reading_log").upsert(row, { onConflict: "article_id" });
   if (error) {
