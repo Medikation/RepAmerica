@@ -8,6 +8,7 @@ import GreatBooksQuote from "@/components/great-books/GreatBooksQuote";
 import FeaturedEntries, { type FeaturedEntriesSection } from "@/components/great-books/FeaturedEntries";
 import HomeShop from "@/components/great-books/HomeShop";
 import HomeCollection, { type HomeCollectionSettings } from "@/components/great-books/HomeCollection";
+import GreatBooksVideos, { type GreatBooksVideosSettings } from "@/components/great-books/GreatBooksVideos";
 
 export const revalidate = 300;
 
@@ -38,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /** Port of templates/page.great-books.json. Sections render in `order`; "main" (main-page) is disabled in the template. */
 export default async function GreatBooksProjectPage() {
-  const [template, articles, page] = await Promise.all([getSetting<Template>(TEMPLATE_KEY), getArticles("great-books"), getPage(HANDLE)]);
+  const [template, articles, page, watch] = await Promise.all([getSetting<Template>(TEMPLATE_KEY), getArticles("great-books"), getPage(HANDLE), getArticles("watch", { desc: true })]);
 
   const sections = orderedSections(template).filter(({ section }) => !section.disabled);
 
@@ -96,6 +97,12 @@ export default async function GreatBooksProjectPage() {
               <section key={id} id={`shopify-section-${sectionId}`} className="shopify-section">
                 <FeaturedEntries id={sectionId} section={section as unknown as FeaturedEntriesSection} articles={articles} />
               </section>
+            );
+          case "great-books-videos":
+            return (
+              <div key={id} id={`shopify-section-${sectionId}`} className="shopify-section">
+                <GreatBooksVideos id={sectionId} settings={section.settings as GreatBooksVideosSettings} watch={watch} />
+              </div>
             );
           case "home-shop":
             return (
