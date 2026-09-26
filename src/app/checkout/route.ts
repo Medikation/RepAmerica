@@ -28,6 +28,21 @@ function parseProducts(raw: string | null): { variantId: number; quantity: numbe
   return [...out].map(([variantId, quantity]) => ({ variantId, quantity }));
 }
 
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+function interstitial(stripeUrl: string, items: Stripe.Checkout.SessionCreateParams.LineItem[]) {
+  const rows = items.map((li) => `<li>${li.quantity}× ${esc(li.price_data?.product_data?.name ?? "item")}</li>`).join("");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Checkout — Rep America</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="0;url=${esc(stripeUrl)}">
+<style>body{font-family:Georgia,serif;background:#faf8f4;color:#111;margin:0;display:flex;min-height:100vh;align-items:center;justify-content:center}
+main{max-width:420px;padding:32px;text-align:center}h1{font-size:22px;font-weight:600;margin:0 0 8px}p{color:#555;margin:0 0 20px}
+ul{list-style:none;padding:0;margin:0 0 24px;color:#333}li{padding:4px 0}
+a.btn{display:inline-block;background:#111;color:#fff;text-decoration:none;padding:12px 22px;border-radius:4px;font-family:system-ui,sans-serif;font-size:15px}</style></head>
+<body><main><h1>Taking you to secure checkout…</h1><p>Rep America · payments by Stripe</p><ul>${rows}</ul>
+<a class="btn" href="${esc(stripeUrl)}">Continue to checkout</a></main>
+<script>location.replace(${JSON.stringify(stripeUrl)})</script></body></html>`;
+}
+
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const shopUrl = `${SITE}/pages/shop`;
@@ -102,7 +117,8 @@ export async function GET(req: Request) {
       metadata: { source: "meta_shop", products: url.searchParams.get("products") ?? "", ...(coupon ? { coupon } : {}) },
     });
     if (!session.url) return NextResponse.redirect(shopUrl, 303);
-    return NextResponse.redirect(session.url, 303);
+    // Serve a real page on our domain (Meta's checkout checker needs a 200 it can load) that forwards to Stripe instantly.
+    return new Response(interstitial(session.url, line_items), { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
   } catch (e) {
     console.error("[checkout] session", e);
     return NextResponse.redirect(shopUrl, 303);
