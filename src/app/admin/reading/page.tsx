@@ -66,18 +66,18 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
   return (
     <div>
       <style>{`
-        .ra-admin .rl-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 18px; }
-        @media (min-width:750px){ .ra-admin .rl-stats { grid-template-columns:1fr 1fr 2fr; } }
-        .ra-admin .rl-stat { border:1px solid #e2e2e2; border-radius:10px; padding:10px 14px; background:#fff; }
+        .ra-admin .rl-stats { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; margin:0 0 18px; }
+        @media (min-width:1000px){ .ra-admin .rl-stats { grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,2.4fr); } }
+        .ra-admin .rl-stat { border:1px solid #e2e2e2; border-radius:10px; padding:10px 14px; background:#fff; min-width:0; overflow:hidden; }
         .ra-admin .rl-stat b { display:block; font-size:2rem; line-height:1.1; }
         .ra-admin .rl-stat--recent { grid-column:1 / -1; }
-        @media (min-width:750px){ .ra-admin .rl-stat--recent { grid-column:auto; } }
+        @media (min-width:1000px){ .ra-admin .rl-stat--recent { grid-column:auto; } }
         .ra-admin .rl-recent { display:flex; gap:10px; align-items:baseline; font-size:1.25rem; line-height:1.5; }
         .ra-admin .rl-recent em { font-style:normal; font-weight:600; color:#111; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .ra-admin .rl-recent i { font-style:normal; font-variant-numeric:tabular-nums; }
         .ra-admin .rl-recent u { text-decoration:none; color:#999; white-space:nowrap; }
         .ra-admin .rl-stat b small { font-size:1.3rem; color:#777; font-weight:600; }
-        .ra-admin .rl-stat span { font-size:1.2rem; color:#777; }
+        .ra-admin .rl-stat span { font-size:1.2rem; color:#777; overflow-wrap:normal; word-break:normal; white-space:normal; }
         .ra-admin .rl-progress { height:6px; background:#eee; border-radius:999px; overflow:hidden; margin:6px 0 0; }
         .ra-admin .rl-progress i { display:block; height:100%; background:#111; }
         .ra-admin .rl-search { display:flex; gap:8px; margin:-4px 0 6px; align-items:center; }
