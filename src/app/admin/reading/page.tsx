@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 type Article = { id: number; handle: string; title: string; published_at: string; meta: { author?: string; list_category?: string } | null };
 type Log = { id: number; article_id: number | null; title: string | null; author: string | null; status: "unread" | "reading" | "read"; finished_month: string | null; owned: boolean; translation: string | null; notes: string | null };
 type Copy = { id: number; log_id: number; edition: string | null; translation: string | null; paid_cents: number | null; purchased_on: string | null; source: string | null; notes: string | null };
+type Plan = { id: number; position: number; log_id: number | null; label: string; note: string | null; done: boolean };
 type Row = { key: string; n: number; title: string; author: string | null; handle: string | null; log: Log | null; copies: Copy[] };
 
 const money = (c: number) => `$${(c / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -22,11 +23,13 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
   if (!state.user) redirect(state.canRefresh ? `/admin/refresh?next=${encodeURIComponent("/admin/reading")}` : "/admin/login?next=/admin/reading");
 
   const db = supabaseAdmin();
-  const [{ data: arts }, { data: logs }, { data: copies }] = await Promise.all([
+  const [{ data: arts }, { data: logs }, { data: copies }, { data: plan }] = await Promise.all([
     db.from("articles").select("id, handle, title, published_at, meta").eq("blog", "great-books").eq("is_published", true).order("published_at", { ascending: true }),
     db.from("reading_log").select("*"),
     db.from("reading_copies").select("*").order("sort_order", { ascending: true, nullsFirst: false }).order("purchased_on", { ascending: true, nullsFirst: false }),
+    db.from("reading_plan").select("*").order("position", { ascending: true }),
   ]);
+  const planItems = (plan ?? []) as Plan[];
   const logList = (logs ?? []) as Log[];
   const byArticle = new Map<number, Log>(logList.filter((l) => l.article_id != null).map((l) => [l.article_id as number, l]));
   const copiesByLog = new Map<number, Copy[]>();
@@ -81,6 +84,15 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
         .ra-admin .rl-search input { flex:1; font:inherit; font-size:1.4rem; padding:9px 12px; border:1px solid #bbb; border-radius:6px; min-width:0; -webkit-appearance:none; appearance:none; }
         .ra-admin .rl-search a.btn { text-decoration:none; display:inline-block; }
         .ra-admin .rl-section { margin-top:22px; }
+        .ra-admin .rl-plan { margin:0 0 20px; border:1px solid #e2e2e2; border-radius:10px; padding:8px 14px 10px; background:#fff; }
+        .ra-admin .rl-plan .rl-h { margin:0; }
+        .ra-admin .rl-plan__list { margin:4px 0 0; padding:0 0 0 22px; }
+        .ra-admin .rl-plan__item { padding:5px 0; border-top:1px solid #f0f0f0; font-size:1.35rem; }
+        .ra-admin .rl-plan__item:first-child { border-top:0; }
+        .ra-admin .rl-plan__item::marker { color:#999; font-size:1.2rem; }
+        .ra-admin .rl-plan__label { font-weight:600; color:#111; }
+        .ra-admin .rl-plan__note { font-size:1.2rem; color:#777; }
+        .ra-admin .rl-plan__item--done .rl-plan__label { text-decoration:line-through; color:#999; }
         .ra-admin .rl-h { font-size:1.2rem; text-transform:uppercase; letter-spacing:.08em; color:#888; margin:0 0 4px; font-weight:600; cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px; user-select:none; padding:6px 0; }
         .ra-admin .rl-h::-webkit-details-marker { display:none; }
         .ra-admin .rl-h__caret { width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:6px solid #999; transition:transform .15s; }
@@ -116,6 +128,24 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
           {recent.map((c) => <div key={c.id} className="rl-recent"><em>{c.title}</em><i>{c.paid != null ? money(c.paid) : "—"}</i><u>{dateLabel(c.on)}</u></div>)}
         </div>
       </div>
+
+      {planItems.length ? (
+        <details className="rl-section rl-plan" open>
+          <summary className="rl-h"><span className="rl-h__caret" aria-hidden />Up next <span style={{ color: "#bbb" }}>· {planItems.filter((p) => !p.done).length} to go</span></summary>
+          <ol className="rl-plan__list">
+            {planItems.map((p) => {
+              const r = p.log_id ? all.find((x) => x.log?.id === p.log_id) : null;
+              const have = r ? owned(r) : false;
+              return (
+                <li key={p.id} className={p.done ? "rl-plan__item rl-plan__item--done" : "rl-plan__item"}>
+                  <div className="rl-plan__label">{p.label}{r && !have ? <span className="rl-chip rl-chip--want" style={{ marginLeft: 8 }}>Don&apos;t own yet</span> : null}</div>
+                  {p.note ? <div className="rl-plan__note">{p.note}</div> : null}
+                </li>
+              );
+            })}
+          </ol>
+        </details>
+      ) : null}
 
       <div className="tabs">
         {([["all", "All"], ["read", "Read"], ["reading", "Reading"], ["unread", "Not yet"], ["owned", "Own"], ["wishlist", "Don't own"]] as const).map(([v, label]) => (
