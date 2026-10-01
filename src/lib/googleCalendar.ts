@@ -1,7 +1,10 @@
 // Server-only. Reads Medi's Google Calendars (medi@ and team@repamerica.com) for /admin/today.
-// Auth is a Google service account the calendars are shared with ("See all event details"); its JSON key lives in
-// the GOOGLE_SERVICE_ACCOUNT_JSON env var (Vercel). The JWT-bearer exchange is done by hand (RS256 via node:crypto)
-// so the site carries no Google SDK. Read-only scope — nothing here can change a calendar.
+// Auth is a Google service account (Cloud project rep-america-site) with DOMAIN-WIDE DELEGATION for the
+// calendar.readonly scope: the Workspace admin console authorises its client ID, and the site's token request names
+// medi@ as the user to act as (`sub`), so it sees exactly the calendars he sees — no per-calendar sharing, which the
+// Workspace external-sharing policy limits to free/busy anyway. The JSON key lives in the GOOGLE_SERVICE_ACCOUNT_JSON
+// env var (Vercel). The JWT-bearer exchange is done by hand (RS256 via node:crypto) so the site carries no Google SDK.
+// Read-only scope — nothing here can change a calendar.
 import { createSign } from "node:crypto";
 
 export const PT = "America/Los_Angeles";
@@ -10,6 +13,8 @@ export const CALENDARS: { id: string; label: string }[] = [
   { id: "team@repamerica.com", label: "team@" },
 ];
 const SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
+/** The Workspace user the service account acts as (domain-wide delegation). */
+export const CALENDAR_USER = process.env.GOOGLE_CALENDAR_USER ?? "medi@repamerica.com";
 
 type ServiceAccount = { client_email: string; private_key: string };
 
@@ -71,7 +76,7 @@ async function accessToken(sa: ServiceAccount): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   if (tokenCache && tokenCache.expiresAt > now + 60) return tokenCache.token;
   const header = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-  const claims = b64url(JSON.stringify({ iss: sa.client_email, scope: SCOPE, aud: "https://oauth2.googleapis.com/token", iat: now, exp: now + 3600 }));
+  const claims = b64url(JSON.stringify({ iss: sa.client_email, sub: CALENDAR_USER, scope: SCOPE, aud: "https://oauth2.googleapis.com/token", iat: now, exp: now + 3600 }));
   const signer = createSign("RSA-SHA256");
   signer.update(`${header}.${claims}`);
   const signature = signer.sign(sa.private_key, "base64url");
@@ -82,7 +87,11 @@ async function accessToken(sa: ServiceAccount): Promise<string> {
     cache: "no-store",
   });
   const body = (await res.json().catch(() => ({}))) as { access_token?: string; expires_in?: number; error?: string; error_description?: string };
-  if (!res.ok || !body.access_token) throw new Error(body.error_description ?? body.error ?? `token exchange failed (${res.status})`);
+  if (!res.ok || !body.access_token) {
+    const msg = body.error_description ?? body.error ?? `token exchange failed (${res.status})`;
+    // "unauthorized_client" / "invalid_grant" here means the Workspace admin has not (yet) authorised this client ID for the scope.
+    throw new Error(/unauthorized_client|invalid_grant|not authorized/i.test(msg) ? `${msg} — domain-wide delegation for ${sa.client_email} (scope calendar.readonly) is not authorised in the Workspace admin console` : msg);
+  }
   tokenCache = { token: body.access_token, expiresAt: now + (body.expires_in ?? 3600) };
   return body.access_token;
 }

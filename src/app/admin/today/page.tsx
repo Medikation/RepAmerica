@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAdmin } from "@/lib/adminAuth";
 import { supabaseAdmin } from "@/lib/supabase";
-import { fetchCalendarEvents, zonedDayStart, dayKey, addDays, PT, type CalEvent } from "@/lib/googleCalendar";
+import { fetchCalendarEvents, zonedDayStart, dayKey, addDays, PT, CALENDAR_USER, type CalEvent } from "@/lib/googleCalendar";
 
 // The producer's desk: one page Medi opens before going live. Three things, top to bottom —
 //   1. today's timeline: his Google Calendar (medi@ + team@, read live through a service account) merged with the
@@ -123,6 +123,7 @@ export default async function TodayPage() {
   const timed = items.filter((i) => !i.allDay && !i.dim);
   for (const a of timed) for (const b of timed) {
     if (a === b || a.source === b.source && a.source === "trump") continue; // two Trump events colliding is Trump's problem
+    if ((a.source === "show" && b.source === "trump") || (a.source === "trump" && b.source === "show")) continue; // the show covering an event is the point, not a clash
     if (a.startsAt < effectiveEnd(b) && b.startsAt < effectiveEnd(a)) a.conflicts.push(b.source === "cal" ? b.title : `${b.kindLabel} · ${b.title}`);
   }
 
@@ -206,10 +207,10 @@ export default async function TodayPage() {
       <p className="muted">{dayLabel(todayKey)} · everything in Pacific. Your calendars (medi@ + team@), the Trump / White House schedule, and the rundown for the stream. Private — nothing here shows on the site.</p>
 
       {!calendar.configured ? (
-        <div className="notice">Google Calendar isn&apos;t connected yet — add <code>GOOGLE_SERVICE_ACCOUNT_JSON</code> in Vercel (the key for <code>{saEmail}</code>) and redeploy. The Trump schedule and rundown below still work.</div>
+        <div className="notice">Google Calendar isn&apos;t connected yet — add <code>GOOGLE_SERVICE_ACCOUNT_JSON</code> in Vercel (the key for <code>{saEmail}</code>, authorised for calendar.readonly by domain-wide delegation) and redeploy. The Trump schedule and rundown below still work.</div>
       ) : null}
       {calendar.errors.map((e) => (
-        <div key={e.calendar} className="notice notice--error">{e.calendar}: {e.message}{/not found/i.test(e.message) ? ` — share that calendar with ${saEmail} ("See all event details").` : ""}</div>
+        <div key={e.calendar} className="notice notice--error">{e.calendar}: {e.message}{/not found/i.test(e.message) ? ` — ${CALENDAR_USER} can't see that calendar.` : ""}</div>
       ))}
 
       <div className="td-stats">
