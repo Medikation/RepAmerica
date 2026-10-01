@@ -4,7 +4,8 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 // The Rep America Live playbook: strategy, segments, schedule, title/thumbnail system and the 60-day pilot.
 // Read-only by design (same as /admin/reading): the content lives in Supabase — `show_settings` (header facts),
-// `show_playbook` (sections, trusted HTML), `show_scorecard` (weekly pilot numbers), `show_episodes` (what aired) —
+// `show_playbook` (sections, trusted HTML), `show_scorecard` (weekly pilot numbers), `show_episodes` (what aired),
+// `show_events` (upcoming Trump / White House / campaign events worth going live for; refreshed daily by a scheduled task) —
 // and Medi tells Claude what changed; Claude updates the rows directly. RLS is on with no policies (service role only).
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ type Setting = { key: string; value: string | null };
 type Section = { id: number; slug: string; title: string; body_html: string; sort_order: number; updated_at: string };
 type Score = { id: number; week_start: string; uploads: number | null; views: number | null; avg_view_duration_sec: number | null; ctr_pct: number | null; subs_gained: number | null; rpm_cents: number | null; revenue_cents: number | null; notes: string | null };
 type Episode = { id: number; aired_on: string; segment: "reading" | "beat" | "stronger" | "live" | "other"; title: string; youtube_url: string | null; is_cut: boolean; views: number | null; notes: string | null };
+type Event = { id: number; starts_at: string; ends_at: string | null; all_day: boolean; title: string; kind: "trump" | "white-house" | "campaign" | "other"; location: string | null; press: string | null; stream_url: string | null; source_url: string | null; status: "scheduled" | "tentative" | "covered" | "skipped" | "canceled"; notes: string | null; updated_at: string };
 
 const SEGMENT_LABEL: Record<Episode["segment"], string> = { reading: "Reading", beat: "The Beat", stronger: "Stronger", live: "Live", other: "Other" };
 const money = (c: number) => `$${(c / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -19,17 +21,25 @@ const dateLabel = (iso: string) => new Date(iso.slice(0, 10) + "T12:00:00Z").toL
 const stamp = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/Los_Angeles" });
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 const num = (n: number) => n.toLocaleString("en-US");
+const KIND_LABEL: Record<Event["kind"], string> = { trump: "Trump", "white-house": "White House", campaign: "Campaign", other: "Other" };
+const PT = "America/Los_Angeles";
+const timePT = (iso: string) => new Date(iso).toLocaleString("en-US", { hour: "numeric", minute: "2-digit", timeZone: PT });
+const timeET = (iso: string) => new Date(iso).toLocaleString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
+const dayKeyPT = (iso: string) => new Date(iso).toLocaleDateString("en-CA", { timeZone: PT }); // YYYY-MM-DD in PT
+const dayLabelPT = (iso: string) => new Date(iso).toLocaleString("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: PT });
 
 export default async function ShowPage() {
   const state = await getAdmin();
   if (!state.user) redirect(state.canRefresh ? `/admin/refresh?next=${encodeURIComponent("/admin/show")}` : "/admin/login?next=/admin/show");
 
   const db = supabaseAdmin();
-  const [{ data: settingRows }, { data: sectionRows }, { data: scoreRows }, { data: episodeRows }] = await Promise.all([
+  const now = Date.now();
+  const [{ data: settingRows }, { data: sectionRows }, { data: scoreRows }, { data: episodeRows }, { data: eventRows }] = await Promise.all([
     db.from("show_settings").select("key, value"),
     db.from("show_playbook").select("*").order("sort_order", { ascending: true }).order("id", { ascending: true }),
     db.from("show_scorecard").select("*").order("week_start", { ascending: false }),
     db.from("show_episodes").select("*").order("aired_on", { ascending: false }).order("id", { ascending: false }).limit(40),
+    db.from("show_events").select("*").gte("starts_at", new Date(now - 12 * 3600 * 1000).toISOString()).order("starts_at", { ascending: true }).limit(80),
   ]);
   const settings = new Map<string, string>(((settingRows ?? []) as Setting[]).filter((s) => s.value != null).map((s) => [s.key, s.value as string]));
   const sections = (sectionRows ?? []) as Section[];
@@ -49,6 +59,14 @@ export default async function ShowPage() {
   const cuts = episodes.filter((e) => e.is_cut);
   const cutViews = cuts.reduce((s, e) => s + (e.views ?? 0), 0);
   const lastUpdated = sections.map((s) => s.updated_at).sort().at(-1) ?? null;
+
+  // Upcoming events: today (PT) and the days after; anything that started in the last 12h stays visible.
+  const events = ((eventRows ?? []) as Event[]).filter((e) => Date.parse(e.starts_at) >= now - 12 * 3600 * 1000 || (e.ends_at != null && Date.parse(e.ends_at) >= now));
+  const todayKey = new Date(now).toLocaleDateString("en-CA", { timeZone: PT });
+  const isLive = (e: Event) => !e.all_day && e.status !== "canceled" && Date.parse(e.starts_at) <= now && (e.ends_at ? Date.parse(e.ends_at) >= now : Date.parse(e.starts_at) >= now - 2 * 3600 * 1000);
+  const nextEvent = events.find((e) => e.status !== "canceled" && e.status !== "skipped" && (isLive(e) || Date.parse(e.starts_at) >= now));
+  const eventDays = Array.from(events.reduce((m, e) => { const k = dayKeyPT(e.starts_at); m.set(k, [...(m.get(k) ?? []), e]); return m; }, new Map<string, Event[]>()).entries());
+  const eventsUpdated = events.map((e) => e.updated_at).sort().at(-1) ?? null;
 
   return (
     <div>
@@ -97,6 +115,29 @@ export default async function ShowPage() {
         .ra-admin .sp-prose .tag--beat { background:#fde0e0; color:#9b1c1c; }
         .ra-admin .sp-prose .tag--stronger { background:#dde8f7; color:#1d4a8a; }
         .ra-admin .sp-prose .tag--live { background:#eee; color:#444; }
+        .ra-admin .sp-ev-day { font-size:1.15rem; text-transform:uppercase; letter-spacing:.06em; color:#888; font-weight:600; margin:14px 0 4px; }
+        .ra-admin .sp-ev-day:first-of-type { margin-top:4px; }
+        .ra-admin .sp-ev-day--today { color:#111; }
+        .ra-admin .sp-ev { display:grid; grid-template-columns: 96px 1fr; gap:2px 12px; align-items:start; padding:9px 10px; border-top:1px solid #eee; border-radius:6px; }
+        @media (min-width:750px){ .ra-admin .sp-ev { grid-template-columns: 150px 1fr auto; } }
+        .ra-admin .sp-ev--today { background:#fffbf0; }
+        .ra-admin .sp-ev--live { background:#fde8e8; }
+        .ra-admin .sp-ev--done { opacity:.55; }
+        .ra-admin .sp-ev--canceled .sp-ev__title { text-decoration:line-through; color:#999; }
+        .ra-admin .sp-ev__time { font-weight:700; font-size:1.4rem; font-variant-numeric:tabular-nums; white-space:nowrap; }
+        .ra-admin .sp-ev__time small { display:block; font-weight:500; color:#999; font-size:1.15rem; }
+        .ra-admin .sp-ev__title { font-weight:600; font-size:1.4rem; color:#111; }
+        .ra-admin .sp-ev__meta { font-size:1.25rem; color:#777; }
+        .ra-admin .sp-ev__meta a { color:#555; }
+        .ra-admin .sp-ev__badges { display:flex; gap:6px; flex-wrap:wrap; align-items:center; grid-column: 2; }
+        @media (min-width:750px){ .ra-admin .sp-ev__badges { grid-column:auto; justify-content:flex-end; } }
+        .ra-admin .sp-kind { display:inline-block; padding:1px 8px; border-radius:999px; font-size:1.05rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; white-space:nowrap; background:#eee; color:#444; }
+        .ra-admin .sp-kind--trump { background:#fde0e0; color:#9b1c1c; }
+        .ra-admin .sp-kind--white-house { background:#dde8f7; color:#1d4a8a; }
+        .ra-admin .sp-kind--campaign { background:#fbead3; color:#8a4b00; }
+        .ra-admin .sp-live { display:inline-block; padding:1px 8px; border-radius:999px; font-size:1.05rem; font-weight:800; letter-spacing:.06em; background:#c00; color:#fff; white-space:nowrap; }
+        .ra-admin .sp-status { display:inline-block; padding:1px 8px; border-radius:999px; font-size:1.05rem; font-weight:700; white-space:nowrap; border:1px solid #ddd; color:#777; background:#fff; }
+        .ra-admin .sp-status--covered { background:#d9f2e3; color:#0f5c33; border-color:#d9f2e3; }
         .ra-admin .sp-table-wrap { overflow-x:auto; }
         .ra-admin .sp-num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
         .ra-admin .sp-seg { display:inline-block; padding:1px 8px; border-radius:999px; font-size:1.1rem; font-weight:700; white-space:nowrap; background:#eee; color:#444; }
@@ -125,7 +166,12 @@ export default async function ShowPage() {
           )}
         </div>
         <div className="sp-stat">
-          {cuts.length ? (
+          {nextEvent ? (
+            <>
+              <b>{nextEvent.all_day ? dayLabelPT(nextEvent.starts_at).replace(/^(\w+), /, "") : `${timePT(nextEvent.starts_at)} PT`}</b>
+              <span>{isLive(nextEvent) ? "live now · " : dayKeyPT(nextEvent.starts_at) === todayKey ? "today · " : `${dayLabelPT(nextEvent.starts_at).split(",")[0]} · `}{nextEvent.title}</span>
+            </>
+          ) : cuts.length ? (
             <>
               <b>{cuts.length} <small>cuts</small></b>
               <span>{cutViews ? `${num(cutViews)} views logged` : "views not logged yet"}</span>
@@ -142,6 +188,7 @@ export default async function ShowPage() {
 
       {sections.length ? (
         <nav className="sp-jump" aria-label="Sections">
+          <a href="#events">Upcoming events</a>
           {mainSections.map((s) => <a key={s.slug} href={`#${s.slug}`}>{s.title}</a>)}
           <a href="#scorecard">Scorecard</a>
           {episodes.length ? <a href="#episodes">Episodes</a> : null}
@@ -150,6 +197,51 @@ export default async function ShowPage() {
       ) : (
         <div className="notice">The playbook has no sections yet.</div>
       )}
+
+      <details id="events" className="sp-section" open>
+        <summary className="sp-h"><span className="sp-h__caret" aria-hidden />Upcoming — Trump, White House &amp; campaign<span className="sp-h__meta">{eventsUpdated ? `updated ${new Date(eventsUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: PT })} PT` : "nothing scheduled"}</span></summary>
+        {eventDays.length ? (
+          <div>
+            {eventDays.map(([day, list]) => (
+              <div key={day}>
+                <div className={`sp-ev-day${day === todayKey ? " sp-ev-day--today" : ""}`}>{day === todayKey ? "Today · " : ""}{dayLabelPT(list[0].starts_at)}</div>
+                {list.map((e) => {
+                  const live = isLive(e);
+                  const done = !live && !e.all_day && Date.parse(e.starts_at) < now && e.status !== "canceled";
+                  const cls = ["sp-ev", day === todayKey ? "sp-ev--today" : "", live ? "sp-ev--live" : "", done ? "sp-ev--done" : "", e.status === "canceled" ? "sp-ev--canceled" : ""].filter(Boolean).join(" ");
+                  const meta = [e.location, e.press ? `${e.press} press` : null, e.notes].filter(Boolean).join(" · ");
+                  return (
+                    <div key={e.id} className={cls}>
+                      <div className="sp-ev__time">{e.all_day ? "Time TBD" : `${timePT(e.starts_at)} PT`}{e.all_day ? null : <small>{timeET(e.starts_at)} ET{e.ends_at ? ` – ${timeET(e.ends_at)}` : ""}</small>}</div>
+                      <div>
+                        <div className="sp-ev__title">{e.title}</div>
+                        {meta ? <div className="sp-ev__meta">{meta}</div> : null}
+                        {e.stream_url || e.source_url ? (
+                          <div className="sp-ev__meta">
+                            {e.stream_url ? <a href={e.stream_url} target="_blank" rel="noreferrer">Watch</a> : null}
+                            {e.stream_url && e.source_url ? " · " : null}
+                            {e.source_url ? <a href={e.source_url} target="_blank" rel="noreferrer">Source</a> : null}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="sp-ev__badges">
+                        {live ? <span className="sp-live">LIVE</span> : null}
+                        <span className={`sp-kind sp-kind--${e.kind}`}>{KIND_LABEL[e.kind]}</span>
+                        {e.status === "tentative" ? <span className="sp-status">tentative</span> : null}
+                        {e.status === "covered" ? <span className="sp-status sp-status--covered">covered</span> : null}
+                        {e.status === "skipped" ? <span className="sp-status">skipped</span> : null}
+                        {e.status === "canceled" ? <span className="sp-status">canceled</span> : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="sp-empty">Nothing on the calendar yet. The schedule refreshes each morning from the White House daily guidance and the GOP events list; tell Claude about anything else worth covering.</div>
+        )}
+      </details>
 
       {mainSections.map((s) => <PlaybookSection key={s.slug} s={s} />)}
 
