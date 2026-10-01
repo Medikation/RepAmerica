@@ -1,22 +1,25 @@
 // Server-only. Reads Medi's Google Calendars (medi@ and team@repamerica.com) for /admin/today.
-// Auth is a Google service account (Cloud project rep-america-site) with DOMAIN-WIDE DELEGATION for the
-// calendar.readonly scope: the Workspace admin console authorises its client ID, and the site's token request names
-// medi@ as the user to act as (`sub`), so it sees exactly the calendars he sees — no per-calendar sharing, which the
-// Workspace external-sharing policy limits to free/busy anyway. The JSON key lives in the GOOGLE_SERVICE_ACCOUNT_JSON
-// env var (Vercel). The JWT-bearer exchange is done by hand (RS256 via node:crypto) so the site carries no Google SDK.
-// Read-only scope — nothing here can change a calendar.
-import { createSign } from "node:crypto";
+// Auth is plain Google OAuth 2.0 with Medi's own one-time consent (an "Internal" app in the Workspace org, Cloud project
+// rep-america-site): /admin/google-calendar/connect sends him to Google, /admin/google-calendar/callback stores the
+// refresh token in `integration_tokens` (service role only), and this module mints short-lived access tokens from it.
+// No service-account key (the org's secure-by-default policy forbids them) and no domain-wide delegation; he can
+// revoke it any time at myaccount.google.com → Security → Third-party access. Env: GOOGLE_OAUTH_CLIENT_ID and
+// GOOGLE_OAUTH_CLIENT_SECRET (Vercel). Scope is calendar.readonly — nothing here can change a calendar.
+import { supabaseAdmin } from "@/lib/supabase";
 
 export const PT = "America/Los_Angeles";
 export const CALENDARS: { id: string; label: string }[] = [
   { id: "medi@repamerica.com", label: "medi@" },
   { id: "team@repamerica.com", label: "team@" },
 ];
-const SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
-/** The Workspace user the service account acts as (domain-wide delegation). */
+export const SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
+export const PROVIDER = "google-calendar";
+/** httpOnly cookie carrying the OAuth `state` nonce between /connect and /callback. */
+export const STATE_COOKIE = "ra_gcal_state";
+/** The Google account whose consent the site uses. */
 export const CALENDAR_USER = process.env.GOOGLE_CALENDAR_USER ?? "medi@repamerica.com";
 
-type ServiceAccount = { client_email: string; private_key: string };
+export const oauthClient = () => ({ id: process.env.GOOGLE_OAUTH_CLIENT_ID ?? "", secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET ?? "" });
 
 type GEvent = {
   id: string;
@@ -53,46 +56,38 @@ export type CalEvent = {
   free: boolean; // "transparency: transparent" (shows as available)
 };
 
-export type CalendarResult = { events: CalEvent[]; errors: { calendar: string; message: string }[]; configured: boolean };
+export type CalendarResult = {
+  events: CalEvent[];
+  errors: { calendar: string; message: string }[];
+  configured: boolean; // client id + secret present
+  connected: boolean; // a refresh token is stored for CALENDAR_USER
+};
 
-function loadServiceAccount(): ServiceAccount | null {
-  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  if (!raw) return null;
-  try {
-    const j = JSON.parse(raw) as Partial<ServiceAccount>;
-    if (!j.client_email || !j.private_key) return null;
-    // A key pasted through a dashboard sometimes arrives with escaped newlines.
-    return { client_email: j.client_email, private_key: String(j.private_key).replace(/\\n/g, "\n") };
-  } catch {
-    return null;
-  }
+let tokenCache: { token: string; expiresAt: number; refresh: string } | null = null;
+
+/** The stored refresh token for CALENDAR_USER, or null when he has not connected yet. */
+export async function storedRefreshToken(): Promise<string | null> {
+  const { data } = await supabaseAdmin().from("integration_tokens").select("refresh_token").eq("provider", PROVIDER).eq("account", CALENDAR_USER).maybeSingle();
+  return (data as { refresh_token: string } | null)?.refresh_token ?? null;
 }
 
-const b64url = (s: string) => Buffer.from(s).toString("base64url");
-
-let tokenCache: { token: string; expiresAt: number } | null = null;
-
-async function accessToken(sa: ServiceAccount): Promise<string> {
+async function accessToken(refresh: string): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
-  if (tokenCache && tokenCache.expiresAt > now + 60) return tokenCache.token;
-  const header = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-  const claims = b64url(JSON.stringify({ iss: sa.client_email, sub: CALENDAR_USER, scope: SCOPE, aud: "https://oauth2.googleapis.com/token", iat: now, exp: now + 3600 }));
-  const signer = createSign("RSA-SHA256");
-  signer.update(`${header}.${claims}`);
-  const signature = signer.sign(sa.private_key, "base64url");
+  if (tokenCache && tokenCache.refresh === refresh && tokenCache.expiresAt > now + 60) return tokenCache.token;
+  const { id, secret } = oauthClient();
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: `${header}.${claims}.${signature}` }),
+    body: new URLSearchParams({ grant_type: "refresh_token", client_id: id, client_secret: secret, refresh_token: refresh }),
     cache: "no-store",
   });
   const body = (await res.json().catch(() => ({}))) as { access_token?: string; expires_in?: number; error?: string; error_description?: string };
   if (!res.ok || !body.access_token) {
-    const msg = body.error_description ?? body.error ?? `token exchange failed (${res.status})`;
-    // "unauthorized_client" / "invalid_grant" here means the Workspace admin has not (yet) authorised this client ID for the scope.
-    throw new Error(/unauthorized_client|invalid_grant|not authorized/i.test(msg) ? `${msg} — domain-wide delegation for ${sa.client_email} (scope calendar.readonly) is not authorised in the Workspace admin console` : msg);
+    const msg = body.error_description ?? body.error ?? `token refresh failed (${res.status})`;
+    // invalid_grant = the consent was revoked or the token expired → reconnect from /admin/today.
+    throw new Error(/invalid_grant/i.test(msg) ? `${msg} — the Google Calendar connection was revoked; reconnect from the Today page` : msg);
   }
-  tokenCache = { token: body.access_token, expiresAt: now + (body.expires_in ?? 3600) };
+  tokenCache = { token: body.access_token, expiresAt: now + (body.expires_in ?? 3600), refresh };
   return body.access_token;
 }
 
@@ -178,13 +173,20 @@ function merge(copies: { ev: CalEvent; raw: GEvent; votes: Map<string, number> }
 
 /** Events on all configured calendars between two instants (ms). Never throws: errors come back per calendar. */
 export async function fetchCalendarEvents(timeMin: number, timeMax: number): Promise<CalendarResult> {
-  const sa = loadServiceAccount();
-  if (!sa) return { events: [], errors: [], configured: false };
+  const { id, secret } = oauthClient();
+  if (!id || !secret) return { events: [], errors: [], configured: false, connected: false };
+  let refresh: string | null = null;
+  try {
+    refresh = await storedRefreshToken();
+  } catch (err) {
+    return { events: [], errors: [{ calendar: "google", message: err instanceof Error ? err.message : String(err) }], configured: true, connected: false };
+  }
+  if (!refresh) return { events: [], errors: [], configured: true, connected: false };
   let token: string;
   try {
-    token = await accessToken(sa);
+    token = await accessToken(refresh);
   } catch (err) {
-    return { events: [], errors: [{ calendar: "google", message: err instanceof Error ? err.message : String(err) }], configured: true };
+    return { events: [], errors: [{ calendar: "google", message: err instanceof Error ? err.message : String(err) }], configured: true, connected: true };
   }
   const errors: CalendarResult["errors"] = [];
   const copies: { ev: CalEvent; raw: GEvent; votes: Map<string, number> }[] = [];
@@ -218,7 +220,7 @@ export async function fetchCalendarEvents(timeMin: number, timeMax: number): Pro
       }
     }),
   );
-  return { events: merge(copies), errors, configured: true };
+  return { events: merge(copies), errors, configured: true, connected: true };
 }
 
 /* ---------- time helpers (the site runs in UTC on Vercel; everything shown is Pacific) ---------- */

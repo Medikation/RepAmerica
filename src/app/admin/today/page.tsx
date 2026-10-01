@@ -55,7 +55,7 @@ function relative(ms: number, now: number): string {
 }
 const effectiveEnd = (i: Item) => i.endsAt ?? i.startsAt + TRUMP_DEFAULT_MIN * 60000;
 
-export default async function TodayPage() {
+export default async function TodayPage({ searchParams }: { searchParams: Promise<{ gcal?: string }> }) {
   const state = await getAdmin();
   if (!state.user) redirect(state.canRefresh ? `/admin/refresh?next=${encodeURIComponent("/admin/today")}` : "/admin/login?next=/admin/today");
 
@@ -135,7 +135,18 @@ export default async function TodayPage() {
   const nextTrump = items.find((i) => i.source === "trump" && !i.dim && (i.live || i.startsAt > now || i.allDay && dayKey(i.startsAt) >= todayKey)) ?? null;
   const awaiting = calendar.events.filter((e) => e.response === "needsAction" || e.response === "tentative");
   const conflictsToday = todayItems.filter((i) => i.source === "cal" && i.conflicts.length);
-  const saEmail = "repamerica-calendar@rep-america-site.iam.gserviceaccount.com";
+  const { gcal } = await searchParams;
+  const GCAL_MSG: Record<string, [string, boolean]> = {
+    connected: ["Google Calendar connected — both calendars load live from here on.", false],
+    denied: ["Google reported that access was declined. Nothing was stored; try Connect again when ready.", true],
+    wrongaccount: [`That consent came from a different Google account — connect as ${CALENDAR_USER}.`, true],
+    state: ["That connect attempt expired or was tampered with (state mismatch). Try Connect again.", true],
+    exchange: ["Google rejected the authorisation code — usually the client secret or the redirect URI in the Cloud console doesn't match. Nothing was stored.", true],
+    norefresh: ["Google didn't issue a refresh token this time. Try Connect again (it re-asks for consent).", true],
+    store: ["Consent worked but the token couldn't be saved to Supabase — check the server log.", true],
+    unconfigured: ["GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET aren't set in Vercel yet.", true],
+  };
+  const gcalMsg = gcal ? GCAL_MSG[gcal] : undefined;
 
   return (
     <div>
@@ -206,8 +217,14 @@ export default async function TodayPage() {
       <h1>Today</h1>
       <p className="muted">{dayLabel(todayKey)} · everything in Pacific. Your calendars (medi@ + team@), the Trump / White House schedule, and the rundown for the stream. Private — nothing here shows on the site.</p>
 
+      {gcalMsg ? <div className={`notice${gcalMsg[1] ? " notice--error" : ""}`}>{gcalMsg[0]}</div> : null}
       {!calendar.configured ? (
-        <div className="notice">Google Calendar isn&apos;t connected yet — add <code>GOOGLE_SERVICE_ACCOUNT_JSON</code> in Vercel (the key for <code>{saEmail}</code>, authorised for calendar.readonly by domain-wide delegation) and redeploy. The Trump schedule and rundown below still work.</div>
+        <div className="notice">Google Calendar isn&apos;t wired up yet — <code>GOOGLE_OAUTH_CLIENT_ID</code> and <code>GOOGLE_OAUTH_CLIENT_SECRET</code> need to be set in Vercel first. The Trump schedule and rundown below still work.</div>
+      ) : !calendar.connected ? (
+        <div className="notice row" style={{ justifyContent: "space-between" }}>
+          <span>Google Calendar isn&apos;t connected yet. One click as {CALENDAR_USER}: Google asks for read-only calendar access, and medi@ + team@ show up here from then on.</span>
+          <a className="btn btn--sm" href="/admin/google-calendar/connect" style={{ textDecoration: "none" }}>Connect Google Calendar</a>
+        </div>
       ) : null}
       {calendar.errors.map((e) => (
         <div key={e.calendar} className="notice notice--error">{e.calendar}: {e.message}{/not found/i.test(e.message) ? ` — ${CALENDAR_USER} can't see that calendar.` : ""}</div>
