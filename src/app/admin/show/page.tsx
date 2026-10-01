@@ -33,6 +33,8 @@ export default async function ShowPage() {
   ]);
   const settings = new Map<string, string>(((settingRows ?? []) as Setting[]).filter((s) => s.value != null).map((s) => [s.key, s.value as string]));
   const sections = (sectionRows ?? []) as Section[];
+  const mainSections = sections.filter((s) => s.sort_order < 900);
+  const refSections = sections.filter((s) => s.sort_order >= 900); // reference material (e.g. Sources) sits after the scorecard
   const scores = (scoreRows ?? []) as Score[];
   const episodes = (episodeRows ?? []) as Episode[];
 
@@ -70,7 +72,7 @@ export default async function ShowPage() {
         .ra-admin .sp-h__meta { font-size:1.15rem; color:#aaa; font-weight:500; margin-left:auto; white-space:nowrap; }
         .ra-admin .sp-prose { font-size:1.4rem; line-height:1.6; color:#222; max-width:86ch; padding-top:4px; }
         .ra-admin .sp-prose > :first-child { margin-top:0; }
-        .ra-admin .sp-prose h3 { font-size:1.45rem; font-weight:700; margin:18px 0 6px; }
+        .ra-admin .sp-prose h3 { font-family:inherit; font-size:1.5rem; font-weight:700; letter-spacing:0; line-height:1.3; color:#111; margin:20px 0 6px; }
         .ra-admin .sp-prose h4 { font-size:1.15rem; text-transform:uppercase; letter-spacing:.06em; color:#888; margin:16px 0 4px; font-weight:600; }
         .ra-admin .sp-prose p { margin:0 0 10px; }
         .ra-admin .sp-prose ul, .ra-admin .sp-prose ol { margin:0 0 10px; padding-left:22px; }
@@ -140,20 +142,16 @@ export default async function ShowPage() {
 
       {sections.length ? (
         <nav className="sp-jump" aria-label="Sections">
-          {sections.map((s) => <a key={s.slug} href={`#${s.slug}`}>{s.title}</a>)}
+          {mainSections.map((s) => <a key={s.slug} href={`#${s.slug}`}>{s.title}</a>)}
           <a href="#scorecard">Scorecard</a>
           {episodes.length ? <a href="#episodes">Episodes</a> : null}
+          {refSections.map((s) => <a key={s.slug} href={`#${s.slug}`}>{s.title}</a>)}
         </nav>
       ) : (
         <div className="notice">The playbook has no sections yet.</div>
       )}
 
-      {sections.map((s) => (
-        <details key={s.slug} id={s.slug} className="sp-section" open>
-          <summary className="sp-h"><span className="sp-h__caret" aria-hidden />{s.title}<span className="sp-h__meta">{stamp(s.updated_at)}</span></summary>
-          <div className="sp-prose" dangerouslySetInnerHTML={{ __html: s.body_html }} />
-        </details>
-      ))}
+      {mainSections.map((s) => <PlaybookSection key={s.slug} s={s} />)}
 
       <details id="scorecard" className="sp-section" open>
         <summary className="sp-h"><span className="sp-h__caret" aria-hidden />Scorecard<span className="sp-h__meta">{scores.length ? `${scores.length} week${scores.length === 1 ? "" : "s"}` : "weekly"}</span></summary>
@@ -206,6 +204,17 @@ export default async function ShowPage() {
           </div>
         </details>
       ) : null}
+
+      {refSections.map((s) => <PlaybookSection key={s.slug} s={s} />)}
     </div>
+  );
+}
+
+function PlaybookSection({ s }: { s: Section }) {
+  return (
+    <details id={s.slug} className="sp-section" open>
+      <summary className="sp-h"><span className="sp-h__caret" aria-hidden />{s.title}<span className="sp-h__meta">{stamp(s.updated_at)}</span></summary>
+      <div className="sp-prose" dangerouslySetInnerHTML={{ __html: s.body_html }} />
+    </details>
   );
 }
