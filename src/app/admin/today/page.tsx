@@ -7,7 +7,8 @@ import { fetchCalendarEvents, zonedDayStart, dayKey, addDays, PT, CALENDAR_USER,
 //   1. today's timeline: his Google Calendar (medi@ + team@, read live through a service account) merged with the
 //      Trump / White House / campaign events in `show_events`, in Pacific time, with LIVE badges and overlap flags;
 //   2. today's rundown: the outline for the stream (`show_rundowns`, one row per air date; Claude drafts, Medi reads);
-//   3. the next 7 days, compact, with invites still waiting on a reply flagged.
+//   3. the next 7 days, compact, with invites still waiting on a reply flagged;
+//   4. the topic bench: his own episode ideas (`show_topics`), not pinned to a day, with status and a working outline.
 // Read-only like /admin/show and /admin/reading. The Show tab keeps the strategy and the full 10-day event list.
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,9 @@ type ShowEvent = { id: number; starts_at: string; ends_at: string | null; all_da
 type Block = { kind?: "open" | "event" | "reading" | "beat" | "stronger" | "close" | "other"; title?: string; body_html?: string; minutes?: number; is_cut?: boolean; url?: string };
 type Rundown = { id: number; air_date: string; starts_at: string | null; minutes: number | null; status: "planned" | "aired" | "skipped"; title: string | null; lead: string | null; blocks: Block[]; notes: string | null; updated_at: string };
 type Setting = { key: string; value: string | null };
+type Topic = { id: number; title: string; segment: "reading" | "beat" | "stronger" | "other"; status: "idea" | "outline" | "ready" | "aired" | "dropped"; thesis: string | null; outline_html: string | null; title_ideas: string | null; aired_on: string | null; rundown_id: number | null; sort_order: number; added_on: string; notes: string | null; updated_at: string };
+const TOPIC_STATUS_ORDER: Record<Topic["status"], number> = { ready: 0, outline: 1, idea: 2, aired: 3, dropped: 4 };
+const TOPIC_STATUS_LABEL: Record<Topic["status"], string> = { idea: "idea", outline: "outline", ready: "ready", aired: "aired", dropped: "dropped" };
 
 type Item = {
   id: string;
@@ -65,12 +69,16 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const windowEnd = zonedDayStart(addDays(todayKey, 8)); // today + 7 days
   const db = supabaseAdmin();
 
-  const [calendar, { data: eventRows }, { data: rundownRows }, { data: settingRows }] = await Promise.all([
+  const [calendar, { data: eventRows }, { data: rundownRows }, { data: settingRows }, { data: topicRows }] = await Promise.all([
     fetchCalendarEvents(dayStart, windowEnd),
     db.from("show_events").select("*").gte("starts_at", new Date(dayStart - 12 * 3600 * 1000).toISOString()).lt("starts_at", new Date(windowEnd).toISOString()).order("starts_at", { ascending: true }).limit(120),
     db.from("show_rundowns").select("*").gte("air_date", todayKey).lte("air_date", addDays(todayKey, 7)).order("air_date", { ascending: true }),
     db.from("show_settings").select("key, value"),
+    db.from("show_topics").select("*").neq("status", "dropped").order("sort_order", { ascending: true }).limit(100),
   ]);
+  // The topic bench: Medi's own episode ideas, not pinned to a day. Ready → outline → idea first, aired ones last.
+  const topics = ((topicRows ?? []) as Topic[]).sort((a, b) => TOPIC_STATUS_ORDER[a.status] - TOPIC_STATUS_ORDER[b.status] || (a.status === "aired" ? (b.aired_on ?? "").localeCompare(a.aired_on ?? "") : a.sort_order - b.sort_order) || a.id - b.id);
+  const openTopics = topics.filter((t) => t.status !== "aired");
   const settings = new Map<string, string>(((settingRows ?? []) as Setting[]).filter((s) => s.value != null).map((s) => [s.key, s.value as string]));
   const showName = settings.get("show_name") ?? "Rep America Live";
   const schedule = settings.get("schedule") ?? "Not set";
@@ -213,6 +221,22 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         .ra-admin .td-tag--reading { background:#fbead3; color:#8a4b00; } .ra-admin .td-tag--beat { background:#fde0e0; color:#9b1c1c; } .ra-admin .td-tag--stronger { background:#dde8f7; color:#1d4a8a; } .ra-admin .td-tag--event { background:#111; color:#fff; }
         .ra-admin .td-cut { display:inline-block; padding:1px 8px; border-radius:999px; font-size:1.05rem; font-weight:800; letter-spacing:.06em; border:1.5px solid #111; color:#111; white-space:nowrap; }
         .ra-admin .td-notes { font-size:1.3rem; color:#555; margin-top:10px; padding-top:8px; border-top:1px dashed #e5e5e5; }
+        /* topic bench */
+        .ra-admin .td-bench-intro { font-size:1.3rem; color:#777; margin:2px 0 8px; max-width:86ch; }
+        .ra-admin .td-topic { display:grid; grid-template-columns: 1fr; gap:2px 12px; padding:10px 8px; border-top:1px solid #eee; }
+        @media (min-width:750px){ .ra-admin .td-topic { grid-template-columns: 96px 1fr; } }
+        .ra-admin .td-topic--aired { opacity:.55; }
+        .ra-admin .td-topic__status { display:flex; flex-direction:column; gap:4px; align-items:flex-start; }
+        .ra-admin .td-topic__status small { color:#999; font-size:1.1rem; }
+        .ra-admin .td-topic__title { font-weight:700; font-size:1.4rem; color:#111; display:flex; flex-wrap:wrap; gap:6px 8px; align-items:center; }
+        .ra-admin .td-topic__thesis { font-size:1.35rem; color:#222; margin:3px 0 0; max-width:86ch; }
+        .ra-admin .td-topic__outline { font-size:1.3rem; line-height:1.55; color:#444; max-width:86ch; margin-top:4px; }
+        .ra-admin .td-topic__outline > :first-child { margin-top:0; } .ra-admin .td-topic__outline > :last-child { margin-bottom:0; }
+        .ra-admin .td-topic__outline p { margin:0 0 6px; } .ra-admin .td-topic__outline ul, .ra-admin .td-topic__outline ol { margin:0 0 6px; padding-left:20px; } .ra-admin .td-topic__outline li { margin:2px 0; }
+        .ra-admin .td-topic__meta { font-size:1.2rem; color:#888; margin-top:4px; }
+        .ra-admin .td-topic__meta a { color:#555; }
+        .ra-admin .td-chip--ready { border-color:#111; background:#111; color:#fff; }
+        .ra-admin .td-chip--outline { border-color:#f1c56b; background:#fff3cd; color:#7a5a00; }
       `}</style>
       <h1>Today</h1>
       <p className="muted">{dayLabel(todayKey)} · everything in Pacific. Your calendars (medi@ + team@), the Trump / White House schedule, and the rundown for the stream. Private — nothing here shows on the site.</p>
@@ -294,6 +318,31 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
           <div className="td-empty">Nothing on the calendars or the Trump schedule for the next 7 days.</div>
         )}
       </details>
+
+      <details id="bench" className="td-section" open>
+        <summary className="td-h"><span className="td-h__caret" aria-hidden />Topic bench<span className="td-h__meta">{openTopics.length ? `${openTopics.length} in development · ${topics.length - openTopics.length} aired` : topics.length ? `${topics.length} aired` : "empty"}</span></summary>
+        <p className="td-bench-intro">Your own episode ideas, not pinned to a day. Say an idea in a sentence and it lands here; tell Claude the beats whenever you&rsquo;re chewing on one and they go in its outline; say &ldquo;plug X into Tuesday&rdquo; and it goes into that day&rsquo;s rundown. idea → outline → ready → aired.</p>
+        {topics.length ? topics.map((t) => <TopicRow key={t.id} t={t} />) : <div className="td-empty">Nothing on the bench yet.</div>}
+      </details>
+    </div>
+  );
+}
+
+function TopicRow({ t }: { t: Topic }) {
+  const dateShort = (d: string) => new Date(`${d}T12:00:00-07:00`).toLocaleString("en-US", { month: "short", day: "numeric", timeZone: PT });
+  return (
+    <div className={`td-topic${t.status === "aired" ? " td-topic--aired" : ""}`}>
+      <div className="td-topic__status">
+        <span className={`td-chip${t.status === "ready" ? " td-chip--ready" : t.status === "outline" ? " td-chip--outline" : t.status === "aired" ? " td-chip--ok" : ""}`}>{TOPIC_STATUS_LABEL[t.status]}</span>
+        <small>{t.status === "aired" && t.aired_on ? `aired ${dateShort(t.aired_on)}` : `added ${dateShort(t.added_on)}`}</small>
+      </div>
+      <div>
+        <div className="td-topic__title"><span className={`td-tag td-tag--${t.segment}`}>{BLOCK_LABEL[t.segment]}</span>{t.title}</div>
+        {t.thesis ? <p className="td-topic__thesis">{t.thesis}</p> : null}
+        {t.outline_html ? <div className="td-topic__outline" dangerouslySetInnerHTML={{ __html: t.outline_html }} /> : t.status !== "aired" ? <div className="td-topic__meta">no outline yet</div> : null}
+        {t.title_ideas ? <div className="td-topic__meta">titles: {t.title_ideas}</div> : null}
+        {t.notes ? <div className="td-topic__meta">{t.notes}</div> : null}
+      </div>
     </div>
   );
 }
