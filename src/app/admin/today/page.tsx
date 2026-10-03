@@ -72,7 +72,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const [calendar, { data: eventRows }, { data: rundownRows }, { data: settingRows }, { data: topicRows }] = await Promise.all([
     fetchCalendarEvents(dayStart, windowEnd),
     db.from("show_events").select("*").gte("starts_at", new Date(dayStart - 12 * 3600 * 1000).toISOString()).lt("starts_at", new Date(windowEnd).toISOString()).order("starts_at", { ascending: true }).limit(120),
-    db.from("show_rundowns").select("*").gte("air_date", todayKey).lte("air_date", addDays(todayKey, 7)).order("air_date", { ascending: true }),
+    db.from("show_rundowns").select("*").gte("air_date", addDays(todayKey, -14)).lte("air_date", addDays(todayKey, 7)).order("air_date", { ascending: true }),
     db.from("show_settings").select("key, value"),
     db.from("show_topics").select("*").neq("status", "dropped").order("sort_order", { ascending: true }).limit(100),
   ]);
@@ -85,6 +85,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const rundowns = (rundownRows ?? []) as Rundown[];
   const todayRundown = rundowns.find((r) => r.air_date === todayKey) ?? null;
   const nextRundown = todayRundown ?? rundowns.find((r) => r.air_date > todayKey) ?? null;
+  const pastRundowns = rundowns.filter((r) => r.air_date < todayKey).reverse(); // last 14 days, newest first
 
   /* ---------- build the unified item list ---------- */
   const items: Item[] = [];
@@ -167,6 +168,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         .ra-admin .td-stat b { display:block; font-size:1.8rem; line-height:1.15; }
         .ra-admin .td-stat b small { font-size:1.3rem; color:#777; font-weight:600; }
         .ra-admin .td-stat span { display:block; font-size:1.2rem; color:#777; margin-top:2px; overflow-wrap:normal; word-break:normal; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .ra-admin .td-past + .td-past { margin-top:18px; padding-top:14px; border-top:1px solid #eee; }
         .ra-admin .td-section { margin-top:14px; border:1px solid #e2e2e2; border-radius:10px; background:#fff; padding:6px 16px 14px; scroll-margin-top:16px; }
         .ra-admin .td-h { font-size:1.5rem; font-weight:700; color:#111; margin:0; cursor:pointer; list-style:none; display:flex; align-items:center; gap:10px; user-select:none; padding:8px 0; }
         .ra-admin .td-h::-webkit-details-marker { display:none; }
@@ -323,6 +325,16 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         <summary className="td-h"><span className="td-h__caret" aria-hidden />Topic bench<span className="td-h__meta">{openTopics.length ? `${openTopics.length} in development · ${topics.length - openTopics.length} aired` : topics.length ? `${topics.length} aired` : "empty"}</span></summary>
         <p className="td-bench-intro">Your own episode ideas, not pinned to a day. Say an idea in a sentence and it lands here; tell Claude the beats whenever you&rsquo;re chewing on one and they go in its outline; say &ldquo;plug X into Tuesday&rdquo; and it goes into that day&rsquo;s rundown. idea → outline → ready → aired.</p>
         {topics.length ? topics.map((t) => <TopicRow key={t.id} t={t} />) : <div className="td-empty">Nothing on the bench yet.</div>}
+      </details>
+
+      <details id="past" className="td-section">
+        <summary className="td-h"><span className="td-h__caret" aria-hidden />Past shows<span className="td-h__meta">{pastRundowns.length ? `${pastRundowns.length} in the last 14 days` : "none yet"}</span></summary>
+        {pastRundowns.length ? pastRundowns.map((r) => (
+          <div key={r.id} className="td-past">
+            <div className="td-day">{dayLabel(r.air_date)}</div>
+            <RundownView r={r} showName={showName} now={now} />
+          </div>
+        )) : <div className="td-empty">Rundowns stay here for two weeks after they air.</div>}
       </details>
     </div>
   );
