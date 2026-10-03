@@ -43,7 +43,7 @@ type Item = {
 };
 
 const KIND_LABEL: Record<ShowEvent["kind"], string> = { trump: "Trump", "white-house": "White House", campaign: "Campaign", other: "Event" };
-const BLOCK_LABEL: Record<NonNullable<Block["kind"]>, string> = { open: "Open", event: "Live cover", reading: "Reading", beat: "The Beat", stronger: "Stronger", close: "Close", other: "Block" };
+const BLOCK_LABEL: Record<NonNullable<Block["kind"]>, string> = { open: "Open", event: "Live cover", reading: "Reading", beat: "What It's Really About", stronger: "Stronger Americans", close: "Close", other: "Block" };
 const TRUMP_DEFAULT_MIN = 90; // for overlap checks when an event has no end time
 
 const timePT = (ms: number) => new Date(ms).toLocaleString("en-US", { hour: "numeric", minute: "2-digit", timeZone: PT });

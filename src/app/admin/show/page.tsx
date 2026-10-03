@@ -15,7 +15,7 @@ type Score = { id: number; week_start: string; uploads: number | null; views: nu
 type Episode = { id: number; aired_on: string; segment: "reading" | "beat" | "stronger" | "live" | "other"; title: string; youtube_url: string | null; is_cut: boolean; views: number | null; notes: string | null };
 type Event = { id: number; starts_at: string; ends_at: string | null; all_day: boolean; title: string; kind: "trump" | "white-house" | "campaign" | "other"; location: string | null; press: string | null; stream_url: string | null; source_url: string | null; status: "scheduled" | "tentative" | "covered" | "skipped" | "canceled"; notes: string | null; updated_at: string };
 
-const SEGMENT_LABEL: Record<Episode["segment"], string> = { reading: "Reading", beat: "The Beat", stronger: "Stronger", live: "Live", other: "Other" };
+const SEGMENT_LABEL: Record<Episode["segment"], string> = { reading: "Reading", beat: "What It's Really About", stronger: "Stronger Americans", live: "Live", other: "Other" };
 const money = (c: number) => `$${(c / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const dateLabel = (iso: string) => new Date(iso.slice(0, 10) + "T12:00:00Z").toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 const stamp = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/Los_Angeles" });
@@ -179,7 +179,7 @@ export default async function ShowPage() {
           ) : (
             <>
               <b>3 <small>segments</small></b>
-              <span>Reading · The Beat · Stronger Americans</span>
+              <span>What I'm Reading · What It's Really About · Stronger Americans</span>
             </>
           )}
         </div>
