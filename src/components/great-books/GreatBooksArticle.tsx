@@ -86,9 +86,32 @@ export default function GreatBooksArticle({ article, all, settings }: { article:
   const videos = (Array.isArray(videosRaw) ? (videosRaw as Record<string, unknown>[]) : [])
     .map((v) => {
       const id = typeof v.id === "string" && v.id ? v.id : youtubeId(String(v.url ?? ""));
-      return { id, title: String(v.title ?? article.title), href: typeof v.href === "string" ? v.href : `https://youtu.be/${id}`, note: typeof v.note === "string" ? v.note : "", vertical: v.vertical === true };
+      return {
+        id,
+        title: String(v.title ?? article.title),
+        href: typeof v.href === "string" ? v.href : `https://youtu.be/${id}`,
+        note: typeof v.note === "string" ? v.note : "",
+        vertical: v.vertical === true,
+        date: typeof v.date === "string" ? v.date : "",
+        seconds: typeof v.seconds === "number" ? v.seconds : 0,
+      };
     })
     .filter((v) => v.id);
+
+  /** schema.org VideoObject for each attached video (Google's video rich results need name, thumbnailUrl, uploadDate). */
+  const videoJsonLd = videos
+    .filter((v) => v.date)
+    .map((v) => ({
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      name: v.title,
+      description: `${v.title} — Medi on ${article.title}, from the Rep America show.`,
+      thumbnailUrl: [`https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg`, `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`],
+      uploadDate: v.date,
+      ...(v.seconds ? { duration: `PT${Math.floor(v.seconds / 60)}M${v.seconds % 60}S` } : {}),
+      embedUrl: `https://www.youtube.com/embed/${v.id}`,
+      publisher: { "@type": "Organization", name: "Rep America", url: "https://repamerica.com" },
+    }));
 
   return (
     <article className="ra-section ra-gba">
@@ -235,7 +258,7 @@ export default function GreatBooksArticle({ article, all, settings }: { article:
         </div>
 
         {videos.length > 0 && (
-          <section className={`ra-gba__watch${videos[0].vertical ? " ra-gba__watch--vertical" : ""}`} aria-label="Watch">
+          <section id="watch" className={`ra-gba__watch${videos[0].vertical ? " ra-gba__watch--vertical" : ""}`} aria-label="Watch">
             <p className="ra-gba__collector-eyebrow">From the show</p>
             <div className={`ra-gba__watch-frame${videos[0].vertical ? " ra-gba__watch-frame--vertical" : ""}`}>
               <LiteYouTube id={videos[0].id} title={videos[0].title} />
@@ -334,6 +357,9 @@ export default function GreatBooksArticle({ article, all, settings }: { article:
         </div>
       )}
 
+      {videoJsonLd.map((obj) => (
+        <script key={String(obj.embedUrl)} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(obj) }} />
+      ))}
       <style dangerouslySetInnerHTML={{ __html: STYLE }} />
     </article>
   );

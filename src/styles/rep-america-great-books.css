@@ -213,6 +213,20 @@
   color: var(--ra-color-subtle);
 }
 
+/* "▶ Video" leads the metadata line on books that have a video on their guide — the one red
+   thing in the row, so the eye finds the books with a video while scanning the list. It is not
+   a separate link: the row already goes to the guide, where the video sits right under the
+   At-a-Glance panel. Leading the line (not trailing it) keeps it visible on phones, where the
+   metadata is one line with an ellipsis. */
+.ra-gb-index__video {
+  color: #c62436; /* the site red (footer rule, Watch hero eyebrow) */
+  font-weight: 700;
+}
+
+.ra-gb-index__video > span {
+  font-size: 0.8em;
+}
+
 /* Quieter than the title it sits beside — it's the action, not the headline. Title and metadata
    sizes are untouched. */
 .ra-gb-index__buy {

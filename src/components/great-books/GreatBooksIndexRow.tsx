@@ -8,6 +8,7 @@ export default function GreatBooksIndexRow({ article, num }: { article: Article;
   const edition = editionOf(article);
   const written = metaStr(article, "written_display");
   const buyLink = metaStr(article, "affiliate_url");
+  const hasVideo = Array.isArray(article.meta?.videos) && (article.meta.videos as unknown[]).length > 0;
 
   return (
     <li className="ra-gb-index__row">
@@ -24,6 +25,14 @@ export default function GreatBooksIndexRow({ article, num }: { article: Article;
         <span className="ra-gb-index__body">
           <span className="ra-gb-index__title">{article.title}</span>
           <span className="ra-gb-index__meta">
+            {hasVideo && (
+              <>
+                <span className="ra-gb-index__video" title="There's a video on this book">
+                  <span aria-hidden="true">▶</span> Video
+                </span>{" "}
+                <span aria-hidden="true">·</span>{" "}
+              </>
+            )}
             {author}
             {written && (
               <>
