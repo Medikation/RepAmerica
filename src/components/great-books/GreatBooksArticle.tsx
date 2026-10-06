@@ -235,7 +235,7 @@ export default function GreatBooksArticle({ article, all, settings }: { article:
         </div>
 
         {videos.length > 0 && (
-          <section className="ra-gba__watch" aria-label="Watch">
+          <section className={`ra-gba__watch${videos[0].vertical ? " ra-gba__watch--vertical" : ""}`} aria-label="Watch">
             <p className="ra-gba__collector-eyebrow">From the show</p>
             <div className={`ra-gba__watch-frame${videos[0].vertical ? " ra-gba__watch-frame--vertical" : ""}`}>
               <LiteYouTube id={videos[0].id} title={videos[0].title} />
@@ -505,7 +505,11 @@ const STYLE = `
   }
 
   .ra-gba__watch {
-    margin-top: var(--ra-space-xl);
+    margin: var(--ra-space-xl) 0;
+  }
+
+  .ra-gba__watch--vertical .ra-gba__watch-caption {
+    text-align: center;
   }
 
   .ra-gba__watch-frame {
@@ -521,7 +525,7 @@ const STYLE = `
     height: auto;
     padding-bottom: 0;
     aspect-ratio: 9 / 16;
-    max-width: 360px;
+    max-width: 320px;
     margin: 0 auto;
   }
 
