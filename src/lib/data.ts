@@ -57,6 +57,7 @@ export const getArticles = cache(async (blog: Blog, opts: { withBody?: boolean; 
     .select(opts.withBody ? "*" : ARTICLE_LIST_COLS)
     .eq("blog", blog)
     .eq("is_published", true)
+    .lte("published_at", new Date().toISOString()) // scheduled posts (future published_at) stay off the lists until their time
     .order("published_at", { ascending: !opts.desc })
     .range(0, 2000);
   if (error) throw error;
