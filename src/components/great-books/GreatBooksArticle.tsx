@@ -1,5 +1,6 @@
 import type { Article } from "@/lib/data";
 import GreatBooksIndexRow from "./GreatBooksIndexRow";
+import LiteYouTube from "./LiteYouTube";
 import { articleUrl, editionOf, inCategory, metaStr } from "./meta";
 
 /** Settings of the `great-books-article` section (templates/article.great-books.json → `template:article.great-books`). */
@@ -79,6 +80,15 @@ export default function GreatBooksArticle({ article, all, settings }: { article:
   const colVideoId = colVideo ? youtubeId(colVideo) : "";
 
   const coverAlt = article.image_alt || article.title;
+
+  /** Videos about this book from the channel: meta.videos = [{ id | url, title, href?, note?, vertical? }]. First one embeds, the rest list. */
+  const videosRaw = article.meta?.videos;
+  const videos = (Array.isArray(videosRaw) ? (videosRaw as Record<string, unknown>[]) : [])
+    .map((v) => {
+      const id = typeof v.id === "string" && v.id ? v.id : youtubeId(String(v.url ?? ""));
+      return { id, title: String(v.title ?? article.title), href: typeof v.href === "string" ? v.href : `https://youtu.be/${id}`, note: typeof v.note === "string" ? v.note : "", vertical: v.vertical === true };
+    })
+    .filter((v) => v.id);
 
   return (
     <article className="ra-section ra-gba">
@@ -223,6 +233,40 @@ export default function GreatBooksArticle({ article, all, settings }: { article:
             </dl>
           </aside>
         </div>
+
+        {videos.length > 0 && (
+          <section className="ra-gba__watch" aria-label="Watch">
+            <p className="ra-gba__collector-eyebrow">From the show</p>
+            <div className={`ra-gba__watch-frame${videos[0].vertical ? " ra-gba__watch-frame--vertical" : ""}`}>
+              <LiteYouTube id={videos[0].id} title={videos[0].title} />
+            </div>
+            <p className="ra-gba__watch-caption">
+              <a href={videos[0].href}>{videos[0].title}</a>
+              {videos[0].note && (
+                <>
+                  {" "}
+                  <span aria-hidden="true">·</span> {videos[0].note}
+                </>
+              )}
+            </p>
+            {videos.length > 1 && (
+              <ul className="ra-gba__watch-more">
+                {videos.slice(1).map((v) => (
+                  <li key={v.id}>
+                    <a href={v.href}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`} alt="" loading="lazy" />
+                      <span>
+                        {v.title}
+                        {v.note && <small> · {v.note}</small>}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
 
         <div className="ra-gba__body rte" dangerouslySetInnerHTML={{ __html: body }} />
 
@@ -458,6 +502,132 @@ const STYLE = `
 
   .ra-gba__fact dd a:hover {
     text-decoration-color: var(--ra-color-ink);
+  }
+
+  .ra-gba__watch {
+    margin-top: var(--ra-space-xl);
+  }
+
+  .ra-gba__watch-frame {
+    position: relative;
+    height: 0;
+    padding-bottom: 56.25%;
+    overflow: hidden;
+    border-radius: 4px;
+    background: #000;
+  }
+
+  .ra-gba__watch-frame--vertical {
+    height: auto;
+    padding-bottom: 0;
+    aspect-ratio: 9 / 16;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  .ra-gba__watch-frame iframe,
+  .ra-gba__watch-frame .ra-lite-yt {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ra-lite-yt {
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: #000;
+    cursor: pointer;
+  }
+
+  .ra-lite-yt img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ra-lite-yt__play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 68px;
+    height: 48px;
+    transform: translate(-50%, -50%);
+    border-radius: 12px;
+    background: rgba(230, 30, 30, 0.95);
+    transition: transform 0.15s ease;
+  }
+
+  .ra-lite-yt__play::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-40%, -50%);
+    border-style: solid;
+    border-width: 11px 0 11px 19px;
+    border-color: transparent transparent transparent #fff;
+  }
+
+  .ra-lite-yt:hover .ra-lite-yt__play {
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+
+  .ra-gba__watch-caption {
+    margin: var(--ra-space-sm) 0 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ra-color-muted);
+  }
+
+  .ra-gba__watch-caption a {
+    color: var(--ra-color-ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--ra-color-border);
+  }
+
+  .ra-gba__watch-caption a:hover {
+    text-decoration-color: var(--ra-color-ink);
+  }
+
+  .ra-gba__watch-more {
+    display: grid;
+    gap: var(--ra-space-sm);
+    margin: var(--ra-space-md) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ra-gba__watch-more a {
+    display: flex;
+    align-items: center;
+    gap: var(--ra-space-sm);
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--ra-color-ink);
+    text-decoration: none;
+  }
+
+  .ra-gba__watch-more a:hover span {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .ra-gba__watch-more img {
+    flex: 0 0 120px;
+    width: 120px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 3px;
+    background: var(--ra-color-soft);
+  }
+
+  .ra-gba__watch-more small {
+    color: var(--ra-color-muted);
   }
 
   .ra-gba__collector {
