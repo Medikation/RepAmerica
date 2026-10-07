@@ -29,7 +29,8 @@ export default async function RevenuePage() {
     db.from("revenue_platforms").select("*").order("sort_order", { ascending: true }).order("id", { ascending: true }),
   ]);
   const settings = new Map<string, string>(((settingRows ?? []) as Setting[]).filter((s) => s.value != null).map((s) => [s.key, s.value as string]));
-  const sections = (sectionRows ?? []) as Section[];
+  // status 'hidden' retires a section without deleting the row (long UPDATEs get cancelled by the connector; a replacement is inserted instead).
+  const sections = ((sectionRows ?? []) as Section[]).filter((s) => s.status !== "hidden");
   const platforms = (platformRows ?? []) as Platform[];
 
   const mainIdea = settings.get("main_idea") ?? "Not set";
