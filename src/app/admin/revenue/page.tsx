@@ -98,10 +98,17 @@ export default async function RevenuePage() {
         .ra-admin .rv-mode--open { background:#d9f2e3; color:#0f5c33; }
         .ra-admin .rv-mode--invite { background:#fbead3; color:#8a4b00; }
         .ra-admin .rv-mode--listed { background:#dde8f7; color:#1d4a8a; }
-        .ra-admin .rv-plat td { font-size:1.3rem; }
-        .ra-admin .rv-plat td:first-child { font-weight:600; white-space:nowrap; }
-        .ra-admin .rv-plat td:first-child small { display:block; font-weight:500; color:#888; font-size:1.15rem; white-space:normal; }
-        .ra-admin .rv-plat a { color:#111; }
+        .ra-admin .rv-plat { margin-top:4px; }
+        .ra-admin .rv-plat__row { padding:10px 0 11px; border-top:1px solid #eee; }
+        .ra-admin .rv-plat__row:first-child { border-top:0; }
+        .ra-admin .rv-plat__head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .ra-admin .rv-plat__name { font-weight:700; font-size:1.45rem; color:#111; }
+        .ra-admin .rv-plat__name a { color:#111; }
+        .ra-admin .rv-plat__handle { font-size:1.2rem; color:#777; }
+        .ra-admin .rv-plat__stamp { font-size:1.15rem; color:#aaa; margin-left:auto; white-space:nowrap; }
+        .ra-admin .rv-plat__what { font-size:1.35rem; line-height:1.5; color:#222; margin-top:4px; max-width:86ch; }
+        .ra-admin .rv-plat__kv { font-size:1.3rem; line-height:1.5; color:#444; margin-top:3px; max-width:86ch; }
+        .ra-admin .rv-plat__kv b { display:inline-block; font-size:1.05rem; text-transform:uppercase; letter-spacing:.06em; color:#888; font-weight:600; width:44px; }
       `}</style>
       <h1>Revenue</h1>
       <p className="muted">What Rep America is building to earn — the main idea, why, the next step, and the side doors. Private — nothing here shows on the site. Tell Claude what changes and this updates.</p>
@@ -138,22 +145,21 @@ export default async function RevenuePage() {
         <summary className="sp-h"><span className="sp-h__caret" aria-hidden />Creator platforms — the passive side door<span className="sp-h__meta">{lastUpdated ? `updated ${stamp(lastUpdated)}` : ""}</span></summary>
         {platformRule ? <div className="sp-prose"><div className="rule" dangerouslySetInnerHTML={{ __html: platformRule }} /></div> : null}
         {platforms.length ? (
-          <div className="sp-table-wrap">
-            <table className="rv-plat">
-              <thead><tr><th>Platform</th><th>What it is</th><th>Sign-up</th><th>Status</th><th>How it pays</th><th>Notes / rule</th></tr></thead>
-              <tbody>
-                {platforms.map((p) => (
-                  <tr key={p.id}>
-                    <td>{p.url ? <a href={p.url} target="_blank" rel="noreferrer">{p.name}</a> : p.name}{p.handle ? <small>{p.handle}</small> : null}</td>
-                    <td>{p.what ?? ""}</td>
-                    <td><span className={`rv-mode rv-mode--${p.signup_mode}`}>{SIGNUP_LABEL[p.signup_mode] ?? p.signup_mode}</span></td>
-                    <td><span className={chipClass(p.status)}>{p.status}</span></td>
-                    <td>{p.pay ?? ""}</td>
-                    <td>{p.notes ?? ""}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="rv-plat">
+            {platforms.map((p) => (
+              <div key={p.id} className="rv-plat__row">
+                <div className="rv-plat__head">
+                  <span className="rv-plat__name">{p.url ? <a href={p.url} target="_blank" rel="noreferrer">{p.name}</a> : p.name}</span>
+                  <span className={`rv-mode rv-mode--${p.signup_mode}`}>{SIGNUP_LABEL[p.signup_mode] ?? p.signup_mode}</span>
+                  <span className={chipClass(p.status)}>{p.status}</span>
+                  {p.handle ? <span className="rv-plat__handle">as {p.handle}</span> : null}
+                  <span className="rv-plat__stamp">{stamp(p.updated_at)}</span>
+                </div>
+                {p.what ? <div className="rv-plat__what">{p.what}</div> : null}
+                {p.pay ? <div className="rv-plat__kv"><b>Pays</b>{p.pay}</div> : null}
+                {p.notes ? <div className="rv-plat__kv"><b>Note</b>{p.notes}</div> : null}
+              </div>
+            ))}
           </div>
         ) : (
           <div className="sp-empty">No platforms listed yet.</div>
