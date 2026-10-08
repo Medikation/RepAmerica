@@ -5,11 +5,13 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 // Read-only. Medi tells Claude when he buys / reads something and the rows in `reading_log` / `reading_copies`
 // are updated directly in Supabase — no editing UI by design (owner decision, 2026-09-25).
+// Buying & selling (2026-10-08): reading_copies.sale_status keep|for_sale|sold + sale columns; sold copies stop counting as owned.
 export const dynamic = "force-dynamic";
 
 type Article = { id: number; handle: string; title: string; published_at: string; meta: { author?: string; list_category?: string } | null };
 type Log = { id: number; article_id: number | null; title: string | null; author: string | null; status: "unread" | "reading" | "read"; finished_month: string | null; owned: boolean; translation: string | null; notes: string | null };
-type Copy = { id: number; log_id: number; edition: string | null; translation: string | null; paid_cents: number | null; purchased_on: string | null; source: string | null; notes: string | null };
+type Copy = { id: number; log_id: number; edition: string | null; translation: string | null; paid_cents: number | null; purchased_on: string | null; source: string | null; notes: string | null;
+  sale_status: "keep" | "for_sale" | "sold"; listed_cents: number | null; sold_cents: number | null; sold_on: string | null; sold_via: string | null; sale_costs_cents: number | null; sale_notes: string | null };
 type Plan = { id: number; position: number; log_id: number | null; label: string; note: string | null; done: boolean };
 type Row = { key: string; n: number; title: string; author: string | null; handle: string | null; log: Log | null; copies: Copy[] };
 
@@ -47,7 +49,8 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
   const all = [...coreRows, ...beyondRows, ...otherRows];
 
   const status = (r: Row) => r.log?.status ?? "unread";
-  const owned = (r: Row) => !!r.log?.owned || r.copies.length > 0;
+  const held = (cs: Copy[]) => cs.filter((c) => c.sale_status !== "sold");
+  const owned = (r: Row) => held(r.copies).length > 0 || (!!r.log?.owned && r.copies.length === 0);
   const view = ["read", "reading", "unread", "owned", "wishlist"].includes(sp.view ?? "") ? (sp.view as string) : "all";
   const q = (sp.q ?? "").trim().toLowerCase();
   const matches = (r: Row) => !q || [r.title, r.author, r.log?.translation, r.log?.notes, ...r.copies.flatMap((c) => [c.edition, c.translation, c.source, c.notes, c.purchased_on ? String(new Date(c.purchased_on + "T12:00:00Z").getUTCFullYear()) : null])].some((v) => (v ?? "").toLowerCase().includes(q));
@@ -57,7 +60,16 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
   const readCount = all.filter((r) => status(r) === "read").length;
   const reading = all.filter((r) => status(r) === "reading");
   const ownedCount = all.filter(owned).length;
-  const copyCount = (copies ?? []).length;
+  const copyList = (copies ?? []) as Copy[];
+  const copyCount = held(copyList).length;
+  const titleOf = (logId: number) => all.find((r) => r.log?.id === logId)?.title ?? "";
+  const trade = copyList.filter((c) => c.sale_status !== "keep").sort((a, b) => (a.sale_status === b.sale_status ? ((b.sold_on ?? "") < (a.sold_on ?? "") ? -1 : 1) : a.sale_status === "for_sale" ? -1 : 1));
+  const soldList = trade.filter((c) => c.sale_status === "sold");
+  const net = (c: Copy) => (c.sold_cents ?? 0) - (c.sale_costs_cents ?? 0);
+  const profit = (c: Copy) => (c.paid_cents != null ? net(c) - c.paid_cents : null);
+  const soldTotal = soldList.reduce((s, c) => s + (c.sold_cents ?? 0), 0);
+  const profitTotal = soldList.reduce((s, c) => s + (profit(c) ?? net(c)), 0);
+  const unknownCost = soldList.some((c) => c.paid_cents == null || c.sale_costs_cents == null);
   const spent = ((copies ?? []) as Copy[]).reduce((s, c) => s + (c.paid_cents ?? 0), 0);
   const lastFinished = logList.filter((l) => l.status === "read" && l.finished_month).sort((a, b) => (a.finished_month! < b.finished_month! ? 1 : -1))[0];
   const recent = ((copies ?? []) as Copy[]).filter((c) => c.purchased_on).sort((a, b) => (a.purchased_on! < b.purchased_on! ? 1 : -1)).slice(0, 3)
@@ -115,6 +127,17 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
         .ra-admin .rl-copies .p { color:#111; font-weight:600; font-variant-numeric:tabular-nums; min-width:64px; }
         .ra-admin .rl-copies .d { color:#999; }
         .ra-admin .rl-copies .s { color:#999; }
+        .ra-admin .rl-copies li.sold { color:#aaa; }
+        .ra-admin .rl-copies li.sold .p { color:#aaa; text-decoration:line-through; }
+        .ra-admin .rl-chip--sold { background:#e6eefc; color:#1d4ea8; }
+        .ra-admin .rl-trade { font-size:1.3rem; }
+        .ra-admin .rl-trade__row { display:grid; grid-template-columns:minmax(0,3fr) repeat(4,minmax(0,1fr)); gap:4px 12px; padding:7px 0; border-top:1px solid #f0f0f0; align-items:baseline; }
+        .ra-admin .rl-trade__row > span:not(:first-child) { font-variant-numeric:tabular-nums; text-align:right; }
+        .ra-admin .rl-trade__row small { display:block; font-size:1.1rem; color:#999; }
+        .ra-admin .rl-trade__row em { font-style:normal; color:#888; }
+        .ra-admin .rl-trade__row .neg { color:#b00020; }
+        .ra-admin .rl-trade__head { border-top:0; font-size:1.1rem; text-transform:uppercase; letter-spacing:.06em; color:#999; }
+        @media (max-width:640px){ .ra-admin .rl-trade__row { grid-template-columns:repeat(4,minmax(0,1fr)); } .ra-admin .rl-trade__row > span:first-child { grid-column:1 / -1; } .ra-admin .rl-trade__row > span:not(:first-child) { text-align:left; } }
         .ra-admin .rl-note { grid-column: 2 / -1; font-size:1.2rem; color:#777; font-style:italic; }
       `}</style>
       <h1>Reading</h1>
@@ -122,7 +145,7 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
 
       <div className="rl-stats">
         <div className="rl-stat"><b>{readCount} <small>/ {all.length}</small></b><span>books read{lastFinished ? ` · last ${monthLabel(lastFinished.finished_month!)}` : ""}</span><div className="rl-progress"><i style={{ width: `${Math.round((readCount / Math.max(all.length, 1)) * 100)}%` }} /></div></div>
-        <div className="rl-stat"><b>{ownedCount} <small>/ {all.length}</small></b><span>owned · {copyCount} copies · {money(spent)}</span><div className="rl-progress"><i style={{ width: `${Math.round((ownedCount / Math.max(all.length, 1)) * 100)}%`, background: "#999" }} /></div></div>
+        <div className="rl-stat"><b>{ownedCount} <small>/ {all.length}</small></b><span>owned · {copyCount} copies · {money(spent)}{soldList.length ? ` · ${soldList.length} sold for ${money(soldTotal)}` : ""}</span><div className="rl-progress"><i style={{ width: `${Math.round((ownedCount / Math.max(all.length, 1)) * 100)}%`, background: "#999" }} /></div></div>
         <div className="rl-stat rl-stat--recent">
           <span>Last bought</span>
           {recent.map((c) => <div key={c.id} className="rl-recent"><em>{c.title}</em><i>{c.paid != null ? money(c.paid) : "—"}</i><u>{dateLabel(c.on)}</u></div>)}
@@ -144,6 +167,27 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
               );
             })}
           </ol>
+        </details>
+      ) : null}
+
+      {trade.length ? (
+        <details className="rl-section rl-plan" open>
+          <summary className="rl-h"><span className="rl-h__caret" aria-hidden />Buying &amp; selling <span style={{ color: "#bbb" }}>· {soldList.length} sold · {money(soldTotal)} in sales · {unknownCost ? "≈ " : ""}{money(profitTotal)} profit{trade.length > soldList.length ? ` · ${trade.length - soldList.length} for sale` : ""}</span></summary>
+          <div className="rl-trade">
+            <div className="rl-trade__row rl-trade__head"><span>Book</span><span>Paid</span><span>Sold / listed</span><span>Fees + ship</span><span>Profit</span></div>
+            {trade.map((c) => {
+              const pr = profit(c);
+              return (
+                <div key={c.id} className="rl-trade__row">
+                  <span><b>{titleOf(c.log_id)}</b>{c.edition ? <em> — {c.edition}</em> : null}{c.sale_notes ? <em> · {c.sale_notes}</em> : null}</span>
+                  <span>{c.paid_cents != null ? money(c.paid_cents) : "—"}</span>
+                  <span>{c.sale_status === "sold" ? <>{money(c.sold_cents ?? 0)}<small>{[c.sold_on ? dateLabel(c.sold_on) : null, c.sold_via].filter(Boolean).join(" · ")}</small></> : <><span className="rl-chip rl-chip--reading">For sale</span>{c.listed_cents != null ? <small>listed {money(c.listed_cents)}</small> : null}</>}</span>
+                  <span>{c.sale_costs_cents != null ? money(c.sale_costs_cents) : "—"}</span>
+                  <span className={pr != null && pr < 0 ? "neg" : ""}>{c.sale_status !== "sold" ? "" : pr != null ? money(pr) : <small>{money(net(c))} net · cost not logged</small>}</span>
+                </div>
+              );
+            })}
+          </div>
         </details>
       ) : null}
 
@@ -177,17 +221,19 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
                   <div className="rl-chips">
                     {st === "read" ? <span className="rl-chip rl-chip--read">Read{r.log?.finished_month ? ` · ${monthLabel(r.log.finished_month)}` : ""}</span> : null}
                     {st === "reading" ? <span className="rl-chip rl-chip--reading">{r.log?.notes && /^(partial|mostly)$/i.test(r.log.notes) ? r.log.notes : "Reading"}</span> : null}
-                    {owned(r) ? <span className="rl-chip rl-chip--owned">{r.copies.length > 1 ? `${r.copies.length} copies` : "Own"}</span> : <span className="rl-chip rl-chip--want">Don&apos;t own</span>}
+                    {owned(r) ? <span className="rl-chip rl-chip--owned">{held(r.copies).length > 1 ? `${held(r.copies).length} copies` : "Own"}</span> : <span className="rl-chip rl-chip--want">Don&apos;t own</span>}
                   </div>
                   {r.copies.length ? (
                     <ul className="rl-copies">
                       {r.copies.map((c) => (
-                        <li key={c.id}>
+                        <li key={c.id} className={c.sale_status === "sold" ? "sold" : undefined}>
                           <span className="p">{c.paid_cents != null ? money(c.paid_cents) : "—"}</span>
                           <span>{[c.edition, c.translation ? `tr. ${c.translation}` : null].filter(Boolean).join(" · ") || "Copy"}</span>
                           {c.purchased_on ? <span className="d">{dateLabel(c.purchased_on)}</span> : null}
                           {c.source ? <span className="s">{c.source}</span> : null}
                           {c.notes ? <span className="s">— {c.notes}</span> : null}
+                          {c.sale_status === "sold" ? <span className="rl-chip rl-chip--sold">Sold {money(c.sold_cents ?? 0)}{c.sold_on ? ` · ${dateLabel(c.sold_on)}` : ""}</span> : null}
+                          {c.sale_status === "for_sale" ? <span className="rl-chip rl-chip--reading">For sale{c.listed_cents != null ? ` · ${money(c.listed_cents)}` : ""}</span> : null}
                         </li>
                       ))}
                     </ul>
