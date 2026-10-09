@@ -201,11 +201,11 @@ function heroStyle(id: string): string {
   /* hat rail */
   ${S} .ra-hat-rail {
     display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
-    gap: 28px;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 32px;
     align-items: center;
     margin-top: 40px;
-    padding: 22px 26px;
+    padding: 26px 28px;
     border-radius: 14px;
     background: #0f1e3d;
     color: #fff;
@@ -215,14 +215,17 @@ function heroStyle(id: string): string {
   ${S} .ra-hat-rail__all { display: inline-block; margin-top: 10px; color: rgba(255,255,255,.82); font-size: 13px; font-weight: 600; letter-spacing: .04em; text-decoration: none; }
   ${S} .ra-hat-rail__all:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
   ${S} .ra-hat-rail__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-  ${S} .ra-hat-rail__item { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; align-items: center; padding: 10px; border-radius: 12px; background: rgba(255,255,255,.06); }
-  ${S} .ra-hat-rail__media { display: block; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #fff; }
-  ${S} .ra-hat-rail__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  ${S} .ra-hat-rail__title { display: block; color: #fff; font-weight: 700; font-size: 15px; line-height: 1.2; text-decoration: none; }
+  ${S} .ra-hat-rail__item { display: grid; grid-template-columns: minmax(0, 1fr); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,.06); }
+  ${S} .ra-hat-rail__media { display: block; aspect-ratio: 1; overflow: hidden; background: #fff; }
+  ${S} .ra-hat-rail__media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s ease; }
+  ${S} .ra-hat-rail__item:hover .ra-hat-rail__media img { transform: scale(1.04); }
+  ${S} .ra-hat-rail__body { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; padding: 12px 14px 14px; }
+  ${S} .ra-hat-rail__title { color: #fff; font-weight: 700; font-size: 16px; line-height: 1.2; text-decoration: none; }
   ${S} .ra-hat-rail__title:hover { text-decoration: underline; text-underline-offset: 3px; }
-  ${S} .ra-hat-rail__price { margin: 4px 0 8px; color: rgba(255,255,255,.78); font-size: 14px; }
+  ${S} .ra-hat-rail__price { margin: 0; color: rgba(255,255,255,.78); font-size: 15px; }
   ${S} .ra-hat-rail__buy {
-    display: inline-block; padding: 7px 16px; border: 0; border-radius: 999px; cursor: pointer;
+    margin-left: auto;
+    display: inline-block; padding: 9px 20px; border: 0; border-radius: 999px; cursor: pointer;
     background: #c62436; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
     transition: background .15s ease, transform .15s ease;
   }
@@ -247,8 +250,10 @@ function heroStyle(id: string): string {
     ${S} .ra-media-hero__heading { font-size: clamp(32px, 9vw, 40px); }
     ${S} .ra-media-hero__side { grid-template-columns: 1fr; }
     ${S} .ra-hat-rail { margin-top: 28px; padding: 18px 16px; }
-    ${S} .ra-hat-rail__list { grid-template-columns: 1fr; gap: 10px; }
-    ${S} .ra-hat-rail__item { grid-template-columns: 76px minmax(0, 1fr); }
+    ${S} .ra-hat-rail__list { grid-template-columns: 1fr; gap: 12px; }
+    ${S} .ra-hat-rail__item { grid-template-columns: 132px minmax(0, 1fr); }
+    ${S} .ra-hat-rail__body { flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; }
+    ${S} .ra-hat-rail__buy { margin-left: 0; }
   }
 `;
 }
