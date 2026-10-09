@@ -1,17 +1,21 @@
 import type { Article } from "@/lib/data";
-import YoutubeThumb from "./YoutubeThumb";
-import { articleUrl, articleVideoId, isBlank, shortDate, str } from "./util";
+import HomeLatestTabs, { type LatestTab } from "./HomeLatestTabs";
+import { isBlank, str } from "./util";
 
 export interface HomeLatestSettings {
   eyebrow?: string; heading?: string; text?: string; blog?: string; limit?: number; offset?: number;
   button_label?: string; button_link?: string;
+  /** Round 82: category tabs, e.g. [{label:"All",category:null},{label:"Books",category:"Books"}]. Omit for the plain grid. */
+  tabs?: LatestTab[];
 }
 
-/** Port of sections/home-latest.liquid. `articles` = the blog's articles newest-first; offset/limit applied here. */
-export default function HomeLatest({ id, settings, articles }: { id: string; settings: HomeLatestSettings; articles: Article[] }) {
+/** Port of sections/home-latest.liquid. `articles` = the blog's articles newest-first; offset/limit applied here.
+ *  `exclude` (Round 82) = article ids already shown in the hero, so the grid never doubles up. */
+export default function HomeLatest({ id, settings, articles, exclude = [] }: { id: string; settings: HomeLatestSettings; articles: Article[]; exclude?: number[] }) {
   const offset = Number(settings.offset ?? 0);
   const limit = Number(settings.limit ?? 3);
-  const list = articles.slice(offset, offset + limit);
+  const pool = articles.filter((a) => !exclude.includes(a.id)).slice(offset);
+  const tabs = settings.tabs ?? [];
   const hasButton = !isBlank(settings.button_label) && !isBlank(settings.button_link);
 
   return (
@@ -32,42 +36,7 @@ export default function HomeLatest({ id, settings, articles }: { id: string; set
             )}
           </div>
 
-          <div className="ra-grid-3">
-            {list.length === 0 ? (
-              <p className="ra-empty">No videos published yet — check back soon.</p>
-            ) : (
-              list.map((article) => {
-                const category = str(article.meta?.category) || "Commentary";
-                const videoId = articleVideoId(article);
-                const duration = str(article.meta?.duration);
-                return (
-                  <article className="ra-video-card" key={article.id}>
-                    <a href={articleUrl(article)} className="ra-video-card__link" aria-label={`Watch ${article.title}`}>
-                      <div className="ra-video-card__thumb">
-                        {videoId ? (
-                          <YoutubeThumb videoId={videoId} alt={article.title} loading="lazy" />
-                        ) : article.image_url ? (
-                          <img
-                            src={article.image_url}
-                            alt={article.title}
-                            width={article.image_width ?? undefined}
-                            height={article.image_height ?? undefined}
-                            loading="lazy"
-                          />
-                        ) : null}
-                        {duration && <span className="ra-video-card__duration">{duration}</span>}
-                      </div>
-                      <div className="ra-video-card__body">
-                        <div className="ra-video-card__category">{category}</div>
-                        <h3 className="ra-video-card__title">{article.title}</h3>
-                        <div className="ra-video-card__meta">{shortDate(article.published_at)}</div>
-                      </div>
-                    </a>
-                  </article>
-                );
-              })
-            )}
-          </div>
+          <HomeLatestTabs articles={pool.slice(0, Math.max(limit, 36))} tabs={tabs} limit={limit} />
         </div>
       </section>
     </section>
@@ -116,6 +85,18 @@ function latestStyle(id: string): string {
   ${S} .ra-grid-3 {
     column-gap: 30px;
   }
+  ${S} .ra-latest-tabs {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: -28px 0 28px;
+  }
+  ${S} .ra-latest-tabs__tab {
+    padding: 8px 16px; border-radius: 999px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.35); background: transparent; color: #fff;
+    font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  ${S} .ra-latest-tabs__tab:hover { border-color: #fff; }
+  ${S} .ra-latest-tabs__tab.is-active { background: #fff; color: #b01f2e; border-color: #fff; }
   @media screen and (max-width: 749px) {
     ${S}.ra-section {
       padding-top: 40px;
@@ -124,6 +105,7 @@ function latestStyle(id: string): string {
     ${S} .ra-section-header {
       margin-bottom: 32px;
     }
+    ${S} .ra-latest-tabs { margin: -12px 0 22px; }
     ${S} .ra-section-header__title {
       font-size: clamp(38px, 10vw, 48px);
     }
