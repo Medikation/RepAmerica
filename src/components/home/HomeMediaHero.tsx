@@ -67,8 +67,8 @@ export default async function HomeMediaHero({ id, settings, videos, hats }: { id
             <aside className="ra-hat-rail" aria-label="Rep America hats">
               <div className="ra-hat-rail__intro">
                 {!isBlank(settings.hats_eyebrow) && <p className="ra-hat-rail__eyebrow">{settings.hats_eyebrow}</p>}
-                <h2 className="ra-hat-rail__heading">{str(settings.hats_heading) || "Wear It."}</h2>
-                <a className="ra-hat-rail__all" href={hatsLink}>{str(settings.hats_link_label) || "Shop all hats"} →</a>
+                <h2 className="ra-hat-rail__heading">{str(settings.hats_heading) || "You Represent America."}</h2>
+                {!isBlank(settings.hats_link_label) && <a className="ra-hat-rail__all" href={hatsLink}>{settings.hats_link_label} →</a>}
               </div>
               <ul className="ra-hat-rail__list">
                 {hats.map((p) => {
