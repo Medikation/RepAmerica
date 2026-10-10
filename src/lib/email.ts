@@ -9,7 +9,7 @@ const LOGO = "https://udeivbgtpfccbtstvsxa.supabase.co/storage/v1/object/public/
 export const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
 const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
-export async function sendEmail(opts: { to: string; subject: string; text: string; html: string }) {
+export async function sendEmail(opts: { to: string | string[]; subject: string; text: string; html: string }) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.warn("[email] RESEND_API_KEY not set — skipped:", opts.subject, "→", opts.to);
@@ -18,7 +18,7 @@ export async function sendEmail(opts: { to: string; subject: string; text: strin
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: FROM, to: [opts.to], reply_to: REPLY_TO, subject: opts.subject, text: opts.text, html: opts.html }),
+    body: JSON.stringify({ from: FROM, to: Array.isArray(opts.to) ? opts.to : [opts.to], reply_to: REPLY_TO, subject: opts.subject, text: opts.text, html: opts.html }),
   });
   if (!res.ok) {
     console.error("[email] resend error", res.status, await res.text().catch(() => ""));

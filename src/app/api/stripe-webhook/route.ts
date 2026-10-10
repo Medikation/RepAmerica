@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabase";
-import { sendEmail, orderConfirmationEmail } from "@/lib/email";
+import { sendEmail, orderConfirmationEmail, esc } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
   return NextResponse.json({ received: true });
 }
 
-// Push a new-order alert to the team via ntfy (phone app) and, through ntfy's e-mail relay, to the team inbox.
+// Push a new-order alert to the team: ntfy (phone app) plus a Resend e-mail to ORDER_ALERT_EMAILS (Medi + team inbox).
 // Never fails the webhook — Stripe must still get a 200 once the order is stored.
 async function notifyNewOrder(row: {
   email: string | null;
@@ -96,7 +96,7 @@ async function notifyNewOrder(row: {
   line_items: { description: string | null; quantity: number | null }[];
 }, label: string) {
   const topic = process.env.NTFY_TOPIC || "repamerica-orders-a6c7d9d2";
-  const alertEmail = process.env.ORDER_ALERT_EMAIL || "team@repamerica.com";
+  const alertEmails = (process.env.ORDER_ALERT_EMAILS || "medi@repamerica.com,team@repamerica.com").split(",").map((e) => e.trim()).filter(Boolean);
   const items = row.line_items.map((li) => `${li.quantity ?? 1}× ${li.description ?? "item"}`).join(", ") || "order";
   const total = `$${(row.amount_cents / 100).toFixed(2)} ${row.currency.toUpperCase()}`;
   const a = row.shipping?.address;
@@ -110,10 +110,7 @@ async function notifyNewOrder(row: {
     Tags: "tada,package",
     Click: "https://dashboard.stripe.com/payments",
   };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-    headers.Email = alertEmail;
-  }
+  if (token) headers.Authorization = `Bearer ${token}`;
   try {
     await fetch(`https://ntfy.sh/${topic}`, {
       method: "POST",
@@ -123,6 +120,14 @@ async function notifyNewOrder(row: {
     });
   } catch (e) {
     console.error("[stripe-webhook] ntfy notification failed", e);
+  }
+  // E-mail alert (Resend) — the ntfy e-mail relay only took one address and only reached team@.
+  try {
+    const subject = `New Rep America order ${label} — ${items} (${total})`;
+    const html = `<div style="font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.5;color:#121212"><h2 style="margin:0 0 12px">New order ${esc(label)}</h2><p><strong>${esc(items)}</strong><br>Total: ${esc(total)}</p><p><strong>Ship to</strong><br>${esc(row.name ?? "")}<br>${esc(where).replace(/\n/g, "<br>")}<br>${esc(row.email ?? "")}</p><p><a href="https://repamerica.com/admin">Open the order admin</a> · <a href="https://dashboard.stripe.com/payments">Stripe payments</a></p></div>`;
+    await sendEmail({ to: alertEmails, subject, text: body, html });
+  } catch (e) {
+    console.error("[stripe-webhook] order alert e-mail failed", e);
   }
 }
 
