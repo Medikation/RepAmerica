@@ -249,11 +249,18 @@ function heroStyle(id: string): string {
   @media screen and (max-width: 749px) {
     ${S} .ra-media-hero__heading { font-size: clamp(32px, 9vw, 40px); }
     ${S} .ra-media-hero__side { grid-template-columns: 1fr; }
-    ${S} .ra-hat-rail { margin-top: 28px; padding: 18px 16px; }
-    ${S} .ra-hat-rail__list { grid-template-columns: 1fr; gap: 12px; }
-    ${S} .ra-hat-rail__item { grid-template-columns: 132px minmax(0, 1fr); }
-    ${S} .ra-hat-rail__body { flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; }
-    ${S} .ra-hat-rail__buy { margin-left: 0; }
+    /* phone: one swipeable row of big photo cards (same card as desktop), instead of three stacked thumbnails */
+    ${S} .ra-hat-rail { margin-top: 28px; padding: 18px 0 18px 16px; }
+    ${S} .ra-hat-rail__intro { padding-right: 16px; }
+    ${S} .ra-hat-rail__list {
+      display: flex; gap: 12px; overflow-x: auto; padding: 0 16px 6px 0;
+      scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    ${S} .ra-hat-rail__list::-webkit-scrollbar { display: none; }
+    ${S} .ra-hat-rail__item { flex: 0 0 74vw; max-width: 320px; scroll-snap-align: start; }
+    ${S} .ra-hat-rail__body { padding: 10px 12px 12px; }
+    ${S} .ra-hat-rail__title { font-size: 15px; }
+    ${S} .ra-hat-rail__price { font-size: 14px; }
   }
 `;
 }
