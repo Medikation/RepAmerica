@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
     title: article.seo_title ?? article.title,
     noSuffix: Boolean(article.seo_title),
     description: description || null,
-    path: `/blogs/watch/${handle}`,
+    path: `/watch/${handle}`,
     type: "article",
     image: vid ? `https://img.youtube.com/vi/${vid}/maxresdefault.jpg` : article.image_url,
   });
@@ -64,7 +64,7 @@ export default async function WatchArticlePage({ params }: { params: Promise<{ h
   const main = template.sections.main;
   const vid = videoId(article);
   const duration = metaString(article, "duration");
-  const url = `/blogs/watch/${article.handle}`;
+  const url = `/watch/${article.handle}`;
   const shareUrl = `${SITE}${url}`;
 
   const articleLd = {
@@ -160,7 +160,7 @@ export default async function WatchArticlePage({ params }: { params: Promise<{ h
         })}
 
         <div className="article-template__back element-margin-top center">
-          <a href="/blogs/watch" className="article-template__link link animate-arrow">
+          <a href="/watch" className="article-template__link link animate-arrow">
             <span className="icon-wrap">
               <span className="svg-wrapper"><ArrowIcon /></span>
             </span>

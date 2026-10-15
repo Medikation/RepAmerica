@@ -110,7 +110,7 @@ export default function WatchGrid({ id, heading, filters, cards, children }: {
               <p className="ra-empty">No videos published yet — check back soon.</p>
             ) : cards.map((c) => {
               const match = active === "all" || c.categoryHandle === active;
-              const url = `/blogs/watch/${c.handle}`;
+              const url = `/watch/${c.handle}`;
               return (
                 <article key={c.handle} className="ra-video-card" data-category={c.categoryHandle} style={match ? undefined : { display: "none" }}>
                   <a href={url} className="ra-video-card__link" aria-label={`Watch ${c.title}`}>

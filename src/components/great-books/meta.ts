@@ -13,7 +13,7 @@ export function editionOf(article: Article): string {
   return t === "Original" ? "" : t;
 }
 
-export const articleUrl = (article: Article) => `/blogs/${article.blog}/${article.handle}`;
+export const articleUrl = (article: Article) => `/${article.blog}/${article.handle}`;
 
 /** Articles of one list_category, in reading order (the input must already be ascending published_at). */
 export function inCategory(articles: Article[], category: string): Article[] {

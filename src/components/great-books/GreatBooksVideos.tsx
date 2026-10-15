@@ -68,7 +68,7 @@ export default function GreatBooksVideos({ id, settings, watch }: { id: string; 
             const duration = metaString(a, "duration");
             return (
               <article key={a.handle} className="ra-video-card" data-category={handleize(category)}>
-                <a href={`/blogs/watch/${a.handle}`} className="ra-video-card__link" aria-label={`Watch ${a.title}`}>
+                <a href={`/watch/${a.handle}`} className="ra-video-card__link" aria-label={`Watch ${a.title}`}>
                   <div className="ra-video-card__thumb">
                     {vid ? (
                       // eslint-disable-next-line @next/next/no-img-element

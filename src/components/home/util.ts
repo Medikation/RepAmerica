@@ -32,4 +32,4 @@ export function shortDate(iso: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/Los_Angeles" });
 }
 
-export const articleUrl = (a: Article) => `/blogs/${a.blog}/${a.handle}`;
+export const articleUrl = (a: Article) => `/${a.blog}/${a.handle}`;

@@ -8,7 +8,7 @@ import { buildMetadata } from "@/lib/seo";
 export const revalidate = 300;
 
 /** Pages with their own dedicated routes (owned elsewhere) — never served by this generic template. */
-const DEDICATED = new Set(["about", "watch", "great-books", "great-books-project", "shop", "contact", "thank-you", "search", "checkout", "admin"]);
+const DEDICATED = new Set(["about", "watch", "great-books", "great-books-project", "essentials", "shop", "contact", "thank-you", "search", "checkout", "admin"]);
 
 interface PageTemplate { sections: { main: { settings: { padding_top?: number; padding_bottom?: number } } } }
 

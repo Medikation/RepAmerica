@@ -215,7 +215,7 @@ export default async function ReadingPage({ searchParams }: { searchParams: Prom
                 <div key={r.key} className={`rl-row${st === "read" ? " rl-row--read" : st === "reading" ? " rl-row--reading" : ""}`}>
                   <div className="rl-n">{r.n}</div>
                   <div>
-                    {r.handle ? <a className="rl-title" href={`/blogs/great-books/${r.handle}`} target="_blank" rel="noreferrer">{r.title}</a> : <span className="rl-title">{r.title}</span>}
+                    {r.handle ? <a className="rl-title" href={`/great-books/${r.handle}`} target="_blank" rel="noreferrer">{r.title}</a> : <span className="rl-title">{r.title}</span>}
                     {r.author ? <span className="rl-author"> — {r.author}</span> : null}
                   </div>
                   <div className="rl-chips">

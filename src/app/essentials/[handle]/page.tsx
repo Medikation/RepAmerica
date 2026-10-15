@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
     title: article.seo_title ?? article.title,
     noSuffix: Boolean(article.seo_title),
     description: description || null,
-    path: `/blogs/essentials/${handle}`,
+    path: `/essentials/${handle}`,
     type: "article",
     image: article.image_url,
   });
@@ -199,14 +199,14 @@ export default async function EssentialsArticlePage({ params }: { params: Promis
             <div className="ra-grid-3">
               {related.map((o) => (
                 <article key={o.handle} className="ra-product-card">
-                  <a href={`/blogs/essentials/${o.handle}`} className="ra-product-card__link">
+                  <a href={`/essentials/${o.handle}`} className="ra-product-card__link">
                     <div className="ra-product-card__image">
                       {o.image_url ? <img src={o.image_url} alt={o.title} loading="lazy" /> : null}
                     </div>
                   </a>
                   <div className="ra-product-card__body">
                     <h3 className="ra-product-card__title">
-                      <a className="ra-ea__card-link" href={`/blogs/essentials/${o.handle}`}>{o.title}</a>
+                      <a className="ra-ea__card-link" href={`/essentials/${o.handle}`}>{o.title}</a>
                     </h3>
                   </div>
                 </article>

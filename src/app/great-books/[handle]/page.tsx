@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     title: article.seo_title || article.title,
     noSuffix: Boolean(article.seo_title),
     description: article.seo_description ?? article.summary?.replace(/<[^>]+>/g, "") ?? null,
-    path: `/blogs/great-books/${article.handle}`,
+    path: `/great-books/${article.handle}`,
     type: "article",
     image: article.image_url,
   });

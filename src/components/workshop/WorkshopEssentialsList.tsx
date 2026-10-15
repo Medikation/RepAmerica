@@ -115,7 +115,7 @@ export default function WorkshopEssentialsList({ id, settings: s, articles }: { 
           {s.blog ? (
             <div className="ra-grid-3 ra-workshop-list__grid">
               {items.map((a) => {
-                const url = `/blogs/essentials/${a.handle}`;
+                const url = `/essentials/${a.handle}`;
                 const label = metaString(a, "link_label");
                 const linkUrl = metaString(a, "link_url");
                 return (

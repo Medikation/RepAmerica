@@ -64,7 +64,7 @@ export default function ArticleCard({
   const videoId = youtubeVideoId(article);
   const youtubeThumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : "";
   const hasMedia = !!showImage && (!!article.image_url || !!youtubeThumbnail);
-  const url = `/blogs/${blog ?? article.blog}/${article.handle}`;
+  const url = `/${blog ?? article.blog}/${article.handle}`;
   const title = truncate(article.title);
 
   const cardClass = [

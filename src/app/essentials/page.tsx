@@ -1,7 +1,6 @@
-/* Blog index: sections/main-blog.liquid + templates/blog.json (getSetting("template:blog")).
+/* Essentials index at /essentials (the generic /blogs/[blog] index until 2026-10-15; /blogs/watch and /blogs/great-books now redirect to the curated /watch and /great-books pages): sections/main-blog.liquid + templates/blog.json (getSetting("template:blog")).
  * All published articles, newest first, no pagination (the theme's paginate-by-6 is intentionally dropped). */
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import ArticleCard from "@/components/ArticleCard";
 import { getArticles, getSetting, type Blog } from "@/lib/data";
 import WatchPagination from "@/components/watch/WatchPagination";
@@ -10,28 +9,21 @@ import { buildMetadata } from "@/lib/seo";
 export const revalidate = 300;
 
 const BLOGS: Record<Blog, string> = { watch: "Watch", "great-books": "Great Books", essentials: "Essentials" };
-const isBlog = (b: string): b is Blog => b in BLOGS;
 
 interface BlogTemplate {
   sections: { main: { settings: { layout?: string; show_image?: boolean; image_height?: string; show_date?: boolean; show_author?: boolean; padding_top?: number; padding_bottom?: number } } };
 }
 
-export function generateStaticParams() {
-  return (Object.keys(BLOGS) as Blog[]).map((blog) => ({ blog }));
-}
+const blog: Blog = "essentials";
 
-export async function generateMetadata({ params }: { params: Promise<{ blog: string }> }): Promise<Metadata> {
-  const { blog } = await params;
-  if (!isBlog(blog)) return {};
+export async function generateMetadata(): Promise<Metadata> {
   const BLOG_SEO: Record<string, { title: string; description: string }> = { watch: { title: "Watch | Rep America", description: "Watch the latest political commentary, livestreams, interviews, and breaking news analysis from Rep America." } };
   const seo = BLOG_SEO[blog];
-  return buildMetadata({ title: seo?.title ?? BLOGS[blog], description: seo?.description, path: `/blogs/${blog}`, shareKey: blog === "great-books" ? "great_books" : blog === "watch" ? "watch" : undefined });
+  return buildMetadata({ title: seo?.title ?? BLOGS[blog], description: seo?.description, path: `/${blog}`, shareKey: blog === "great-books" ? "great_books" : blog === "watch" ? "watch" : undefined });
 }
 
-export default async function BlogIndex({ params, searchParams }: { params: Promise<{ blog: string }>; searchParams: Promise<{ page?: string }> }) {
-  const { blog } = await params;
+export default async function EssentialsIndex({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const { page: pageParam } = await searchParams;
-  if (!isBlog(blog)) notFound();
   // templates/blog.watch.json exists alongside the default blog.json; fall back to the default template.
   const [allArticles, template] = await Promise.all([
     getArticles(blog, { desc: true }),
@@ -71,7 +63,7 @@ export default async function BlogIndex({ params, searchParams }: { params: Prom
             </div>
           ))}
         </div>
-        {pages > 1 && <WatchPagination basePath={`/blogs/${blog}`} current={current} pages={pages} />}
+        {pages > 1 && <WatchPagination basePath={`/${blog}`} current={current} pages={pages} />}
       </div>
     </div>
   );

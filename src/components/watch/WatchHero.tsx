@@ -85,7 +85,7 @@ export default async function WatchHero({ id, settings, featured }: { id: string
   const category = article ? metaString(article, "category") || "Commentary" : "";
   const duration = article ? metaString(article, "duration") : "";
   const excerpt = article ? excerptOf(article, 22) : "";
-  const url = article ? `/blogs/watch/${article.handle}` : "";
+  const url = article ? `/watch/${article.handle}` : "";
 
   return (
     <div id={`shopify-section-${id}`} className="shopify-section">

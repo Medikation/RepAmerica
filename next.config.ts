@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
       { source: "/pages/great-books-project", destination: "/great-books", permanent: true },
       { source: "/great-books-project", destination: "/great-books", permanent: true },
       { source: "/pages/:handle", destination: "/:handle", permanent: true },
+      // Same day: /blogs/ prefix dropped. Guides, videos and essentials live one level up now.
+      { source: "/blogs/watch", destination: "/watch", permanent: true },
+      { source: "/blogs/great-books", destination: "/great-books", permanent: true },
+      { source: "/blogs/essentials", destination: "/essentials", permanent: true },
+      { source: "/blogs/:blog/:handle", destination: "/:blog/:handle", permanent: true },
     ];
   },
 };
