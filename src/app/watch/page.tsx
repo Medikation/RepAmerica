@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: page?.seo_title ?? page?.title ?? "Watch",
     noSuffix: Boolean(page?.seo_title),
     description: page?.seo_description,
-    path: "/pages/watch",
+    path: "/watch",
     shareKey: "watch",
   });
 }
@@ -87,7 +87,7 @@ export default async function WatchPage({ searchParams }: { searchParams: Promis
             });
             return (
               <WatchGrid key={id} id={id} heading={s.heading} filters={filters} cards={cards}>
-                <WatchPagination basePath="/pages/watch" current={current} pages={pages} />
+                <WatchPagination basePath="/watch" current={current} pages={pages} />
               </WatchGrid>
             );
           }

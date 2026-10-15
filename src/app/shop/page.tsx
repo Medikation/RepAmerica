@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: page?.seo_title ?? page?.title ?? "Shop",
     noSuffix: Boolean(page?.seo_title),
     description: page?.seo_description,
-    path: "/pages/shop",
+    path: "/shop",
     shareKey: "workshop",
   });
 }

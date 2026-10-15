@@ -45,7 +45,7 @@ a.btn{display:inline-block;background:#111;color:#fff;text-decoration:none;paddi
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const shopUrl = `${SITE}/pages/shop`;
+  const shopUrl = `${SITE}/shop`;
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) return NextResponse.redirect(shopUrl, 303);
 
@@ -112,7 +112,7 @@ export async function GET(req: Request) {
         },
       ],
       phone_number_collection: { enabled: false },
-      success_url: `${SITE}/pages/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${SITE}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl,
       metadata: { source: "meta_shop", products: url.searchParams.get("products") ?? "", ...(coupon ? { coupon } : {}) },
     });

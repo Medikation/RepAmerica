@@ -8,7 +8,7 @@ import { moneyWithCurrency } from "@/components/product/Price";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { ...(await buildMetadata({ title: "Thank you", path: "/pages/thank-you" })), robots: { index: false, follow: false } };
+  return { ...(await buildMetadata({ title: "Thank you", path: "/thank-you" })), robots: { index: false, follow: false } };
 }
 
 type Line = { description: string | null; quantity: number | null; amount_total: number };

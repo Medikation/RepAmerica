@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: page?.seo_title || page?.title || "Contact",
     description: page?.seo_description ?? null,
-    path: "/pages/contact",
+    path: "/contact",
   });
 }
 

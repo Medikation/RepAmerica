@@ -145,7 +145,7 @@ export default async function EssentialsArticlePage({ params }: { params: Promis
   if (!article) notFound();
 
   const s = template.sections.main.settings;
-  const parentUrl = s.parent_url ?? "/pages/shop";
+  const parentUrl = s.parent_url ?? "/shop";
   const parentLabel = s.parent_label ?? "The Essentials";
   const category = metaString(article, "essentials_category");
   const label = metaString(article, "link_label");

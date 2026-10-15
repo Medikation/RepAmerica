@@ -14,7 +14,7 @@ export interface GreatBooksArticleSettings {
 
 const DEFAULTS: Required<GreatBooksArticleSettings> = {
   parent_label: "The Great Books Project",
-  parent_url: "/pages/great-books-project",
+  parent_url: "/great-books",
   collector_eyebrow: "From my shelf",
   cta_label: "View the recommended edition",
   disclosure: "Some links on this page are affiliate links. Purchases made through them help support the Great Books Project at no additional cost to you.",

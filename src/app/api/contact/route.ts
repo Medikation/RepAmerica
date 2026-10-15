@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 
 /** Replacement for Shopify's `{% form 'contact' %}` POST. Validates the fields and, when RESEND_API_KEY is set,
  *  emails team@repamerica.com through Resend's REST API. Nothing is stored. Plain HTML form posts are redirected back to
- *  /pages/contact with a status in the query string; JSON clients get JSON. */
+ *  /contact with a status in the query string; JSON clients get JSON. */
 
 export const runtime = "nodejs";
 
 const TO = "team@repamerica.com";
 const FROM = process.env.CONTACT_FROM_EMAIL ?? "Rep America <noreply@repamerica.com>";
-const CONTACT_PATH = "/pages/contact";
+const CONTACT_PATH = "/contact";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);

@@ -20,7 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     url("/", { changeFrequency: "daily", priority: 1 }),
     url("/search", { changeFrequency: "monthly", priority: 0.3 }),
-    ...pages.map((p) => url(`/pages/${p.handle}`, { changeFrequency: "monthly", priority: 0.7 })),
+    ...pages.map((p) => url(`/${p.handle}`, { changeFrequency: "monthly", priority: 0.7 })),
     ...BLOGS.map((b) => url(`/blogs/${b}`, { changeFrequency: "daily", priority: 0.8 })),
     ...blogs.flatMap((articles, i) =>
       articles.map((a) => url(`/blogs/${BLOGS[i]}/${encodeURIComponent(a.handle)}`, { lastModified: a.updated_at ?? a.published_at, changeFrequency: "weekly", priority: 0.6 })),

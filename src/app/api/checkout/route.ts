@@ -74,7 +74,7 @@ export async function POST(req: Request) {
         },
       ],
       phone_number_collection: { enabled: false },
-      success_url: `${origin}/pages/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: productUrl,
       metadata: { variant_id: String(variant.id), product_id: String(product.id), product_handle: product.handle, quantity: String(quantity) },
     });

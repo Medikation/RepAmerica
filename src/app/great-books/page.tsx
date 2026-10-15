@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: page?.seo_title || page?.title || "The Great Books Project",
     description: page?.seo_description ?? null,
-    path: `/pages/${HANDLE}`,
+    path: "/great-books",
     shareKey: "great_books",
   });
 }

@@ -1,4 +1,4 @@
-/* Generic page: sections/main-page.liquid + templates/page.json (getSetting("template:page")). */
+/* Generic page at /<handle> (was /pages/<handle> until 2026-10-15): sections/main-page.liquid + templates/page.json (getSetting("template:page")). */
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPage, getSetting } from "@/lib/data";
@@ -8,7 +8,7 @@ import { buildMetadata } from "@/lib/seo";
 export const revalidate = 300;
 
 /** Pages with their own dedicated routes (owned elsewhere) — never served by this generic template. */
-const DEDICATED = new Set(["about", "watch", "great-books-project", "shop", "contact"]);
+const DEDICATED = new Set(["about", "watch", "great-books", "great-books-project", "shop", "contact", "thank-you", "search", "checkout", "admin"]);
 
 interface PageTemplate { sections: { main: { settings: { padding_top?: number; padding_bottom?: number } } } }
 
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
   if (DEDICATED.has(handle)) return {};
   const page = await getPage(handle);
   if (!page) return {};
-  return buildMetadata({ title: page.seo_title ?? page.title, description: page.seo_description, path: `/pages/${handle}` });
+  return buildMetadata({ title: page.seo_title ?? page.title, description: page.seo_description, path: `/${handle}` });
 }
 
 export default async function GenericPage({ params }: { params: Promise<{ handle: string }> }) {

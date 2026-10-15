@@ -257,7 +257,7 @@ export default async function Header() {
             <div className={`header__icons${localizationEnabled ? " header__icons--localization header-localization" : ""}`}>
               <div className="desktop-localization-wrapper"></div>
               {search("Search-In-Modal")}
-              <a href="/pages/shop" className="header__icon header__icon--cart link focus-inset" id="cart-icon-bubble">
+              <a href="/shop" className="header__icon header__icon--cart link focus-inset" id="cart-icon-bubble">
                 <span className="svg-wrapper"><IconCartEmpty /></span>
                 <span className="visually-hidden">Cart</span>
               </a>

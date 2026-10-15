@@ -24,7 +24,7 @@ const DEFAULTS: Required<GreatBooksVideosSettings> = {
   category: "Books",
   limit: 3,
   cta_label: "More on Watch",
-  cta_url: "/pages/watch",
+  cta_url: "/watch",
 };
 
 export default function GreatBooksVideos({ id, settings, watch }: { id: string; settings: GreatBooksVideosSettings; watch: Article[] }) {

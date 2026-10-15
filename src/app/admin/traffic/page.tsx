@@ -25,7 +25,7 @@ type Report = {
 };
 
 const RANGES = [7, 28, 90];
-const SRC_LABEL: Record<string, string> = { direct: "Direct / untagged", youtube: "YouTube", instagram: "Instagram", facebook: "Facebook", search: "Search (Google etc.)", ai: "AI assistants", x: "X", other: "Other sites" };
+const SRC_LABEL: Record<string, string> = { direct: "Direct / apps", youtube: "YouTube", instagram: "Instagram", facebook: "Facebook", search: "Search (Google etc.)", ai: "AI assistants", x: "X", other: "Other sites" };
 const label = (s: string) => SRC_LABEL[s] ?? s;
 const pct = (n: number, d: number) => (d ? Math.round((100 * n) / d) : 0);
 const delta = (now: number, prev: number) => (prev ? `${now >= prev ? "+" : ""}${Math.round(((now - prev) / prev) * 100)}% vs prior ` : "no prior ");
@@ -111,7 +111,7 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
             <div className="tr-stat"><b>{r.views.toLocaleString()}</b><span>page views</span><em className={r.views < r.prev_views ? "down" : ""}>{delta(r.views, r.prev_views)}{r.days} d</em></div>
             <div className="tr-stat"><b>{Math.round(r.visitors / r.days)}</b><span>visitors / day</span></div>
             <div className="tr-stat"><b>{r.avg_pages}</b><span>pages per visitor · {r.one_page_pct}% see one page</span></div>
-            <div className="tr-stat"><b>{r.tagged_pct}%</b><span>visitors with a known source</span></div>
+            <div className="tr-stat"><b>{r.tagged_pct}%</b><span>visitors with a known referrer</span></div>
           </div>
 
           <div className="tr-grid">
@@ -129,7 +129,7 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
 
             <div className="tr-box">
               <h2>Where they come from</h2>
-              <p className="sub">By first page of the visit. "Direct" includes app traffic (YouTube / Instagram apps often hide the referrer) — tagged links fix that.</p>
+              <p className="sub">By the first page of the visit. "Direct / apps" = no referrer: the YouTube and Instagram apps, typed-in, bookmarks.</p>
               {r.sources.map((s) => {
                 const meds = mediumsBySrc.get(s.src);
                 return (
@@ -197,15 +197,7 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
             </tbody></table>
           </div>
 
-          <div className="tr-box">
-            <h2>Tagging links</h2>
-            <p className="tr-note">
-              Add <code>?utm_source=…&amp;utm_medium=…</code> to any repamerica.com link you post (use <code>&amp;</code> instead of <code>?</code> if the link already has a <code>?</code>). Source = platform, medium = placement. The tracker keeps the tag for the whole visit.<br />
-              YouTube channel page: <code>https://repamerica.com/?utm_source=youtube&amp;utm_medium=channel</code> · video description: <code>…?utm_source=youtube&amp;utm_medium=description</code> · pinned comment: <code>…&amp;utm_medium=pinned</code><br />
-              Instagram bio: <code>https://repamerica.com/?utm_source=instagram&amp;utm_medium=bio</code> · story sticker: <code>…&amp;utm_medium=story</code><br />
-              Book video → its guide: <code>https://repamerica.com/blogs/great-books/the-iliad?utm_source=youtube&amp;utm_medium=description</code> · hats: <code>https://repamerica.com/pages/shop?utm_source=youtube&amp;utm_medium=pinned</code>
-            </p>
-          </div>
+          <p className="tr-note">"Direct / apps" is mostly people arriving from the YouTube and Instagram apps, which hide where the click came from. Links on the site stay plain by choice (no tracking tags), so read Direct as "social apps + typed-in", not as unknown.</p>
         </>
       )}
     </div>

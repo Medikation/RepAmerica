@@ -150,7 +150,7 @@ export default async function Footer() {
               {policyPage && (
                 <ul className="policies list-unstyled">
                   <li>
-                    <small className="copyright__content"><a href={`/pages/${policyPage.handle}`}>{policyPage.title}</a></small>
+                    <small className="copyright__content"><a href={`/${policyPage.handle}`}>{policyPage.title}</a></small>
                   </li>
                 </ul>
               )}
