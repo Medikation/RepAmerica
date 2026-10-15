@@ -12,7 +12,7 @@ const IP_SALT = "repamerica-pv-7f3a9c";
 const BOT_UA = /bot|crawl|spider|slurp|headless|phantom|puppeteer|playwright|selenium|lighthouse|pagespeed|preview|fetch|curl|wget|python|scrapy|httpclient|java\/|go-http|okhttp|axios|node-fetch|facebookexternalhit|embedly|quora link|pinterest|vkshare|w3c_validator|monitor|uptime|check|ahrefs|semrush|mj12|dotbot|petalbot|bytespider|gptbot|claudebot|ccbot|anthropic|openai|perplexity|yandex|baidu|bingpreview/i;
 
 export async function POST(req: Request) {
-  let body: { path?: string; referrer?: string } = {};
+  let body: { path?: string; referrer?: string; source?: string; medium?: string } = {};
   try { body = await req.json(); } catch { return new Response(null, { status: 400 }); }
   const path = String(body.path ?? "").slice(0, 300);
   if (!path.startsWith("/")) return new Response(null, { status: 400 });
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   const visitorHash = createHash("sha256").update(IP_SALT + ip + ua + day).digest("hex").slice(0, 32);
 
   try {
-    await supabaseAdmin().rpc("track_pageview", {
+    await supabaseAdmin().rpc("track_pageview2", {
       p_path: path,
       p_referrer: String(body.referrer ?? "").slice(0, 200),
       p_visitor_hash: visitorHash,
@@ -37,6 +37,8 @@ export async function POST(req: Request) {
       p_region: h.get("x-vercel-ip-country-region"),
       p_city: h.get("x-vercel-ip-city") ? decodeURIComponent(h.get("x-vercel-ip-city")!) : null,
       p_ua: ua.slice(0, 200),
+      p_source: String(body.source ?? "").slice(0, 40) || null,
+      p_medium: String(body.medium ?? "").slice(0, 40) || null,
     });
   } catch (e) {
     console.error("[track] failed", e);
