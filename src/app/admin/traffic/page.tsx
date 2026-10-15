@@ -85,7 +85,7 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
         .ra-admin .tr-flow > div:last-child { border-bottom:0; }
         .ra-admin .tr-flow b { display:block; margin-bottom:3px; }
         .ra-admin .tr-flow span { display:inline-block; margin:2px 6px 2px 0; padding:2px 8px; border-radius:999px; background:#f3f3f3; font-size:1.2rem; }
-        .ra-admin .tr-table td.path { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:1.2rem; word-break:break-all; }
+        .ra-admin .tr-table td.tr-path { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:1.2rem; word-break:break-all; }
         .ra-admin .tr-table td.n { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
         .ra-admin .tr-table th.n { text-align:right; }
         .ra-admin .tr-note { font-size:1.25rem; color:#666; line-height:1.5; }
@@ -172,7 +172,7 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
               <h2>Landing pages</h2>
               <p className="sub">First page of the visit.</p>
               <table className="tr-table"><thead><tr><th>Page</th><th className="n">Visits</th></tr></thead><tbody>
-                {r.landings.map((l) => <tr key={l.path}><td className="path"><a href={l.path} target="_blank" rel="noreferrer">{decodeURIComponent(l.path)}</a></td><td className="n">{l.n}</td></tr>)}
+                {r.landings.map((l) => <tr key={l.path}><td className="tr-path"><a href={l.path} target="_blank" rel="noreferrer">{decodeURIComponent(l.path)}</a></td><td className="n">{l.n}</td></tr>)}
               </tbody></table>
             </div>
 
@@ -180,7 +180,7 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
               <h2>Referring sites</h2>
               <p className="sub">Exact hostnames the browser reported.</p>
               <table className="tr-table"><thead><tr><th>Site</th><th className="n">Visitors</th><th className="n">Views</th></tr></thead><tbody>
-                {r.referrers.map((x) => <tr key={x.ref}><td className="path">{x.ref}</td><td className="n">{x.visitors}</td><td className="n">{x.views}</td></tr>)}
+                {r.referrers.map((x) => <tr key={x.ref}><td className="tr-path">{x.ref}</td><td className="n">{x.visitors}</td><td className="n">{x.views}</td></tr>)}
               </tbody></table>
               <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginTop: 14 }}>
                 <div className="tr-note"><b>Countries</b><br />{r.countries.map((c) => `${c.c} ${c.visitors}`).join(" · ")}</div>
@@ -193,7 +193,7 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
             <h2>Top pages</h2>
             <p className="sub">All page views in the period.</p>
             <table className="tr-table"><thead><tr><th>Page</th><th className="n">Views</th><th className="n">Visitors</th></tr></thead><tbody>
-              {r.top_pages.map((p) => <tr key={p.path}><td className="path"><a href={p.path} target="_blank" rel="noreferrer">{decodeURIComponent(p.path)}</a></td><td className="n">{p.views}</td><td className="n">{p.visitors}</td></tr>)}
+              {r.top_pages.map((p) => <tr key={p.path}><td className="tr-path"><a href={p.path} target="_blank" rel="noreferrer">{decodeURIComponent(p.path)}</a></td><td className="n">{p.views}</td><td className="n">{p.visitors}</td></tr>)}
             </tbody></table>
           </div>
 
