@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getAdmin } from "@/lib/adminAuth";
 import { supabaseAdmin } from "@/lib/supabase";
 import CopyButton from "@/components/admin/CopyButton";
+import { streamPackage, isRally, thumbState } from "@/lib/streamPackage";
 import { fetchCalendarEvents, zonedDayStart, dayKey, addDays, PT, CALENDAR_USER, type CalEvent } from "@/lib/googleCalendar";
 
 // The producer's desk: one page Medi opens before going live. Three things, top to bottom —
@@ -41,44 +42,11 @@ type Item = {
   response: CalEvent["response"];
   status: ShowEvent["status"] | null;
   conflicts: string[];
-  pkg: { title: string; description: string } | null; // ready-to-paste YouTube live title + description (Trump events only)
+  pkg: { title: string; description: string; thumb: string | null } | null; // ready-to-paste YouTube live title + description (Trump events only)
 };
 
 const KIND_LABEL: Record<ShowEvent["kind"], string> = { trump: "Trump", "white-house": "White House", campaign: "Campaign", other: "Event" };
 
-const US_STATES: Record<string, string> = { AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming",DC:"Washington, D.C." };
-
-/** "Midterm rally in St. Clair County (Port Huron), MI featuring President Trump" → "Port Huron, Michigan" */
-function placeOf(e: ShowEvent): string | null {
-  const m = /\bin ([^,()]+?)(?:\s*\(([^)]*)\))?,\s*([A-Z]{2})\b/.exec(e.title) ?? /([^,()]+?)(?:\s*\(([^)]*)\))?,\s*([A-Z]{2})\b/.exec(e.location ?? "");
-  if (!m) return null;
-  let city = m[1].trim();
-  const paren = (m[2] ?? "").replace(/\s*area$/i, "").trim();
-  if (paren && /county/i.test(city)) city = paren; // "St. Clair County (Port Huron)" → Port Huron
-  const state = US_STATES[m[3]];
-  return state ? `${city}, ${state}` : city;
-}
-
-/** The YouTube live title + description for a Trump event — overrides from the row win, otherwise generated. */
-function streamPackage(e: ShowEvent, signoff: string): { title: string; description: string } {
-  const place = placeOf(e);
-  const t = e.title;
-  let what: string;
-  if (/rally/i.test(t)) what = place ? `Trump Rally in ${place}` : "Trump Rally";
-  else if (/press conference|briefing|gaggle/i.test(t)) what = place ? `Trump Press Conference in ${place}` : "Trump Press Conference";
-  else if (/town hall/i.test(t)) what = place ? `Trump Town Hall in ${place}` : "Trump Town Hall";
-  else if (/address|speech|remarks|speaks/i.test(t)) what = place ? `Trump Speaks in ${place}` : "Trump Speaks";
-  else what = t.replace(/\s*featuring President Trump\s*/i, "").replace(/^President Trump[:\s—-]*/i, "").trim().replace(/^./, (c) => c.toUpperCase());
-  if (!/\bTrump\b/.test(what)) what = `Trump: ${what}`;
-  const title = e.stream_title?.trim() || `LIVE: ${what}`;
-  const when = e.notes?.match(/\b\d{1,2}(?::\d{2})?\s*[AP]M\s*ET\b/i)?.[0] ?? (e.all_day ? null : `${timeET(Date.parse(e.starts_at))} ET`);
-  const lead = /rally/i.test(t)
-    ? `President Trump is live${place ? ` in ${place}` : ""} — watch the rally with me. I'm reacting live and reading the chat.`
-    : `President Trump${place ? ` in ${place}` : ""} — watch it with me. I'm reacting live and reading the chat.`;
-  const facts = [e.location, when ? `Scheduled for ${when}` : null].filter(Boolean).join(" · ");
-  const description = e.stream_description?.trim() || [lead, facts, signoff.trim()].filter(Boolean).join("\n\n");
-  return { title, description };
-}
 const BLOCK_LABEL: Record<NonNullable<Block["kind"]>, string> = { open: "Open", event: "Live cover", reading: "Reading", beat: "What It's Really About", stronger: "Stronger Americans", close: "Close", other: "Block" };
 const TRUMP_DEFAULT_MIN = 90; // for overlap checks when an event has no end time
 
@@ -149,7 +117,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       dim: e.status === "canceled" || e.status === "skipped",
       kindLabel: KIND_LABEL[e.kind], kindClass: `td-kind--${e.kind}`,
       meta: [e.location, e.press ? `${e.press} press` : null, e.notes].filter(Boolean).join(" · ") || null,
-      joinUrl: e.stream_url, joinLabel: "Watch", otherJoinUrls: [], link: e.source_url, response: null, status: e.status, conflicts: [], pkg: e.status === "canceled" ? null : streamPackage(e, ytSignoff),
+      joinUrl: e.stream_url, joinLabel: "Watch", otherJoinUrls: [], link: e.source_url, response: null, status: e.status, conflicts: [], pkg: e.status === "canceled" ? null : { ...streamPackage(e, ytSignoff), thumb: isRally(e) && thumbState(e) ? `/admin/today/thumb/${e.id}` : null },
     });
   }
   for (const r of rundowns) {
@@ -288,6 +256,10 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         .ra-admin .td-pkg__peek { font-size:1.25rem; color:#555; flex:1 1 240px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .ra-admin .td-pkg__pre { margin:6px 0 0 96px; font-family:inherit; font-size:1.25rem; line-height:1.5; color:#222; white-space:pre-wrap; background:#fff; border:1px solid #eee; border-radius:6px; padding:8px 10px; }
         @media (max-width:749px){ .ra-admin .td-pkg__pre { margin-left:0; } }
+        .ra-admin .td-pkg__thumbrow { margin-top:8px; align-items:flex-start; }
+        .ra-admin .td-pkg__thumb { display:block; width:240px; max-width:100%; flex:0 0 auto; border-radius:6px; overflow:hidden; border:1px solid #ddd; background:#000; }
+        .ra-admin .td-pkg__thumb img { display:block; width:100%; height:auto; }
+        .ra-admin .td-pkg__thumbrow .td-pkg__peek { white-space:normal; flex:1 1 160px; }
         /* go-live box (stream key) */
         .ra-admin .td-golive { margin-top:12px; border:1px solid #111; border-radius:10px; background:#fff; padding:10px 14px 12px; }
         .ra-admin .td-golive__title { font-size:1.3rem; font-weight:700; color:#111; margin:0 0 6px; display:flex; align-items:center; gap:8px; }
@@ -448,6 +420,13 @@ function Row({ i, now, compact }: { i: Item; now: number; compact?: boolean }) {
               <summary className="td-pkg__row"><span className="td-pkg__label">Description</span><span className="td-pkg__peek">{i.pkg.description.split("\n")[0]}</span><CopyButton text={i.pkg.description} label="Copy description" /></summary>
               <pre className="td-pkg__pre">{i.pkg.description}</pre>
             </details>
+            {i.pkg.thumb ? (
+              <div className="td-pkg__row td-pkg__thumbrow">
+                <span className="td-pkg__label">Thumbnail</span>
+                <a href={`${i.pkg.thumb}?dl=1`} className="td-pkg__thumb" title="Download the thumbnail"><img src={i.pkg.thumb} alt="" loading="lazy" /></a>
+                <span className="td-pkg__peek">1920×1080 · <a href={`${i.pkg.thumb}?dl=1`}>Download</a> · <a href={i.pkg.thumb} target="_blank" rel="noreferrer">Open</a></span>
+              </div>
+            ) : null}
           </div>
         ) : null}
         {i.conflicts.length && !i.dim ? <div className="td-row__warn">overlaps {i.conflicts.join(" · ")}</div> : null}

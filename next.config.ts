@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The live-thumbnail route reads the rally template + Anton from src/assets at runtime; make sure Vercel ships them with the function.
+  outputFileTracingIncludes: { "/admin/today/thumb/[id]": ["src/assets/**/*"] },
   images: { remotePatterns: [{ protocol: "https", hostname: "udeivbgtpfccbtstvsxa.supabase.co" }, { protocol: "https", hostname: "img.youtube.com" }, { protocol: "https", hostname: "i.ytimg.com" }] },
   async redirects() {
     return [
