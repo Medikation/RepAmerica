@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAdmin } from "@/lib/adminAuth";
 import { supabaseAdmin } from "@/lib/supabase";
+import CopyButton from "@/components/admin/CopyButton";
 import { fetchCalendarEvents, zonedDayStart, dayKey, addDays, PT, CALENDAR_USER, type CalEvent } from "@/lib/googleCalendar";
 
 // The producer's desk: one page Medi opens before going live. Three things, top to bottom —
@@ -82,6 +83,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const settings = new Map<string, string>(((settingRows ?? []) as Setting[]).filter((s) => s.value != null).map((s) => [s.key, s.value as string]));
   const showName = settings.get("show_name") ?? "Rep America Live";
   const schedule = settings.get("schedule") ?? "Not set";
+  const igStreamKey = settings.get("ig_stream_key")?.trim() || null; // Instagram Live stream key — copied into Ecamm each stream
   const rundowns = (rundownRows ?? []) as Rundown[];
   const todayRundown = rundowns.find((r) => r.air_date === todayKey) ?? null;
   const nextRundown = todayRundown ?? rundowns.find((r) => r.air_date > todayKey) ?? null;
@@ -239,9 +241,23 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         .ra-admin .td-topic__meta a { color:#555; }
         .ra-admin .td-chip--ready { border-color:#111; background:#111; color:#fff; }
         .ra-admin .td-chip--outline { border-color:#f1c56b; background:#fff3cd; color:#7a5a00; }
+        /* go-live box (stream key) */
+        .ra-admin .td-golive { margin-top:12px; border:1px solid #111; border-radius:10px; background:#fff; padding:10px 14px 12px; }
+        .ra-admin .td-golive__title { font-size:1.3rem; font-weight:700; color:#111; margin:0 0 6px; display:flex; align-items:center; gap:8px; }
+        .ra-admin .td-golive__row { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; }
+        .ra-admin .td-golive__key { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:1.15rem; color:#222; background:#f6f6f6; border:1px solid #e5e5e5; border-radius:6px; padding:5px 8px; overflow-wrap:anywhere; flex:1 1 280px; min-width:0; }
+        .ra-admin .td-golive__hint { font-size:1.15rem; color:#888; margin:6px 0 0; }
       `}</style>
       <h1>Today</h1>
       <p className="muted">{dayLabel(todayKey)} · everything in Pacific. Your calendars (medi@ + team@), the Trump / White House schedule, and the rundown for the stream. Private — nothing here shows on the site.</p>
+
+      {igStreamKey ? (
+        <div className="td-golive">
+          <p className="td-golive__title"><span className="td-chip">Go live</span> Instagram stream key</p>
+          <div className="td-golive__row"><code className="td-golive__key">{igStreamKey}</code><CopyButton text={igStreamKey} label="Copy key" /></div>
+          <p className="td-golive__hint">Paste into Ecamm as the Instagram RTMP stream key each time you start the live. If Instagram rotates it, send the new one in chat and it gets swapped here.</p>
+        </div>
+      ) : null}
 
       {gcalMsg ? <div className={`notice${gcalMsg[1] ? " notice--error" : ""}`}>{gcalMsg[0]}</div> : null}
       {!calendar.configured ? (
