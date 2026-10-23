@@ -13,7 +13,7 @@ import { fetchCalendarEvents, zonedDayStart, dayKey, addDays, PT, CALENDAR_USER,
 // Read-only like /admin/show and /admin/reading. The Show tab keeps the strategy and the full 10-day event list.
 export const dynamic = "force-dynamic";
 
-type ShowEvent = { id: number; starts_at: string; ends_at: string | null; all_day: boolean; title: string; kind: "trump" | "white-house" | "campaign" | "other"; location: string | null; press: string | null; stream_url: string | null; source_url: string | null; status: "scheduled" | "tentative" | "covered" | "skipped" | "canceled"; notes: string | null };
+type ShowEvent = { id: number; starts_at: string; ends_at: string | null; all_day: boolean; title: string; kind: "trump" | "white-house" | "campaign" | "other"; location: string | null; press: string | null; stream_url: string | null; source_url: string | null; status: "scheduled" | "tentative" | "covered" | "skipped" | "canceled"; notes: string | null; stream_title?: string | null; stream_description?: string | null };
 type Block = { kind?: "open" | "event" | "reading" | "beat" | "stronger" | "close" | "other"; title?: string; body_html?: string; minutes?: number; is_cut?: boolean; url?: string };
 type Rundown = { id: number; air_date: string; starts_at: string | null; minutes: number | null; status: "planned" | "aired" | "skipped"; title: string | null; lead: string | null; blocks: Block[]; notes: string | null; updated_at: string };
 type Setting = { key: string; value: string | null };
@@ -41,9 +41,44 @@ type Item = {
   response: CalEvent["response"];
   status: ShowEvent["status"] | null;
   conflicts: string[];
+  pkg: { title: string; description: string } | null; // ready-to-paste YouTube live title + description (Trump events only)
 };
 
 const KIND_LABEL: Record<ShowEvent["kind"], string> = { trump: "Trump", "white-house": "White House", campaign: "Campaign", other: "Event" };
+
+const US_STATES: Record<string, string> = { AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming",DC:"Washington, D.C." };
+
+/** "Midterm rally in St. Clair County (Port Huron), MI featuring President Trump" → "Port Huron, Michigan" */
+function placeOf(e: ShowEvent): string | null {
+  const m = /\bin ([^,()]+?)(?:\s*\(([^)]*)\))?,\s*([A-Z]{2})\b/.exec(e.title) ?? /([^,()]+?)(?:\s*\(([^)]*)\))?,\s*([A-Z]{2})\b/.exec(e.location ?? "");
+  if (!m) return null;
+  let city = m[1].trim();
+  const paren = (m[2] ?? "").replace(/\s*area$/i, "").trim();
+  if (paren && /county/i.test(city)) city = paren; // "St. Clair County (Port Huron)" → Port Huron
+  const state = US_STATES[m[3]];
+  return state ? `${city}, ${state}` : city;
+}
+
+/** The YouTube live title + description for a Trump event — overrides from the row win, otherwise generated. */
+function streamPackage(e: ShowEvent, signoff: string): { title: string; description: string } {
+  const place = placeOf(e);
+  const t = e.title;
+  let what: string;
+  if (/rally/i.test(t)) what = place ? `Trump Rally in ${place}` : "Trump Rally";
+  else if (/press conference|briefing|gaggle/i.test(t)) what = place ? `Trump Press Conference in ${place}` : "Trump Press Conference";
+  else if (/town hall/i.test(t)) what = place ? `Trump Town Hall in ${place}` : "Trump Town Hall";
+  else if (/address|speech|remarks|speaks/i.test(t)) what = place ? `Trump Speaks in ${place}` : "Trump Speaks";
+  else what = t.replace(/\s*featuring President Trump\s*/i, "").replace(/^President Trump[:\s—-]*/i, "").trim().replace(/^./, (c) => c.toUpperCase());
+  if (!/\bTrump\b/.test(what)) what = `Trump: ${what}`;
+  const title = e.stream_title?.trim() || `LIVE: ${what}`;
+  const when = e.notes?.match(/\b\d{1,2}(?::\d{2})?\s*[AP]M\s*ET\b/i)?.[0] ?? (e.all_day ? null : `${timeET(Date.parse(e.starts_at))} ET`);
+  const lead = /rally/i.test(t)
+    ? `President Trump is live${place ? ` in ${place}` : ""} — watch the rally with me. I'm reacting live and reading the chat.`
+    : `President Trump${place ? ` in ${place}` : ""} — watch it with me. I'm reacting live and reading the chat.`;
+  const facts = [e.location, when ? `Scheduled for ${when}` : null].filter(Boolean).join(" · ");
+  const description = e.stream_description?.trim() || [lead, facts, signoff.trim()].filter(Boolean).join("\n\n");
+  return { title, description };
+}
 const BLOCK_LABEL: Record<NonNullable<Block["kind"]>, string> = { open: "Open", event: "Live cover", reading: "Reading", beat: "What It's Really About", stronger: "Stronger Americans", close: "Close", other: "Block" };
 const TRUMP_DEFAULT_MIN = 90; // for overlap checks when an event has no end time
 
@@ -83,6 +118,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const settings = new Map<string, string>(((settingRows ?? []) as Setting[]).filter((s) => s.value != null).map((s) => [s.key, s.value as string]));
   const showName = settings.get("show_name") ?? "Rep America Live";
   const schedule = settings.get("schedule") ?? "Not set";
+  const ytSignoff = settings.get("yt_signoff") ?? "";
   const igStreamKey = settings.get("ig_stream_key")?.trim() || null; // Instagram Live stream key — copied into Ecamm each stream
   const rundowns = (rundownRows ?? []) as Rundown[];
   const todayRundown = rundowns.find((r) => r.air_date === todayKey) ?? null;
@@ -99,7 +135,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       dim: e.response === "declined" || e.free,
       kindLabel: e.calendars.join(" + "), kindClass: e.calendars.includes("medi@") ? "td-kind--medi" : "td-kind--team",
       meta: [e.organizer ? `by ${e.organizer}` : null, e.location, e.attendeeCount > 1 ? `${e.attendeeCount} invited` : null].filter(Boolean).join(" · ") || null,
-      joinUrl: e.joinUrl, joinLabel: "Join", otherJoinUrls: e.otherJoinUrls, link: e.htmlLink, response: e.response, status: null, conflicts: [],
+      joinUrl: e.joinUrl, joinLabel: "Join", otherJoinUrls: e.otherJoinUrls, link: e.htmlLink, response: e.response, status: null, conflicts: [], pkg: null,
     });
   }
   for (const e of (eventRows ?? []) as ShowEvent[]) {
@@ -113,7 +149,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       dim: e.status === "canceled" || e.status === "skipped",
       kindLabel: KIND_LABEL[e.kind], kindClass: `td-kind--${e.kind}`,
       meta: [e.location, e.press ? `${e.press} press` : null, e.notes].filter(Boolean).join(" · ") || null,
-      joinUrl: e.stream_url, joinLabel: "Watch", otherJoinUrls: [], link: e.source_url, response: null, status: e.status, conflicts: [],
+      joinUrl: e.stream_url, joinLabel: "Watch", otherJoinUrls: [], link: e.source_url, response: null, status: e.status, conflicts: [], pkg: e.status === "canceled" ? null : streamPackage(e, ytSignoff),
     });
   }
   for (const r of rundowns) {
@@ -125,7 +161,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       id: `show:${r.id}`, source: "show", title: `${showName}${r.title ? ` — ${r.title}` : ""}`, startsAt: s, endsAt: en, allDay: false, live,
       done: !live && en <= now, dim: r.status === "skipped",
       kindLabel: "Show", kindClass: "td-kind--show",
-      meta: r.lead, joinUrl: null, joinLabel: "", otherJoinUrls: [], link: "#rundown", response: null, status: null, conflicts: [],
+      meta: r.lead, joinUrl: null, joinLabel: "", otherJoinUrls: [], link: "#rundown", response: null, status: null, conflicts: [], pkg: null,
     });
   }
   items.sort((a, b) => Number(b.allDay) - Number(a.allDay) || a.startsAt - b.startsAt || a.title.localeCompare(b.title));
@@ -241,6 +277,17 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         .ra-admin .td-topic__meta a { color:#555; }
         .ra-admin .td-chip--ready { border-color:#111; background:#111; color:#fff; }
         .ra-admin .td-chip--outline { border-color:#f1c56b; background:#fff3cd; color:#7a5a00; }
+        /* stream package (YouTube title + description to paste) */
+        .ra-admin .td-pkg { margin-top:8px; padding:8px 10px; border:1px dashed #e8b4b4; border-radius:8px; background:#fffafa; }
+        .ra-admin .td-pkg__row { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; list-style:none; cursor:default; }
+        .ra-admin .td-pkg__row::-webkit-details-marker { display:none; }
+        .ra-admin .td-pkg__label { font-size:1.05rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#9b1c1c; width:86px; }
+        .ra-admin .td-pkg__title { font-family:inherit; font-size:1.35rem; font-weight:700; color:#111; background:#fff; border:1px solid #eee; border-radius:6px; padding:4px 8px; flex:1 1 240px; min-width:0; }
+        .ra-admin .td-pkg__desc { margin-top:6px; }
+        .ra-admin .td-pkg__desc summary { cursor:pointer; }
+        .ra-admin .td-pkg__peek { font-size:1.25rem; color:#555; flex:1 1 240px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .ra-admin .td-pkg__pre { margin:6px 0 0 96px; font-family:inherit; font-size:1.25rem; line-height:1.5; color:#222; white-space:pre-wrap; background:#fff; border:1px solid #eee; border-radius:6px; padding:8px 10px; }
+        @media (max-width:749px){ .ra-admin .td-pkg__pre { margin-left:0; } }
         /* go-live box (stream key) */
         .ra-admin .td-golive { margin-top:12px; border:1px solid #111; border-radius:10px; background:#fff; padding:10px 14px 12px; }
         .ra-admin .td-golive__title { font-size:1.3rem; font-weight:700; color:#111; margin:0 0 6px; display:flex; align-items:center; gap:8px; }
@@ -392,6 +439,15 @@ function Row({ i, now, compact }: { i: Item; now: number; compact?: boolean }) {
             <a className="td-join" href={i.joinUrl} target="_blank" rel="noreferrer">{i.joinLabel}</a>
             {i.link && i.source === "trump" ? <> · <a href={i.link} target="_blank" rel="noreferrer">Source</a></> : null}
             {i.otherJoinUrls.length ? <span className="td-row__warn"> · another link on the invite: {i.otherJoinUrls.map((u, n) => <a key={u} href={u} target="_blank" rel="noreferrer">{n ? ", " : ""}{u.replace(/^https?:\/\//, "")}</a>)} — the bold one is what the organizer sent</span> : null}
+          </div>
+        ) : null}
+        {i.pkg && !compact && !i.dim ? (
+          <div className="td-pkg">
+            <div className="td-pkg__row"><span className="td-pkg__label">Title</span><code className="td-pkg__title">{i.pkg.title}</code><CopyButton text={i.pkg.title} label="Copy title" /></div>
+            <details className="td-pkg__desc">
+              <summary className="td-pkg__row"><span className="td-pkg__label">Description</span><span className="td-pkg__peek">{i.pkg.description.split("\n")[0]}</span><CopyButton text={i.pkg.description} label="Copy description" /></summary>
+              <pre className="td-pkg__pre">{i.pkg.description}</pre>
+            </details>
           </div>
         ) : null}
         {i.conflicts.length && !i.dim ? <div className="td-row__warn">overlaps {i.conflicts.join(" · ")}</div> : null}
