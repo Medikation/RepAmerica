@@ -106,7 +106,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
     items.push({
       id: e.key, source: "cal", title: e.title, startsAt: e.startsAt, endsAt: e.endsAt, allDay: e.allDay, live,
       done: !live && !e.allDay && e.endsAt <= now,
-      dim: e.response === "declined" || e.free,
+      dim: e.response === "declined", // "Free" events stay in full — Medi's calendar items are Free by default (2026-10-24)
       kindLabel: e.calendars.join(" + "), kindClass: e.calendars.includes("medi@") ? "td-kind--medi" : "td-kind--team",
       meta: [e.organizer ? `by ${e.organizer}` : null, e.location, e.attendeeCount > 1 ? `${e.attendeeCount} invited` : null].filter(Boolean).join(" · ") || null,
       joinUrl: e.joinUrl, joinLabel: "Join", otherJoinUrls: e.otherJoinUrls, link: e.htmlLink, response: e.response, status: null, conflicts: [], pkgAnchor: null,
