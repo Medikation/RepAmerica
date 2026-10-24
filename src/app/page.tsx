@@ -10,6 +10,7 @@ import HomeWorkshopIntro, { type HomeWorkshopIntroSection } from "@/components/h
 import HomeLatest, { type HomeLatestSettings } from "@/components/home/HomeLatest";
 import HomePillars, { type HomePillarsSection } from "@/components/home/HomePillars";
 import HomeCta, { type HomeCtaSettings } from "@/components/home/HomeCta";
+import HomeLiveSchedule, { type HomeLiveScheduleSettings } from "@/components/home/HomeLiveSchedule";
 
 export const revalidate = 300;
 
@@ -54,6 +55,8 @@ async function HomeSection({ id, section, heroBlog }: { id: string; section: Sec
       return <HomePillars id={sid} section={section as unknown as HomePillarsSection} />;
     case "home-cta":
       return <HomeCta id={sid} settings={section.settings as HomeCtaSettings} />;
+    case "home-live-schedule":
+      return <HomeLiveSchedule id={sid} settings={section.settings as HomeLiveScheduleSettings} />;
     default:
       return null;
   }

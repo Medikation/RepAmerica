@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   images: { remotePatterns: [{ protocol: "https", hostname: "udeivbgtpfccbtstvsxa.supabase.co" }, { protocol: "https", hostname: "img.youtube.com" }, { protocol: "https", hostname: "i.ytimg.com" }] },
   async redirects() {
     return [
+      // 2026-10-24: the public live schedule lives at /trump-schedule; short aliases point there.
+      { source: "/schedule", destination: "/trump-schedule", permanent: true },
+      { source: "/live", destination: "/trump-schedule", permanent: true },
       { source: "/pages/partners-allies", destination: "/partners", permanent: true },
       { source: "/pages/great-books-project-2", destination: "/great-books", permanent: true },
       { source: "/collections/frontpage", destination: "/collections/all", permanent: true },
