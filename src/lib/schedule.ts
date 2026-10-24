@@ -14,6 +14,24 @@ export const SCHEDULE_DESCRIPTION = "Upcoming Trump rallies, JD Vance rallies an
 const DAY = 24 * 3600 * 1000;
 const LIVE_WINDOW_MS = 3 * 3600 * 1000; // a rally stream runs about three hours
 
+
+/** The daily refresh task sometimes writes sourcing remarks into `notes`; the public never needs those. */
+export function publicNote(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  let n = raw;
+  n = n.replace(/\b(\d{1,2}(?::\d{2})?)\s*([ap])\.?m\.?(?=[\s;,.)]|$)/gi, (_, t, ap) => `${t} ${ap.toUpperCase()}M`); // "11:40 a.m." → "11:40 AM"
+  n = n.replace(/\((?:[^()]*\b(?:assumed|not stated|unconfirmed|per [A-Z]|zone|says|reports|reported|lists|according)[^()]*)\)/gi, " "); // "(zone not stated; assumed …)", "(WXYZ says noon ET)"
+  n = n.replace(/\b(?:per|according to|as per|via|source:?)\s+[^;,.()]*/gi, " "); // "per WH schedule", "per MLive"
+  n = n.replace(/\b(?:assumed|unconfirmed|not confirmed|tentatively|reportedly|allegedly|rumou?red)\b[^;.,()]*/gi, " ");
+  n = n.replace(/\bvenue now\b/gi, "venue");
+  n = n.replace(/\(\s*\)/g, " ").replace(/\s+([;,.)])/g, "$1").replace(/([;,])(?=[;,])/g, "").replace(/\s{2,}/g, " ").replace(/^[\s;,.]+|[\s;,.]+$/g, "").trim();
+  return n || null;
+}
+
+/** Rumours stay off the public page even when a row forgot is_public = false. */
+export const isRumour = (e: Pick<StreamEvent, "title" | "status" | "notes">) =>
+  /\b(unconfirmed|possible|possibly|expected|rumou?r|may (?:hold|attend|travel)|reportedly)\b/i.test(`${e.title} ${e.status === "tentative" ? e.notes ?? "" : ""}`) && e.status !== "covered";
+
 export type ScheduleEvent = StreamEvent & {
   liveLinks: LiveLinks | null;
   startsMs: number;
@@ -39,7 +57,7 @@ function shape(e: StreamEvent & { liveLinks: LiveLinks | null }, now: number): S
   const over = endsMs ? endsMs < now : startsMs + LIVE_WINDOW_MS < now;
   const onAir = !!e.liveLinks && (e.liveLinks.live || (startsMs <= now && !over));
   const phase: ScheduleEvent["phase"] = onAir ? "live" : over || (startsMs < now && !e.all_day) ? "past" : "upcoming";
-  return { ...e, liveLinks: e.liveLinks, startsMs, endsMs, headline, sub, performer, performerName: PERFORMER_NAME[performer], city: p?.city ?? null, state: p?.state ?? null, watchUrl, phase, status: e.status ?? "scheduled" };
+  return { ...e, notes: publicNote(e.notes), liveLinks: e.liveLinks, startsMs, endsMs, headline, sub, performer, performerName: PERFORMER_NAME[performer], city: p?.city ?? null, state: p?.state ?? null, watchUrl, phase, status: e.status ?? "scheduled" };
 }
 
 export type Schedule = { now: number; upcoming: ScheduleEvent[]; past: ScheduleEvent[]; updatedAt: string | null };
@@ -58,7 +76,7 @@ export async function getPublicSchedule(opts: { daysAhead?: number; daysBack?: n
     .lt("starts_at", new Date(now + (ahead + 1) * DAY).toISOString())
     .order("starts_at", { ascending: true })
     .limit(200);
-  const rows = (data ?? []) as (StreamEvent & { updated_at?: string })[];
+  const rows = ((data ?? []) as (StreamEvent & { updated_at?: string })[]).filter((r) => !isRumour(r));
   const withLinks = await withLiveLinks(rows);
   const all = withLinks.map((e) => shape(e, now));
   const upcoming = all.filter((e) => e.phase !== "past" && e.status !== "skipped");
