@@ -2,13 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // The live-thumbnail route reads the rally template + Anton from src/assets at runtime; make sure Vercel ships them with the function.
-  outputFileTracingIncludes: { "/admin/today/thumb/[id]": ["src/assets/**/*"] },
+  outputFileTracingIncludes: { "/admin/today/thumb/[id]": ["src/assets/**/*"], "/admin/today/week": ["src/assets/**/*"] },
   images: { remotePatterns: [{ protocol: "https", hostname: "udeivbgtpfccbtstvsxa.supabase.co" }, { protocol: "https", hostname: "img.youtube.com" }, { protocol: "https", hostname: "i.ytimg.com" }] },
   async redirects() {
     return [
-      // 2026-10-24: the public live schedule lives at /trump-schedule; short aliases point there.
-      { source: "/schedule", destination: "/trump-schedule", permanent: true },
-      { source: "/live", destination: "/trump-schedule", permanent: true },
+      // 2026-10-25: /schedule = Rep America's own week, /trump-schedule = the political reference; /live is an alias.
+      { source: "/live", destination: "/schedule", permanent: true },
       { source: "/pages/partners-allies", destination: "/partners", permanent: true },
       { source: "/pages/great-books-project-2", destination: "/great-books", permanent: true },
       { source: "/collections/frontpage", destination: "/collections/all", permanent: true },

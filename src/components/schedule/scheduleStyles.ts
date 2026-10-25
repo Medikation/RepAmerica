@@ -23,6 +23,12 @@ export const scheduleStyles = `
 .ra-sched__event { display:grid; grid-template-columns: 1fr; gap:6px 20px; padding:16px 0; border-bottom:1px solid rgba(20,20,15,.12); scroll-margin-top:24px; }
 @media (min-width: 760px) { .ra-sched__event { grid-template-columns: 118px minmax(0,1fr) auto; align-items:center; } }
 .ra-sched__event--past { opacity:.82; }
+.ra-sched__event--after { background: linear-gradient(90deg, rgba(198,36,54,.05), transparent 60%); }
+@media (min-width: 760px) { .ra-sched__event--after .ra-sched__time { padding-left: 14px; border-left: 3px solid ${RED}; } }
+.ra-sched__platform { display:inline-block; padding:2px 8px; border-radius:999px; font-family: var(--font-body-family, system-ui, sans-serif); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; background:#14140f; color:#fff; }
+.ra-sched__watch--tiktok.ra-button--primary { background:#14140f; border-color:#14140f; }
+.ra-sched__doors { display:flex; flex-wrap:wrap; gap:8px 18px; margin:14px 0 0; font-size:14px; color: rgba(20,20,15,.7); }
+.ra-sched__doors a { color:#14140f; font-weight:600; }
 .ra-sched__event--canceled .ra-sched__name, .ra-sched__event--canceled .ra-sched__meta { text-decoration: line-through; color: rgba(20,20,15,.5); }
 .ra-sched__time { display:flex; flex-direction:column; line-height:1.2; }
 .ra-sched__time-day { font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color: rgba(20,20,15,.55); }

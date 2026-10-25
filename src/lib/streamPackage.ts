@@ -49,19 +49,20 @@ export const placeLabel = (p: ReturnType<typeof placeOf>) => (p ? (p.state ? `${
 
 export const isRally = (e: Pick<StreamEvent, "title">) => /rally/i.test(e.title);
 
-export type Performer = "trump" | "vance" | "white-house" | "other";
+export type Performer = "trump" | "vance" | "white-house" | "medi" | "other";
 
 /** Who the event is about. Vance is named in the title; Trump is the default for kind=trump or any title naming him. */
 export function performerOf(e: Pick<StreamEvent, "title" | "kind">): Performer {
   const t = e.title;
+  if (e.kind === "medi") return "medi"; // Medi's own live (TikTok / YouTube talk stream), not a political event
   if (/\bvance\b/i.test(t) && !/\btrump\b/i.test(t)) return "vance";
   if (/\btrump\b/i.test(t) || e.kind === "trump") return "trump";
   if (e.kind === "white-house" || /white house|press (briefing|secretary)|leavitt/i.test(t)) return "white-house";
   return "other";
 }
 
-export const PERFORMER_NAME: Record<Performer, string> = { trump: "President Trump", vance: "Vice President JD Vance", "white-house": "The White House", other: "" };
-const PERFORMER_SHORT: Record<Performer, string> = { trump: "Trump", vance: "JD Vance", "white-house": "White House", other: "" };
+export const PERFORMER_NAME: Record<Performer, string> = { trump: "President Trump", vance: "Vice President JD Vance", "white-house": "The White House", medi: "Medi", other: "" };
+const PERFORMER_SHORT: Record<Performer, string> = { trump: "Trump", vance: "JD Vance", "white-house": "White House", medi: "Medi", other: "" };
 
 /** The thumbnail's state word: "FLORIDA". Trump rallies only (that is what the template shows); null when the state can't be read. */
 export function thumbState(e: Pick<StreamEvent, "title" | "location" | "kind">): string | null {
@@ -116,6 +117,7 @@ export function streamPackage(e: StreamEvent, signoff: string): { title: string;
 /** Public, human label for the schedule page: "Trump rally — Perry, Georgia" / "JD Vance rally — Topeka, Kansas" / cleaned title. */
 export function publicLabel(e: StreamEvent): { headline: string; sub: string | null } {
   const who = performerOf(e);
+  if (who === "medi") return { headline: e.title, sub: e.notes ?? null };
   const place = placeLabel(placeOf(e));
   const { word, fallback } = eventKindWord(e);
   const short = PERFORMER_SHORT[who];

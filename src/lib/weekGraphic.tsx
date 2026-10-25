@@ -21,19 +21,23 @@ const rangeLabel = (a: number, b: number) => {
 };
 
 /** The week the graphic covers: today (ET) through the next six days. */
-export async function weekEvents(): Promise<{ events: ScheduleEvent[]; from: number; to: number }> {
-  const s = await getPublicSchedule({ daysAhead: 7, daysBack: 0 });
+export async function weekEvents(): Promise<{ events: ScheduleEvent[]; from: number; to: number; tiktokLine: string }> {
+  // Rep America's own week: the rallies Medi streams + any standalone live; the after-rally TikTok lives collapse into one footer line.
+  const s = await getPublicSchedule({ daysAhead: 7, daysBack: 0, scope: "medi" });
   const from = s.now;
   const to = s.now + 6 * 86400000;
-  const events = s.upcoming.filter((e) => e.status !== "canceled" && e.startsMs <= to + 86400000).slice(0, 9);
-  return { events, from, to };
+  const events = s.upcoming.filter((e) => e.status !== "canceled" && !e.aftershowOf && e.startsMs <= to + 86400000).slice(0, 9);
+  const tiktokLine = s.tiktok.aftershow ? `AFTER EVERY RALLY: LIVE ON TIKTOK @REPAMERICA` : "";
+  return { events, from, to, tiktokLine };
 }
 
-export async function renderWeekGraphic(opts: { vertical?: boolean; data?: { events: ScheduleEvent[]; from: number; to: number } } = {}): Promise<Buffer> {
-  const { events, from, to } = opts.data ?? (await weekEvents());
+export async function renderWeekGraphic(opts: { vertical?: boolean; data?: { events: ScheduleEvent[]; from: number; to: number; tiktokLine?: string } } = {}): Promise<Buffer> {
+  const data = opts.data ?? (await weekEvents());
+  const { events, from, to } = data;
+  const tiktokLine = data.tiktokLine ?? "";
   const W = 1080, H = opts.vertical ? 1920 : 1080;
   const rows = events.length;
-  const rowH = Math.min(96, Math.floor(((opts.vertical ? 1180 : 590) - 20) / Math.max(rows, 1)));
+  const rowH = Math.min(92, Math.floor(((opts.vertical ? 1140 : 530) - 20) / Math.max(rows, 1)));
   const font = await anton();
   const res = new ImageResponse(
     (
@@ -49,23 +53,25 @@ export async function renderWeekGraphic(opts: { vertical?: boolean; data?: { eve
         <div style={{ display: "flex", flexDirection: "column", marginTop: opts.vertical ? 60 : 36, borderTop: "3px solid rgba(255,255,255,.18)" }}>
           {events.map((e) => {
             const trump = e.performer === "trump";
-            const who = trump ? "" : e.performer === "vance" ? "JD VANCE · " : e.performer === "white-house" ? "WHITE HOUSE · " : "";
-            const place = e.city && e.state ? `${e.city}, ${e.state}` : e.headline.replace(/^.*?—\s*/, "");
+            const tiktok = e.platform === "tiktok";
+            const who = trump ? "" : tiktok ? "TIKTOK LIVE · " : e.performer === "vance" ? "JD VANCE · " : e.performer === "white-house" ? "WHITE HOUSE · " : "";
+            const place = tiktok ? (e.sub ?? "TALK TO ME") : e.city && e.state ? `${e.city}, ${e.state}` : e.headline.replace(/^.*?—\s*/, "");
             return (
               <div key={e.id} style={{ display: "flex", alignItems: "center", height: rowH, borderBottom: "2px solid rgba(255,255,255,.12)", gap: 22 }}>
-                <div style={{ display: "flex", flexDirection: "column", width: 150, lineHeight: 1 }}>
-                  <div style={{ fontSize: Math.min(40, rowH * 0.42), color: trump ? "#fff" : "rgba(255,255,255,.7)" }}>{`${dayOf(e.startsMs)} ${mdOf(e.startsMs)}`}</div>
+                <div style={{ display: "flex", flexDirection: "column", width: 215, lineHeight: 1 }}>
+                  <div style={{ fontSize: Math.min(36, rowH * 0.4), color: trump ? "#fff" : "rgba(255,255,255,.7)", whiteSpace: "nowrap" }}>{`${dayOf(e.startsMs)} ${mdOf(e.startsMs)}`}</div>
                 </div>
-                <div style={{ display: "flex", width: 170, fontSize: Math.min(40, rowH * 0.42), color: RED, lineHeight: 1 }}>{e.all_day ? "TBA" : `${shortTimeET(e.startsMs)} ET`}</div>
+                <div style={{ display: "flex", width: 165, fontSize: Math.min(36, rowH * 0.4), color: RED, lineHeight: 1, whiteSpace: "nowrap" }}>{e.all_day ? "TBA" : `${shortTimeET(e.startsMs)} ET`}</div>
                 <div style={{ display: "flex", flex: 1, fontSize: Math.min(44, rowH * 0.46), lineHeight: 1, color: trump ? "#fff" : "rgba(255,255,255,.7)", whiteSpace: "nowrap", overflow: "hidden" }}>{`${who}${place.toUpperCase()}`}</div>
               </div>
             );
           })}
           {!events.length && <div style={{ fontSize: 40, padding: "40px 0", color: "rgba(255,255,255,.6)" }}>NOTHING ANNOUNCED YET — CHECK BACK</div>}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", marginTop: "auto", paddingTop: 36, gap: 10 }}>
-          <div style={{ fontSize: 40, color: "#fff" }}>LIVE WITH MEDI · YOUTUBE @REPAMERICA</div>
-          <div style={{ fontSize: 34, color: "rgba(255,255,255,.72)", letterSpacing: 1 }}>UPDATES DAILY · REPAMERICA.COM/TRUMP-SCHEDULE</div>
+        <div style={{ display: "flex", flexDirection: "column", marginTop: "auto", paddingTop: 30, gap: 8 }}>
+          {tiktokLine ? <div style={{ fontSize: 31, color: RED }}>{tiktokLine}</div> : null}
+          <div style={{ fontSize: 36, color: "#fff" }}>LIVE WITH MEDI · YOUTUBE @REPAMERICA</div>
+          <div style={{ fontSize: 28, color: "rgba(255,255,255,.72)", letterSpacing: 1 }}>UPDATES DAILY · REPAMERICA.COM/SCHEDULE</div>
         </div>
       </div>
     ),

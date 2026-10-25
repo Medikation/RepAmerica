@@ -89,6 +89,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const schedule = settings.get("schedule") ?? "Not set";
   const ytSignoff = settings.get("yt_signoff") ?? "";
   const igStreamKey = settings.get("ig_stream_key")?.trim() || null; // Instagram Live stream key — copied into Ecamm each stream
+  const tiktok = { url: settings.get("tiktok_live_url") || "https://www.tiktok.com/@repamerica/live", headline: settings.get("tiktok_headline") || "Talk to Me: Trump, Money, Family, Your Future", aftershow: (settings.get("tiktok_aftershow") ?? "on") !== "off", offsetMin: Number(settings.get("tiktok_aftershow_offset_min")) || 120 };
   const rundowns = (rundownRows ?? []) as Rundown[];
   const todayRundown = rundowns.find((r) => r.air_date === todayKey) ?? null;
   const nextRundown = todayRundown ?? rundowns.find((r) => r.air_date > todayKey) ?? null;
@@ -284,6 +285,8 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         .ra-admin .td-pkg__thumb { display:block; width:240px; max-width:100%; flex:0 0 auto; border-radius:6px; overflow:hidden; border:1px solid #ddd; background:#000; }
         .ra-admin .td-pkg__thumb img { display:block; width:100%; height:auto; }
         .ra-admin .td-pkg__thumbrow .td-pkg__peek { white-space:normal; flex:1 1 160px; }
+        .ra-admin .td-pkg__tiktok { margin-top:8px; padding-top:8px; border-top:1px dashed #e8b4b4; }
+        .ra-admin .td-pkg__title--sm { font-size:1.2rem; font-weight:600; display:inline; padding:2px 6px; }
         /* go-live box (stream key) */
         .ra-admin .td-golive { margin-top:12px; border:1px solid #111; border-radius:10px; background:#fff; padding:10px 14px 12px; }
         .ra-admin .td-golive__title { font-size:1.3rem; font-weight:700; color:#111; margin:0 0 6px; display:flex; align-items:center; gap:8px; }
@@ -366,11 +369,11 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
             <a href="/admin/today/week?dl=1">Download square 1080×1080</a> · <a href="/admin/today/week?v=1&dl=1">Download Story 1080×1920</a> · <a href="/admin/today/week" target="_blank" rel="noreferrer">Open</a>
           </div>
         </div>
-        <p className="td-bench-intro">Everything you need to schedule each live on YouTube, a week ahead. Schedule it with the title as written (the 📱 vertical twin too) and the site picks up your live link from your channel within five minutes — it shows here and on <a href="/trump-schedule" target="_blank" rel="noreferrer">repamerica.com/trump-schedule</a>. <a href={CHANNEL_LIVE_URL} target="_blank" rel="noreferrer">Your streams on YouTube</a></p>
+        <p className="td-bench-intro">Everything you need to schedule each live on YouTube, a week ahead. Schedule it with the title as written (the 📱 vertical twin too) and the site picks up your live link from your channel within five minutes — it shows here, on <a href="/schedule" target="_blank" rel="noreferrer">repamerica.com/schedule</a> and on <a href="/trump-schedule" target="_blank" rel="noreferrer">/trump-schedule</a>. A TikTok live is assumed after every rally you stream (~2 h after it starts); say "TikTok Tuesday 8 PM" for a standalone one and it goes on the schedule too. <a href={CHANNEL_LIVE_URL} target="_blank" rel="noreferrer">Your streams on YouTube</a></p>
         {liveDays.length ? liveDays.map(([day, list]) => (
           <div key={day}>
             <div className="td-day">{day === todayKey ? `Today · ${dayLabel(day)}` : dayLabel(day)}</div>
-            {list.map((e) => <LiveCard key={e.id} e={e} signoff={ytSignoff} now={now} />)}
+            {list.map((e) => <LiveCard key={e.id} e={e} signoff={ytSignoff} now={now} tiktok={tiktok} />)}
           </div>
         )) : <div className="td-empty">No Trump / White House / campaign events in the next 7 days.</div>}
       </details>
@@ -436,8 +439,9 @@ function TopicRow({ t }: { t: Topic }) {
   );
 }
 
-function LiveCard({ e, signoff, now }: { e: StreamEvent & { liveLinks: LiveLinks | null; press?: string | null }; signoff: string; now: number }) {
+function LiveCard({ e, signoff, now, tiktok }: { e: StreamEvent & { liveLinks: LiveLinks | null; press?: string | null }; signoff: string; now: number; tiktok: { url: string; headline: string; aftershow: boolean; offsetMin: number } }) {
   const pkg = streamPackage(e, signoff);
+  const afterMs = tiktok.aftershow && e.kind === "trump" && /rally/i.test(e.title) && !e.all_day ? Date.parse(e.starts_at) + tiktok.offsetMin * 60000 : null;
   const st = thumbState(e);
   const thumb = st ? `/admin/today/thumb/${e.id}` : null;
   const s = Date.parse(e.starts_at);
@@ -479,6 +483,13 @@ function LiveCard({ e, signoff, now }: { e: StreamEvent & { liveLinks: LiveLinks
             <span className="td-pkg__peek">No template for this one yet{place ? ` (${place})` : ""} — the rally thumbnail is Trump-only. Send a thumbnail you like for this kind of event and it becomes a template.</span>
           )}
         </div>
+        {afterMs ? (
+          <div className="td-pkg__row td-pkg__tiktok">
+            <span className="td-pkg__label">Then TikTok</span>
+            <span className="td-pkg__peek">~{timePT(afterMs)} PT ({timeET(afterMs)} ET), when Trump wraps · on-screen headline: <code className="td-pkg__title td-pkg__title--sm">{tiktok.headline}</code></span>
+            <CopyButton text={tiktok.headline} label="Copy headline" />
+          </div>
+        ) : null}
       </div>
     </div>
   );
