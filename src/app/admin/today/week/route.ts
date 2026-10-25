@@ -9,7 +9,10 @@ export const runtime = "nodejs";
 
 export async function GET(req: Request) {
   const state = await getAdmin();
-  if (!state.user) return new NextResponse("Sign in at /admin/login first.", { status: 401 });
+  if (!state.user) {
+    const here = new URL(req.url).pathname + new URL(req.url).search;
+    return NextResponse.redirect(new URL(state.canRefresh ? `/admin/refresh?next=${encodeURIComponent(here)}` : `/admin/login?next=${encodeURIComponent(here)}`, req.url));
+  }
   const url = new URL(req.url);
   const vertical = url.searchParams.get("v") === "1";
   const png = await renderWeekGraphic({ vertical });

@@ -12,7 +12,10 @@ export const runtime = "nodejs";
 
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const state = await getAdmin();
-  if (!state.user) return new NextResponse("Sign in at /admin/login first.", { status: 401 });
+  if (!state.user) {
+    const here = new URL(req.url).pathname + new URL(req.url).search;
+    return NextResponse.redirect(new URL(state.canRefresh ? `/admin/refresh?next=${encodeURIComponent(here)}` : `/admin/login?next=${encodeURIComponent(here)}`, req.url));
+  }
   const { id } = await ctx.params;
   const eventId = Number(id.replace(/\.jpe?g$/i, ""));
   if (!Number.isFinite(eventId)) return new NextResponse("Bad id", { status: 400 });
