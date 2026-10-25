@@ -251,6 +251,11 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         .ra-admin .td-topic__meta a { color:#555; }
         .ra-admin .td-chip--ready { border-color:#111; background:#111; color:#fff; }
         .ra-admin .td-chip--outline { border-color:#f1c56b; background:#fff3cd; color:#7a5a00; }
+        .ra-admin .td-weekgfx { display:flex; gap:14px; align-items:flex-start; margin:8px 0 12px; padding:10px; border:1px solid #eee; border-radius:8px; background:#fafafa; }
+        .ra-admin .td-weekgfx__img { display:block; width:150px; flex:0 0 auto; border-radius:6px; overflow:hidden; background:#000; }
+        .ra-admin .td-weekgfx__img img { display:block; width:100%; height:auto; }
+        .ra-admin .td-weekgfx__txt { font-size:1.25rem; color:#555; line-height:1.5; }
+        .ra-admin .td-weekgfx__txt a { color:#111; }
         /* lives this week */
         .ra-admin .td-livecard { border-top:1px solid #eee; padding:12px 4px 14px; scroll-margin-top:16px; }
         .ra-admin .td-livecard--live { background:#fff5f5; border-radius:8px; }
@@ -354,6 +359,13 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
 
       <details id="lives" className="td-section" open>
         <summary className="td-h"><span className="td-h__caret" aria-hidden />Lives this week<span className="td-h__meta">{liveEvents.length ? `${liveEvents.length} event${liveEvents.length === 1 ? "" : "s"} · title, description + thumbnail ready · through ${dayShort(addDays(todayKey, 7))}` : `nothing to stream through ${dayShort(addDays(todayKey, 7))}`}</span></summary>
+        <div className="td-weekgfx">
+          <a href="/admin/today/week?dl=1" className="td-weekgfx__img" title="Download the square graphic"><img src="/admin/today/week" alt="" loading="lazy" /></a>
+          <div className="td-weekgfx__txt">
+            <b>This week&apos;s graphic</b> — generated from the schedule, always current. Post it Sunday: YouTube community post, X, the IG grid (pin it through the midterms), TikTok.<br />
+            <a href="/admin/today/week?dl=1">Download square 1080×1080</a> · <a href="/admin/today/week?v=1&dl=1">Download Story 1080×1920</a> · <a href="/admin/today/week" target="_blank" rel="noreferrer">Open</a>
+          </div>
+        </div>
         <p className="td-bench-intro">Everything you need to schedule each live on YouTube, a week ahead. Schedule it with the title as written (the 📱 vertical twin too) and the site picks up your live link from your channel within five minutes — it shows here and on <a href="/trump-schedule" target="_blank" rel="noreferrer">repamerica.com/trump-schedule</a>. <a href={CHANNEL_LIVE_URL} target="_blank" rel="noreferrer">Your streams on YouTube</a></p>
         {liveDays.length ? liveDays.map(([day, list]) => (
           <div key={day}>

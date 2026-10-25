@@ -26,6 +26,11 @@ export const US_STATES: Record<string, string> = { AL:"Alabama",AK:"Alaska",AZ:"
 
 export const ET = "America/New_York";
 export const timeET = (ms: number) => new Date(ms).toLocaleString("en-US", { hour: "numeric", minute: "2-digit", timeZone: ET });
+/** "3 PM" / "3:30 PM" in ET — the short form used in live titles. */
+export const shortTimeET = (ms: number) => timeET(ms).replace(":00", "");
+/** "Sun 10/25" in ET. */
+export const shortDateET = (ms: number) => { const d = new Date(ms); return `${d.toLocaleDateString("en-US", { weekday: "short", timeZone: ET })} ${d.toLocaleDateString("en-US", { month: "numeric", day: "numeric", timeZone: ET })}`; };
+export const SCHEDULE_LINK = "https://repamerica.com/trump-schedule";
 export const timePT = (ms: number) => new Date(ms).toLocaleString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" });
 
 /** "Midterm rally in St. Clair County (Port Huron), MI featuring President Trump" → { city: "Port Huron", state: "Michigan", st: "MI" } */
@@ -93,7 +98,9 @@ export function streamPackage(e: StreamEvent, signoff: string): { title: string;
   if (word && short) what = place ? `${short} ${word} in ${place}` : `${short} ${word}`;
   else if (short) what = `${short}: ${fallback}`;
   else what = fallback;
-  const title = e.stream_title?.trim() || `LIVE: ${what}`;
+  // Title format (Medi, 2026-10-25): "LIVE 3 PM ET | Trump Rally in Port Huron, Michigan - Sun 10/25"
+  const s = Date.parse(e.starts_at);
+  const title = e.stream_title?.trim() || `LIVE${e.all_day ? "" : ` ${shortTimeET(s)} ET`} | ${what} - ${shortDateET(s)}`;
 
   const when = e.notes?.match(/\b\d{1,2}(?::\d{2})?\s*[AP]M\s*ET\b/i)?.[0] ?? (e.all_day ? null : `${timeET(Date.parse(e.starts_at))} ET`);
   const name = PERFORMER_NAME[who] || "This";
@@ -101,7 +108,8 @@ export function streamPackage(e: StreamEvent, signoff: string): { title: string;
     ? `${name} is live${place ? ` in ${place}` : ""} — watch the rally with me. I'm reacting live and reading the chat.`
     : `${name}${place ? ` in ${place}` : ""} — watch it with me. I'm reacting live and reading the chat.`;
   const facts = [e.location, when ? `Scheduled for ${when}` : null].filter(Boolean).join(" · ");
-  const description = e.stream_description?.trim() || [lead, facts, signoff.trim()].filter(Boolean).join("\n\n");
+  const scheduleLine = `Every Trump rally and White House event this week, with my lives: ${SCHEDULE_LINK}`;
+  const description = e.stream_description?.trim() || [lead, facts, scheduleLine, signoff.trim()].filter(Boolean).join("\n\n");
   return { title, description };
 }
 
