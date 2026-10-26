@@ -21,7 +21,7 @@ export const scheduleStyles = `
 .ra-sched__day { margin:28px 0 4px; padding-bottom:6px; border-bottom:2px solid #14140f; font-size:14px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
 .ra-sched__day--today { color:${RED}; border-color:${RED}; }
 .ra-sched__list { list-style:none; margin:0; padding:0; }
-.ra-sched__event { display:grid; grid-template-columns: 92px minmax(0,1fr); grid-template-areas: "time body" "time action"; gap:4px 14px; padding:14px 0; border-bottom:1px solid rgba(20,20,15,.12); scroll-margin-top:24px; }
+.ra-sched__event { display:grid; grid-template-columns: 108px minmax(0,1fr); grid-template-areas: "time body" "time action"; gap:4px 14px; padding:14px 0; border-bottom:1px solid rgba(20,20,15,.12); scroll-margin-top:24px; }
 .ra-sched__event .ra-sched__time { grid-area: time; } .ra-sched__event .ra-sched__body { grid-area: body; } .ra-sched__event .ra-sched__action { grid-area: action; }
 @media (min-width: 760px) { .ra-sched__event { grid-template-columns: 118px minmax(0,1fr) auto; grid-template-areas: "time body action"; align-items:center; gap:6px 20px; padding:16px 0; } }
 .ra-sched__kicker { margin:0 0 2px; display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color: rgba(20,20,15,.55); }
@@ -33,13 +33,14 @@ export const scheduleStyles = `
 .ra-sched__event--after { background: linear-gradient(90deg, rgba(198,36,54,.05), transparent 60%); }
 @media (min-width: 760px) { .ra-sched__event--after .ra-sched__time { padding-left: 14px; border-left: 3px solid ${RED}; } }
 .ra-sched__platform { display:inline-block; padding:2px 8px; border-radius:999px; font-family: var(--font-body-family, system-ui, sans-serif); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; background:#14140f; color:#fff; }
-.ra-sched__watch--tiktok.ra-button--primary { background:#14140f; border-color:#14140f; }
+.ra-sched__action .ra-sched__watch--tiktok.ra-button--primary { background:#14140f; border-color:#14140f; }
 .ra-sched__doors { display:flex; flex-wrap:wrap; gap:8px 18px; margin:14px 0 0; font-size:14px; color: rgba(20,20,15,.7); }
 .ra-sched__doors a { color:#14140f; font-weight:600; }
 .ra-sched__event--canceled .ra-sched__name, .ra-sched__event--canceled .ra-sched__meta { text-decoration: line-through; color: rgba(20,20,15,.5); }
 .ra-sched__time { display:flex; flex-direction:column; line-height:1.2; }
 .ra-sched__time-day { font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color: rgba(20,20,15,.55); }
-.ra-sched__time-et { font-weight:800; font-size:17px; color:#14140f; white-space:nowrap; }
+.ra-sched__time-et { font-weight:800; font-size:16px; color:#14140f; white-space:nowrap; letter-spacing:-.01em; }
+@media (min-width: 760px) { .ra-sched__time-et { font-size:18px; } }
 .ra-sched__time-pt { font-size:12px; color: rgba(20,20,15,.55); white-space:nowrap; }
 .ra-sched__name { margin:0; font-family: var(--font-heading-family, Georgia, serif); font-size: clamp(20px, 1.8vw, 24px); line-height:1.15; letter-spacing:-.01em; }
 .ra-sched__status { display:inline-block; padding:2px 8px; border-radius:999px; font-family: var(--font-body-family, system-ui, sans-serif); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; border:1px solid rgba(20,20,15,.18); color: rgba(20,20,15,.7); background:#fff; }
