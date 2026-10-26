@@ -22,8 +22,8 @@ export default function ScheduleEventRow({ e, showDay = false }: { e: ScheduleEv
         {!e.all_day && <span className="ra-sched__time-pt">{e.aftershowOf ? `~${whenPT(e)}` : whenPT(e)}</span>}
       </div>
       <div className="ra-sched__body">
-        {kicker && <p className="ra-sched__kicker">{kicker}{showStatus && <span className={`ra-sched__status ra-sched__status--${st.tone}`}>{st.text}</span>}</p>}
-        <h3 className="ra-sched__name">{label}</h3>
+        {kicker && <p className={`ra-sched__kicker${e.performer === "trump" ? " ra-sched__kicker--trump" : ""}`}>{kicker}{showStatus && <span className={`ra-sched__status ra-sched__status--${st.tone}`}>{st.text}</span>}</p>}
+        <h3 className="ra-sched__name">{e.performer === "trump" && !tiktok ? <><span className="ra-sched__trump">Trump</span> · {label}</> : label}</h3>
         {(details.length > 0 || (e.source_url && !canceled && !tiktok)) && (
           <details className="ra-sched__more">
             <summary>Details</summary>

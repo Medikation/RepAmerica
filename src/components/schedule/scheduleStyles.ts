@@ -25,6 +25,8 @@ export const scheduleStyles = `
 .ra-sched__event .ra-sched__time { grid-area: time; } .ra-sched__event .ra-sched__body { grid-area: body; } .ra-sched__event .ra-sched__action { grid-area: action; }
 @media (min-width: 760px) { .ra-sched__event { grid-template-columns: 118px minmax(0,1fr) auto; grid-template-areas: "time body action"; align-items:center; gap:6px 20px; padding:16px 0; } }
 .ra-sched__kicker { margin:0 0 2px; display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color: rgba(20,20,15,.55); }
+.ra-sched__kicker--trump { color:${RED}; font-size:12px; }
+.ra-sched__trump { color:${RED}; font-weight:800; }
 .ra-sched__more { margin-top:6px; font-size:13.5px; }
 .ra-sched__more summary { cursor:pointer; color: rgba(20,20,15,.55); font-size:12.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; list-style:none; display:inline-flex; align-items:center; gap:4px; }
 .ra-sched__more summary::-webkit-details-marker { display:none; }
