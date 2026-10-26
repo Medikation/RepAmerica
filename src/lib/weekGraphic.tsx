@@ -69,8 +69,8 @@ export async function renderWeekGraphic(opts: { vertical?: boolean; data?: { eve
           {!events.length && <div style={{ fontSize: 40, padding: "40px 0", color: "rgba(255,255,255,.6)" }}>NOTHING ANNOUNCED YET — CHECK BACK</div>}
         </div>
         <div style={{ display: "flex", flexDirection: "column", marginTop: "auto", paddingTop: 30, gap: 8 }}>
+          <div style={{ fontSize: 38, color: "#fff" }}>WATCH LIVE WITH MEDI · YOUTUBE @REPAMERICA</div>
           {tiktokLine ? <div style={{ fontSize: 31, color: RED }}>{tiktokLine}</div> : null}
-          <div style={{ fontSize: 36, color: "#fff" }}>LIVE WITH MEDI · YOUTUBE @REPAMERICA</div>
           <div style={{ fontSize: 28, color: "rgba(255,255,255,.72)", letterSpacing: 1 }}>UPDATES DAILY · REPAMERICA.COM/SCHEDULE</div>
         </div>
       </div>
