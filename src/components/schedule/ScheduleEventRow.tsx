@@ -8,8 +8,12 @@ export default function ScheduleEventRow({ e, showDay = false }: { e: ScheduleEv
   const replay = e.phase === "past";
   const canceled = e.status === "canceled";
   const tiktok = e.platform === "tiktok";
-  const metaBits = (tiktok ? [e.sub, e.notes] : [e.sub, e.location, e.notes]).filter(Boolean) as string[];
   const cls = ["ra-sched__event", `ra-sched__event--${e.phase}`, canceled ? "ra-sched__event--canceled" : "", tiktok ? "ra-sched__event--tiktok" : "", e.aftershowOf ? "ra-sched__event--after" : ""].filter(Boolean).join(" ");
+  // Glanceable row: time · what/where · button. Everything else (venue, doors, official links) sits behind "Details".
+  const label = tiktok ? "Rep America LIVE on TikTok" : e.performer === "trump" && /rally/i.test(e.title) && e.city && e.state ? `${e.city}, ${e.state}` : e.headline;
+  const kicker = tiktok ? (e.aftershowOf ? "After the rally" : "Live") : e.performer === "trump" && /rally/i.test(e.title) ? "Trump rally" : e.performer === "vance" ? "JD Vance" : e.performer === "white-house" ? "White House" : null;
+  const showStatus = st.tone !== "ok"; // "Scheduled" is the default — no chip noise
+  const details = (tiktok ? [e.sub, e.notes] : [e.sub && !/^Midterm rally$/i.test(e.sub) ? e.sub : null, e.location, e.notes]).filter(Boolean) as string[];
   return (
     <li id={`event-${e.id}`} className={cls}>
       <div className="ra-sched__time">
@@ -18,14 +22,16 @@ export default function ScheduleEventRow({ e, showDay = false }: { e: ScheduleEv
         {!e.all_day && <span className="ra-sched__time-pt">{e.aftershowOf ? `~${whenPT(e)}` : whenPT(e)}</span>}
       </div>
       <div className="ra-sched__body">
-        <h3 className="ra-sched__name">
-          <span className={`ra-sched__status ra-sched__status--${st.tone}`}>{st.text}</span>
-          {tiktok && <span className="ra-sched__platform">TikTok</span>}
-          {e.headline}
-        </h3>
-        {metaBits.length > 0 && <p className="ra-sched__meta">{metaBits.join(" · ")}</p>}
-        {e.source_url && !canceled && !tiktok && (
-          <p className="ra-sched__source"><a href={e.source_url} target="_blank" rel="noopener noreferrer nofollow">Official event details</a>{e.stream_url && !e.watchUrl ? <> · <a href={e.stream_url} target="_blank" rel="noopener noreferrer nofollow">Official stream</a></> : null}</p>
+        {kicker && <p className="ra-sched__kicker">{kicker}{showStatus && <span className={`ra-sched__status ra-sched__status--${st.tone}`}>{st.text}</span>}</p>}
+        <h3 className="ra-sched__name">{label}</h3>
+        {(details.length > 0 || (e.source_url && !canceled && !tiktok)) && (
+          <details className="ra-sched__more">
+            <summary>Details</summary>
+            {details.length > 0 && <p className="ra-sched__meta">{details.join(" · ")}</p>}
+            {e.source_url && !canceled && !tiktok && (
+              <p className="ra-sched__source"><a href={e.source_url} target="_blank" rel="noopener noreferrer nofollow">Official event details</a>{e.stream_url && !e.watchUrl ? <> · <a href={e.stream_url} target="_blank" rel="noopener noreferrer nofollow">Official stream</a></> : null}</p>
+            )}
+          </details>
         )}
       </div>
       <div className="ra-sched__action">

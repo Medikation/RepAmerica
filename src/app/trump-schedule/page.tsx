@@ -33,7 +33,7 @@ export default async function TrumpSchedulePage() {
         h1: "Trump & White House Schedule This Week",
         lead: (
           <>
-            Every upcoming <strong>Trump rally</strong>, <strong>White House</strong> press briefing, signing and event, <strong>JD Vance rally</strong> and major political event for the next seven days — when it starts, where it is, the official page, and the <strong>Rep America live stream</strong> for the ones Medi covers live on YouTube.
+            Every <strong>Trump rally</strong>, <strong>White House</strong> event and <strong>JD Vance rally</strong> for the next seven days — and Medi&apos;s live stream for the ones he covers.
           </>
         ),
         primaryHref: nextCovered?.watchUrl ?? CHANNEL_LIVE_URL,
@@ -41,7 +41,7 @@ export default async function TrumpSchedulePage() {
         icsHref: `${SCHEDULE_PATH}.ics`,
         jsonHref: `${SCHEDULE_PATH}.json`,
         crossLink: <>Looking for Medi&apos;s own week — the rallies he streams plus his TikTok lives? <a href={MEDI_PATH}>Rep America LIVE schedule →</a></>,
-        upcomingNote: "Times come from the campaign, the White House and the event hosts and can move — the row updates when they do.",
+        upcomingNote: "Times come from the official sources and can move.",
         emptyText: "Nothing announced for the next seven days yet. New rallies usually post a few days out — check back, or subscribe to the calendar above.",
         pastNote: "The last two weeks of events Medi streamed live — replays and highlights on the Rep America YouTube channel.",
         about: (

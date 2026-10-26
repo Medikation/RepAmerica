@@ -33,7 +33,7 @@ export default async function RepAmericaSchedulePage() {
         h1: "This Week on Rep America",
         lead: (
           <>
-            Where to find Medi live this week: the <strong>Trump rallies and White House events</strong> he streams on YouTube with the chat open, and <strong>Rep America LIVE on TikTok</strong> after every rally — <em>{s.tiktok.headline}</em>. Debates, questions, real talk.
+            The rallies Medi streams live on YouTube, and <strong>Rep America LIVE on TikTok</strong> after every one — <em>{s.tiktok.headline}</em>
           </>
         ),
         primaryHref: next?.watchUrl ?? CHANNEL_LIVE_URL,
@@ -41,7 +41,7 @@ export default async function RepAmericaSchedulePage() {
         icsHref: `${MEDI_PATH}.ics`,
         jsonHref: `${MEDI_PATH}.json`,
         crossLink: <>Want every Trump, White House and political event this week, covered or not? <a href={SCHEDULE_PATH}>Full Trump &amp; White House schedule →</a></>,
-        upcomingNote: "Rally times come from the campaign and can move. The TikTok live starts when Trump wraps — usually 1½ to 2 hours after the rally begins — so that time is approximate.",
+        upcomingNote: "Rally times can move. TikTok starts when Trump wraps (~2 h after the rally begins).",
         emptyText: "Nothing scheduled yet this week — check back, or subscribe to the calendar above and your phone will tell you.",
         pastNote: "The last two weeks of rallies Medi streamed live — replays and highlights on the Rep America YouTube channel.",
         about: (
