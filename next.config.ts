@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   images: { remotePatterns: [{ protocol: "https", hostname: "udeivbgtpfccbtstvsxa.supabase.co" }, { protocol: "https", hostname: "img.youtube.com" }, { protocol: "https", hostname: "i.ytimg.com" }] },
   // 2026-10-27: /public/thumbs/* = finished YouTube thumbnails Claude stages for Studio (fetched cross-origin from studio.youtube.com, so CORS-open like /thumb/rally).
   async headers() {
-    return [{ source: "/thumbs/:path*", headers: [{ key: "Access-Control-Allow-Origin", value: "*" }, { key: "Cache-Control", value: "public, max-age=31536000, immutable" }] }];
+    return [{ source: "/thumbs/:path*", headers: [{ key: "Access-Control-Allow-Origin", value: "*" }, { key: "Cache-Control", value: "public, max-age=300" }] }];
   },
   async redirects() {
     return [
