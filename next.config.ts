@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   // The live-thumbnail route reads the rally template + Anton from src/assets at runtime; make sure Vercel ships them with the function.
   outputFileTracingIncludes: { "/admin/today/thumb/[id]": ["src/assets/**/*"], "/admin/today/week": ["src/assets/**/*"], "/thumb/rally/[slug]": ["src/assets/**/*"] },
   images: { remotePatterns: [{ protocol: "https", hostname: "udeivbgtpfccbtstvsxa.supabase.co" }, { protocol: "https", hostname: "img.youtube.com" }, { protocol: "https", hostname: "i.ytimg.com" }] },
+  // 2026-10-27: /public/thumbs/* = finished YouTube thumbnails Claude stages for Studio (fetched cross-origin from studio.youtube.com, so CORS-open like /thumb/rally).
+  async headers() {
+    return [{ source: "/thumbs/:path*", headers: [{ key: "Access-Control-Allow-Origin", value: "*" }, { key: "Cache-Control", value: "public, max-age=31536000, immutable" }] }];
+  },
   async redirects() {
     return [
       // 2026-10-25: /schedule = Rep America's own week, /trump-schedule = the political reference; /live is an alias.
