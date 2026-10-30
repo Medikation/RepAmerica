@@ -44,7 +44,7 @@ export default function HomeCta({ id, settings }: { id: string; settings: HomeCt
             </div>
             {!isBlank(settings.image) && (
               <div className="ra-home-cta__portrait">
-                <img src={str(settings.image)} alt="Medi Hashemi in a Rep America cap" width={1800} height={1450} loading="lazy" />
+                <img src={str(settings.image)} alt="Medi in a Rep America cap" width={1800} height={1450} loading="lazy" />
               </div>
             )}
           </div>

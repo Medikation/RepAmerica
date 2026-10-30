@@ -47,7 +47,7 @@ export default async function HomeHero({ id, settings, latest }: { id: string; s
                 <div className="ra-home-hero__portrait">
                   <img
                     src={portrait}
-                    alt="Medi Hashemi in a Rep America cap, looking to his left"
+                    alt="Medi in a Rep America cap, looking to his left"
                     width={1800}
                     height={1450}
                     loading="eager"
