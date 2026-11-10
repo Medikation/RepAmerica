@@ -244,6 +244,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         .ra-admin .td-topic__status { display:flex; flex-direction:column; gap:4px; align-items:flex-start; }
         .ra-admin .td-topic__status small { color:#999; font-size:1.1rem; }
         .ra-admin .td-topic__title { font-weight:700; font-size:1.4rem; color:#111; display:flex; flex-wrap:wrap; gap:6px 8px; align-items:center; }
+        .ra-admin .td-topic__num { font-weight:800; color:#111; min-width:2.2ch; }
         .ra-admin .td-topic__thesis { font-size:1.35rem; color:#222; margin:3px 0 0; max-width:86ch; }
         .ra-admin .td-topic__outline { font-size:1.3rem; line-height:1.55; color:#444; max-width:86ch; margin-top:4px; }
         .ra-admin .td-topic__outline > :first-child { margin-top:0; } .ra-admin .td-topic__outline > :last-child { margin-bottom:0; }
@@ -404,7 +405,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       <details id="bench" className="td-section" open>
         <summary className="td-h"><span className="td-h__caret" aria-hidden />Topic bench<span className="td-h__meta">{openTopics.length ? `${openTopics.length} in development · ${topics.length - openTopics.length} aired` : topics.length ? `${topics.length} aired` : "empty"}</span></summary>
         <p className="td-bench-intro">Your own episode ideas, not pinned to a day. Say an idea in a sentence and it lands here; tell Claude the beats whenever you&rsquo;re chewing on one and they go in its outline; say &ldquo;plug X into Tuesday&rdquo; and it goes into that day&rsquo;s rundown. idea → outline → ready → aired.</p>
-        {topics.length ? topics.map((t) => <TopicRow key={t.id} t={t} />) : <div className="td-empty">Nothing on the bench yet.</div>}
+        {topics.length ? topics.map((t, i) => <TopicRow key={t.id} t={t} n={i + 1} />) : <div className="td-empty">Nothing on the bench yet.</div>}
       </details>
 
       <details id="past" className="td-section">
@@ -420,7 +421,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   );
 }
 
-function TopicRow({ t }: { t: Topic }) {
+function TopicRow({ t, n }: { t: Topic; n: number }) {
   const dateShort = (d: string) => new Date(`${d}T12:00:00-07:00`).toLocaleString("en-US", { month: "short", day: "numeric", timeZone: PT });
   return (
     <div className={`td-topic${t.status === "aired" ? " td-topic--aired" : ""}`}>
@@ -429,7 +430,7 @@ function TopicRow({ t }: { t: Topic }) {
         <small>{t.status === "aired" && t.aired_on ? `aired ${dateShort(t.aired_on)}` : `added ${dateShort(t.added_on)}`}</small>
       </div>
       <div>
-        <div className="td-topic__title"><span className={`td-tag td-tag--${t.segment}`}>{BLOCK_LABEL[t.segment]}</span>{t.title}</div>
+        <div className="td-topic__title"><span className="td-topic__num">{n}.</span><span className={`td-tag td-tag--${t.segment}`}>{BLOCK_LABEL[t.segment]}</span>{t.title}</div>
         {t.thesis ? <p className="td-topic__thesis">{t.thesis}</p> : null}
         {t.outline_html ? <div className="td-topic__outline" dangerouslySetInnerHTML={{ __html: t.outline_html }} /> : t.status !== "aired" ? <div className="td-topic__meta">no outline yet</div> : null}
         {t.title_ideas ? <div className="td-topic__meta">titles: {t.title_ideas}</div> : null}
