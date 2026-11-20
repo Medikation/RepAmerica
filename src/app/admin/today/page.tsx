@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAdmin } from "@/lib/adminAuth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { thumbLines } from "@/lib/liveThumb";
 import CopyButton from "@/components/admin/CopyButton";
 import { fetchCalendarEvents, zonedDayStart, dayKey, addDays, PT, CALENDAR_USER, type CalEvent } from "@/lib/googleCalendar";
 
@@ -53,17 +54,20 @@ const timeET = (ms: number) => new Date(ms).toLocaleString("en-US", { hour: "num
 const dayLabel = (key: string) => new Date(zonedDayStart(key) + 12 * 3600 * 1000).toLocaleString("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: PT });
 const dayShort = (key: string) => new Date(zonedDayStart(key) + 12 * 3600 * 1000).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: PT });
 const stampPT = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: PT });
-// "Nov. 19, 2026" from a Pacific day key (YYYY-MM-DD) — the date he puts at the end of a live title.
-const MONTHS = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
-const titleDate = (key: string) => { const [y, m, d] = key.split("-").map(Number); return `${MONTHS[m - 1]} ${d}, ${y}`; };
-const TALK_TITLE_DEFAULT = "LIVE with Medi | {date}";
-const TALK_DESCRIPTION_DEFAULT = `I'm live and there's no script. Some days it's politics and the news, some days it's books, money, family, or an open debate, and some days we just hang out and talk. Jump in the chat, tell me what's on your mind, and bring your questions or your pushback.
+// "Nov 20" from a Pacific day key (YYYY-MM-DD) — the date he puts at the end of a live title (month abbreviation + day, no year).
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const titleDate = (key: string) => { const [, m, d] = key.split("-").map(Number); return `${MONTHS[m - 1]} ${d}`; };
+const TALK_TITLE_DEFAULT = "LIVE with Medi | Politics, Life & Whatever Comes Up | {date}";
+const TALK_DESCRIPTION_DEFAULT = `Politics, laughs and life, live with Medi. I'm going through posts and clips, reacting to what's happening, and talking about whatever comes up: the news, books, money, family, ridiculous videos, or a debate with the chat. No script.
 
-New here? Subscribe and turn on notifications so you catch the next live.
+Jump in, tell me what's on your mind, and bring your questions or your pushback.
+
+New here? Subscribe and turn on notifications to catch the next live.
 
 We Represent America.
 
 Medi - Rep America
+Website: https://repamerica.com
 Instagram: https://www.instagram.com/medikation
 TikTok: https://www.tiktok.com/@repamerica
 X: https://x.com/repamericatv
@@ -101,7 +105,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const schedule = settings.get("schedule") ?? "Not set";
   const igStreamKey = settings.get("ig_stream_key")?.trim() || null; // Instagram Live stream key — copied into Ecamm each stream
   // The reusable package for his open-topic lives ("LIVE with Medi"): one title + one description, pasted into YouTube every time.
-  // {date} = today in Pacific ("Nov. 19, 2026"), {title} = the finished title. Both strings live in show_settings so they can be reworded in the DB.
+  // {date} = today in Pacific ("Nov 20"), {title} = the finished title. Both strings live in show_settings so they can be reworded in the DB.
   const talkTitle = (settings.get("talk_title") || TALK_TITLE_DEFAULT).replaceAll("{date}", titleDate(todayKey));
   const talkDescription = (settings.get("talk_description") || TALK_DESCRIPTION_DEFAULT).replaceAll("{title}", talkTitle).replaceAll("{date}", titleDate(todayKey));
   const rundowns = (rundownRows ?? []) as Rundown[];
@@ -304,7 +308,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         <div className="td-pkg__row td-pkg__thumbrow">
           <span className="td-pkg__label">Thumbnail</span>
           <a href="/admin/today/live-thumb?dl=1" className="td-pkg__thumb" title="Download the thumbnail"><img src="/admin/today/live-thumb?w=480" alt="" /></a>
-          <span className="td-pkg__peek">REP AMERICA LIVE · {titleDate(todayKey).replace(".", "").toUpperCase()} · 3840×2160 PNG, your original size · <a href="/admin/today/live-thumb?dl=1">Download</a> · <a href="/admin/today/live-thumb" target="_blank" rel="noreferrer">Open</a></span>
+          <span className="td-pkg__peek">{thumbLines(settings.get("live_thumb_words")).join(" ")} · {titleDate(todayKey).toUpperCase()} · 3840×2160 PNG, your original size · <a href="/admin/today/live-thumb?dl=1">Download</a> · <a href="/admin/today/live-thumb" target="_blank" rel="noreferrer">Open</a></span>
         </div>
         <p className="td-golive__hint">The date is always today&apos;s (Pacific). Same title, description and thumbnail for every open-topic live; the 📱 button is for the vertical twin.</p>
         {igStreamKey ? (

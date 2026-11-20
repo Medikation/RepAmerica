@@ -1,10 +1,11 @@
-// GET /admin/today/live-thumb  →  today's "REP AMERICA LIVE · NOV 19, 2026" thumbnail (3840×2160 PNG, his original size).
-// The date is today's in Pacific, same as the title in the go-live box. `?dl=1` downloads it; `?w=480` is the small preview.
+// GET /admin/today/live-thumb  →  today's "REP AMERICA LIVE · POLITICS. LAUGHS. LIFE. · NOV 20" thumbnail (3840×2160 PNG, his original size).
+// Drawn on his blank photo: the words come from show_settings.live_thumb_words, the date is today's in Pacific, same as the title in the go-live box. `?dl=1` downloads it; `?w=480` is the small preview.
 // Admin-only, like the rest of /admin.
 import { NextResponse } from "next/server";
 import { getAdmin } from "@/lib/adminAuth";
 import { dayKey } from "@/lib/googleCalendar";
 import { renderLiveThumb } from "@/lib/liveThumb";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -18,7 +19,9 @@ export async function GET(req: Request) {
   }
   const key = dayKey(Date.now());
   const w = Number(url.searchParams.get("w"));
-  const img = await renderLiveThumb(key, w >= 100 && w <= 1920 ? Math.round(w) : undefined);
+  // The words on it live in show_settings.live_thumb_words ("POLITICS.|LAUGHS.|LIFE." — "|" starts a new line); missing → the default.
+  const { data: row } = await supabaseAdmin().from("show_settings").select("value").eq("key", "live_thumb_words").maybeSingle();
+  const img = await renderLiveThumb(key, { words: (row as { value: string | null } | null)?.value, previewWidth: w >= 100 && w <= 1920 ? Math.round(w) : undefined });
   return new NextResponse(new Uint8Array(img.body), {
     headers: {
       "Content-Type": img.type,
