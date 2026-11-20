@@ -3,7 +3,7 @@
 //   POLITICS.            ← the words: 1–4 lines, all the same size, fitted to the navy column
 //   [LAUGHS.]            ← a line written *LIKE THIS* sits on a red block (the one accent)
 //   LIFE.
-//   NOV 20               ← today's date (Pacific), plain white
+//   [NOV 20]             ← today's date (Pacific), navy on a white block
 // Base image = his own high-res photo with nothing on it (src/assets/stream-thumbs/live-blank.png, YouTube_Thumbnail_77,
 // 2026-11-20). Every piece of lettering is drawn here with next/og (Anton, white; red blocks for emphasis), trimmed to its
 // ink and composited with sharp — so new words are a one-line change (show_settings.live_thumb_words, lines split on "|"),
@@ -24,7 +24,9 @@ const WORDS_PROBE_SIZE = 396; // size of the three-line default ("POLITICS." fil
 const WORDS_MAX_SIZE = 540; // shorter or fewer lines grow up to this
 const WORDS_LEAD = 0.25; // gap between lines ÷ cap height
 const WORDS_PAD_X = 0.13, WORDS_PAD_Y = 0.085; // red block around an accented line, ÷ cap height
-const DATE_TOP = 1790, DATE_SIZE = 150;
+const DATE_TOP = 1790, DATE_SIZE = 150, DATE_PAD_X = 34, DATE_PAD_Y = 24;
+const NAVY = "#01214b"; // the navy of the photo's right-hand panel
+const WHITE = { r: 255, g: 255, b: 255, alpha: 1 };
 
 export const LIVE_THUMB_WORDS_DEFAULT = "POLITICS.|*LAUGHS.*|LIFE.";
 
@@ -47,17 +49,18 @@ export const thumbLines = (words: string | null | undefined) => {
 };
 
 type Ink = { png: Buffer; width: number; height: number };
-/** One line of white Anton at `size`, trimmed to its ink. */
-async function ink(text: string, size: number): Promise<Ink> {
+/** One line of Anton at `size` (white unless `color` is given), trimmed to its ink. */
+async function ink(text: string, size: number, color = "#fff"): Promise<Ink> {
   const W = Math.min(8000, Math.ceil(text.length * size * 0.75) + 400), H = Math.ceil(size * 1.6);
   const res = new ImageResponse(
-    <div style={{ width: W, height: H, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Anton", fontSize: size, color: "#fff", whiteSpace: "nowrap" }}>{text}</div>,
+    <div style={{ width: W, height: H, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Anton", fontSize: size, color, whiteSpace: "nowrap" }}>{text}</div>,
     { width: W, height: H, fonts: [{ name: "Anton", data: await anton(), weight: 400, style: "normal" }] },
   );
   const { data, info } = await sharp(Buffer.from(await res.arrayBuffer())).trim().png().toBuffer({ resolveWithObject: true });
   return { png: data, width: info.width, height: info.height };
 }
-const redBlock = (width: number, height: number) => sharp({ create: { width, height, channels: 4, background: RED } }).png().toBuffer();
+const block = (width: number, height: number, background = RED) => sharp({ create: { width, height, channels: 4, background } }).png().toBuffer();
+const redBlock = (width: number, height: number) => block(width, height);
 
 /** Full-size PNG (lossless) by default; `previewWidth` gives a small JPEG for the admin page. */
 export async function renderLiveThumb(dayKey: string, opts: { words?: string | null; previewWidth?: number } = {}): Promise<{ body: Buffer; type: "image/png" | "image/jpeg" }> {
@@ -74,7 +77,7 @@ export async function renderLiveThumb(dayKey: string, opts: { words?: string | n
     readFile(assets("stream-thumbs/live-blank.png")),
     ink("REP AMERICA", BRAND_SIZE),
     ink("LIVE", BRAND_SIZE),
-    ink(thumbDate(dayKey), DATE_SIZE),
+    ink(thumbDate(dayKey), DATE_SIZE, NAVY),
     size === WORDS_PROBE_SIZE ? Promise.resolve(probe) : Promise.all(lines.map((l) => ink(l, size))),
   ]);
   const layers: OverlayOptions[] = [];
@@ -97,8 +100,10 @@ export async function renderLiveThumb(dayKey: string, opts: { words?: string | n
     layers.push({ input: w.png, top: Math.round(y), left });
     y += cap * (1 + WORDS_LEAD);
   }
-  // Date, plain white.
-  layers.push({ input: date.png, top: DATE_TOP, left: Math.round(COL_CENTER_X - date.width / 2) });
+  // Date: navy on a white block.
+  const dateX = Math.round(COL_CENTER_X - date.width / 2);
+  layers.push({ input: await block(date.width + 2 * DATE_PAD_X, date.height + 2 * DATE_PAD_Y, WHITE), top: DATE_TOP - DATE_PAD_Y, left: dateX - DATE_PAD_X });
+  layers.push({ input: date.png, top: DATE_TOP, left: dateX });
   const full = sharp(template).composite(layers);
   if (opts.previewWidth) return { body: await sharp(await full.png({ compressionLevel: 1 }).toBuffer()).resize({ width: opts.previewWidth }).jpeg({ quality: 85 }).toBuffer(), type: "image/jpeg" };
   return { body: await full.png({ compressionLevel: 6 }).toBuffer(), type: "image/png" };
