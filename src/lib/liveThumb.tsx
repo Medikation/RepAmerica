@@ -1,9 +1,9 @@
 // Renders the thumbnail for Medi's open-topic lives at its original size (3840×2160):
 //   REP AMERICA [LIVE]   ← small branding line, LIVE in a red block
 //   POLITICS.            ← the words: 1–4 lines, all the same size, fitted to the navy column
-//   LAUGHS.
+//   [LAUGHS.]            ← a line written *LIKE THIS* sits on a red block (the one accent)
 //   LIFE.
-//   [NOV 20]             ← today's date (Pacific) in a red block
+//   NOV 20               ← today's date (Pacific), plain white
 // Base image = his own high-res photo with nothing on it (src/assets/stream-thumbs/live-blank.png, YouTube_Thumbnail_77,
 // 2026-11-20). Every piece of lettering is drawn here with next/og (Anton, white; red blocks for emphasis), trimmed to its
 // ink and composited with sharp — so new words are a one-line change (show_settings.live_thumb_words, lines split on "|"),
@@ -18,14 +18,15 @@ const COL_MAX_W = 1340; // widest a line of the words may run
 const RED = { r: 226, g: 26, b: 26, alpha: 1 };
 const CAP = 0.879; // Anton cap height ÷ font size
 
-const BRAND_TOP = 196, BRAND_SIZE = 150, BRAND_GAP = 34, BRAND_PAD_X = 26, BRAND_PAD_Y = 20;
+const BRAND_TOP = 200, BRAND_SIZE = 116, BRAND_GAP = 26, BRAND_PAD_X = 20, BRAND_PAD_Y = 15;
 const WORDS_TOP = 440, WORDS_BOTTOM = 1616; // the band the words sit in (centred in it when they are shorter)
 const WORDS_PROBE_SIZE = 396; // size of the three-line default ("POLITICS." fills the column at this size)
 const WORDS_MAX_SIZE = 540; // shorter or fewer lines grow up to this
-const WORDS_LEAD = 0.19; // gap between lines ÷ cap height
-const DATE_TOP = 1778, DATE_SIZE = 180, DATE_PAD_X = 56, DATE_PAD_Y = 38;
+const WORDS_LEAD = 0.25; // gap between lines ÷ cap height
+const WORDS_PAD_X = 0.13, WORDS_PAD_Y = 0.085; // red block around an accented line, ÷ cap height
+const DATE_TOP = 1790, DATE_SIZE = 150;
 
-export const LIVE_THUMB_WORDS_DEFAULT = "POLITICS.|LAUGHS.|LIFE.";
+export const LIVE_THUMB_WORDS_DEFAULT = "POLITICS.|*LAUGHS.*|LIFE.";
 
 const assets = (f: string) => path.join(process.cwd(), "src", "assets", f);
 let fontCache: Promise<ArrayBuffer> | null = null;
@@ -35,10 +36,14 @@ const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "
 /** "NOV 20" from a day key (YYYY-MM-DD) — the way the date is written on the thumbnail (month abbreviation + day, no year). */
 export const thumbDate = (key: string) => { const [, m, d] = key.split("-").map(Number); return `${MONTHS[m - 1]} ${d}`; };
 
-/** The words as lines: split on "|" or line breaks, upper-cased, at most four. */
+type Line = { text: string; accent: boolean };
+const parseLines = (words: string | null | undefined): Line[] =>
+  (words || "").split(/[|\n]/).map((l) => l.trim().toUpperCase()).filter(Boolean).slice(0, 4)
+    .map((l) => { const m = /^\*(.+)\*$/.exec(l); return { text: (m ? m[1] : l).trim(), accent: !!m }; }).filter((l) => l.text);
+/** The words as plain lines (accent marks removed): split on "|" or line breaks, upper-cased, at most four. */
 export const thumbLines = (words: string | null | undefined) => {
-  const lines = (words || "").split(/[|\n]/).map((l) => l.trim().toUpperCase()).filter(Boolean).slice(0, 4);
-  return lines.length ? lines : LIVE_THUMB_WORDS_DEFAULT.split("|");
+  const lines = parseLines(words);
+  return (lines.length ? lines : parseLines(LIVE_THUMB_WORDS_DEFAULT)).map((l) => l.text);
 };
 
 type Ink = { png: Buffer; width: number; height: number };
@@ -56,12 +61,15 @@ const redBlock = (width: number, height: number) => sharp({ create: { width, hei
 
 /** Full-size PNG (lossless) by default; `previewWidth` gives a small JPEG for the admin page. */
 export async function renderLiveThumb(dayKey: string, opts: { words?: string | null; previewWidth?: number } = {}): Promise<{ body: Buffer; type: "image/png" | "image/jpeg" }> {
-  const lines = thumbLines(opts.words);
+  const parsed = parseLines(opts.words);
+  const meta = parsed.length ? parsed : parseLines(LIVE_THUMB_WORDS_DEFAULT);
+  const lines = meta.map((l) => l.text);
+  const colW = meta.some((l) => l.accent) ? COL_MAX_W / (1 + 2 * WORDS_PAD_X * CAP * 0.5) : COL_MAX_W; // leave room for the block's side padding
   // Size the words: measure at the default size, then scale so the widest line fits the column and the stack fits the band.
   const probe = await Promise.all(lines.map((l) => ink(l, WORDS_PROBE_SIZE)));
   const widest = Math.max(...probe.map((p) => p.width));
   const stackAt = (size: number) => { const cap = size * CAP; return lines.length * cap + (lines.length - 1) * cap * WORDS_LEAD; };
-  const size = Math.floor(Math.min(WORDS_MAX_SIZE, WORDS_PROBE_SIZE * (COL_MAX_W / widest), WORDS_PROBE_SIZE * ((WORDS_BOTTOM - WORDS_TOP) / stackAt(WORDS_PROBE_SIZE))));
+  const size = Math.floor(Math.min(WORDS_MAX_SIZE, WORDS_PROBE_SIZE * (colW / widest), WORDS_PROBE_SIZE * ((WORDS_BOTTOM - WORDS_TOP) / stackAt(WORDS_PROBE_SIZE))));
   const [template, brand, live, date, wordInks] = await Promise.all([
     readFile(assets("stream-thumbs/live-blank.png")),
     ink("REP AMERICA", BRAND_SIZE),
@@ -80,11 +88,17 @@ export async function renderLiveThumb(dayKey: string, opts: { words?: string | n
   // The words, stacked and centred in their band.
   const cap = size * CAP;
   let y = WORDS_TOP + ((WORDS_BOTTOM - WORDS_TOP) - stackAt(size)) / 2;
-  for (const w of wordInks) { layers.push({ input: w.png, top: Math.round(y), left: Math.round(COL_CENTER_X - w.width / 2) }); y += cap * (1 + WORDS_LEAD); }
-  // Date in a red block.
-  const dateX = Math.round(COL_CENTER_X - date.width / 2);
-  layers.push({ input: await redBlock(date.width + 2 * DATE_PAD_X, date.height + 2 * DATE_PAD_Y), top: DATE_TOP - DATE_PAD_Y, left: dateX - DATE_PAD_X });
-  layers.push({ input: date.png, top: DATE_TOP, left: dateX });
+  for (let i = 0; i < wordInks.length; i++) {
+    const w = wordInks[i], left = Math.round(COL_CENTER_X - w.width / 2);
+    if (meta[i].accent) {
+      const px = Math.round(cap * WORDS_PAD_X), py = Math.round(cap * WORDS_PAD_Y);
+      layers.push({ input: await redBlock(w.width + 2 * px, Math.round(cap) + 2 * py), top: Math.round(y) - py, left: left - px });
+    }
+    layers.push({ input: w.png, top: Math.round(y), left });
+    y += cap * (1 + WORDS_LEAD);
+  }
+  // Date, plain white.
+  layers.push({ input: date.png, top: DATE_TOP, left: Math.round(COL_CENTER_X - date.width / 2) });
   const full = sharp(template).composite(layers);
   if (opts.previewWidth) return { body: await sharp(await full.png({ compressionLevel: 1 }).toBuffer()).resize({ width: opts.previewWidth }).jpeg({ quality: 85 }).toBuffer(), type: "image/jpeg" };
   return { body: await full.png({ compressionLevel: 6 }).toBuffer(), type: "image/png" };
