@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // The live-thumbnail route reads the rally template + Anton from src/assets at runtime; make sure Vercel ships them with the function.
-  outputFileTracingIncludes: { "/admin/today/thumb/[id]": ["src/assets/**/*"], "/admin/today/week": ["src/assets/**/*"], "/thumb/rally/[slug]": ["src/assets/**/*"] },
+  outputFileTracingIncludes: { "/admin/today/thumb/[id]": ["src/assets/**/*"], "/admin/today/week": ["src/assets/**/*"], "/admin/today/live-thumb": ["src/assets/**/*"], "/thumb/rally/[slug]": ["src/assets/**/*"] },
   images: { remotePatterns: [{ protocol: "https", hostname: "udeivbgtpfccbtstvsxa.supabase.co" }, { protocol: "https", hostname: "img.youtube.com" }, { protocol: "https", hostname: "i.ytimg.com" }] },
   // 2026-10-27: /public/thumbs/* = finished YouTube thumbnails Claude stages for Studio (fetched cross-origin from studio.youtube.com, so CORS-open like /thumb/rally).
   async headers() {

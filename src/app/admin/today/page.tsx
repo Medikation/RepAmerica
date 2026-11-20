@@ -301,7 +301,12 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         <div className="td-pkg__row"><span className="td-pkg__label">Title</span><code className="td-pkg__title">{talkTitle}</code><CopyButton text={talkTitle} label="Copy title" /><CopyButton text={`📱 ${talkTitle}`} label="Copy 📱 title" /></div>
         <div className="td-pkg__row td-golive__desc"><span className="td-pkg__label">Description</span><CopyButton text={talkDescription} label="Copy description" /></div>
         <pre className="td-pkg__pre">{talkDescription}</pre>
-        <p className="td-golive__hint">The date is always today&apos;s (Pacific). Same title and description for every open-topic live; the 📱 button is for the vertical twin.</p>
+        <div className="td-pkg__row td-pkg__thumbrow">
+          <span className="td-pkg__label">Thumbnail</span>
+          <a href="/admin/today/live-thumb?dl=1" className="td-pkg__thumb" title="Download the thumbnail"><img src="/admin/today/live-thumb?w=480" alt="" /></a>
+          <span className="td-pkg__peek">REP AMERICA LIVE · {titleDate(todayKey).replace(".", "").toUpperCase()} · 3840×2160 PNG, your original size · <a href="/admin/today/live-thumb?dl=1">Download</a> · <a href="/admin/today/live-thumb" target="_blank" rel="noreferrer">Open</a></span>
+        </div>
+        <p className="td-golive__hint">The date is always today&apos;s (Pacific). Same title, description and thumbnail for every open-topic live; the 📱 button is for the vertical twin.</p>
         {igStreamKey ? (
           <>
             <p className="td-golive__title td-golive__title--sub">Instagram stream key</p>

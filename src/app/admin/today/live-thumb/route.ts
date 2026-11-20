@@ -1,0 +1,30 @@
+// GET /admin/today/live-thumb  →  today's "REP AMERICA LIVE · NOV 19, 2026" thumbnail (3840×2160 PNG, his original size).
+// The date is today's in Pacific, same as the title in the go-live box. `?dl=1` downloads it; `?w=480` is the small preview.
+// Admin-only, like the rest of /admin.
+import { NextResponse } from "next/server";
+import { getAdmin } from "@/lib/adminAuth";
+import { dayKey } from "@/lib/googleCalendar";
+import { renderLiveThumb } from "@/lib/liveThumb";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+export async function GET(req: Request) {
+  const state = await getAdmin();
+  const url = new URL(req.url);
+  if (!state.user) {
+    const here = url.pathname + url.search;
+    return NextResponse.redirect(new URL(state.canRefresh ? `/admin/refresh?next=${encodeURIComponent(here)}` : `/admin/login?next=${encodeURIComponent(here)}`, req.url));
+  }
+  const key = dayKey(Date.now());
+  const w = Number(url.searchParams.get("w"));
+  const img = await renderLiveThumb(key, w >= 100 && w <= 1920 ? Math.round(w) : undefined);
+  return new NextResponse(new Uint8Array(img.body), {
+    headers: {
+      "Content-Type": img.type,
+      "Content-Length": String(img.body.length),
+      "Cache-Control": "private, no-store",
+      ...(url.searchParams.get("dl") ? { "Content-Disposition": `attachment; filename="rep-america-live-${key}.png"` } : {}),
+    },
+  });
+}
