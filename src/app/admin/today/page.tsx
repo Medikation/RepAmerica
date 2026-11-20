@@ -56,10 +56,8 @@ const stampPT = (iso: string) => new Date(iso).toLocaleString("en-US", { month: 
 // "Nov. 19, 2026" from a Pacific day key (YYYY-MM-DD) — the date he puts at the end of a live title.
 const MONTHS = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
 const titleDate = (key: string) => { const [y, m, d] = key.split("-").map(Number); return `${MONTHS[m - 1]} ${d}, ${y}`; };
-const TALK_TITLE_DEFAULT = "Talk to Me LIVE | Rep America | {date}";
-const TALK_DESCRIPTION_DEFAULT = `{title}
-
-I'm live and there's no script. Some days it's politics and the news, some days it's books, money, family, or an open debate, and some days we just hang out and talk. Jump in the chat, tell me what's on your mind, and bring your questions or your pushback.
+const TALK_TITLE_DEFAULT = "LIVE with Medi | {date}";
+const TALK_DESCRIPTION_DEFAULT = `I'm live and there's no script. Some days it's politics and the news, some days it's books, money, family, or an open debate, and some days we just hang out and talk. Jump in the chat, tell me what's on your mind, and bring your questions or your pushback.
 
 New here? Subscribe and turn on notifications so you catch the next live.
 
@@ -102,7 +100,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const showName = settings.get("show_name") ?? "Rep America Live";
   const schedule = settings.get("schedule") ?? "Not set";
   const igStreamKey = settings.get("ig_stream_key")?.trim() || null; // Instagram Live stream key — copied into Ecamm each stream
-  // The reusable package for his open-topic lives ("Talk to Me LIVE"): one title + one description, pasted into YouTube every time.
+  // The reusable package for his open-topic lives ("LIVE with Medi"): one title + one description, pasted into YouTube every time.
   // {date} = today in Pacific ("Nov. 19, 2026"), {title} = the finished title. Both strings live in show_settings so they can be reworded in the DB.
   const talkTitle = (settings.get("talk_title") || TALK_TITLE_DEFAULT).replaceAll("{date}", titleDate(todayKey));
   const talkDescription = (settings.get("talk_description") || TALK_DESCRIPTION_DEFAULT).replaceAll("{title}", talkTitle).replaceAll("{date}", titleDate(todayKey));
@@ -299,7 +297,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       <p className="muted">{dayLabel(todayKey)} · everything in Pacific. Your calendars (medi@ + team@), your live title and description, and the rundown for the stream. Private — nothing here shows on the site.</p>
 
       <div className="td-golive">
-        <p className="td-golive__title"><span className="td-chip">Go live</span> Talk to Me LIVE · title + description for today</p>
+        <p className="td-golive__title"><span className="td-chip">Go live</span> YouTube live · title + description for today</p>
         <div className="td-pkg__row"><span className="td-pkg__label">Title</span><code className="td-pkg__title">{talkTitle}</code><CopyButton text={talkTitle} label="Copy title" /><CopyButton text={`📱 ${talkTitle}`} label="Copy 📱 title" /></div>
         <div className="td-pkg__row td-golive__desc"><span className="td-pkg__label">Description</span><CopyButton text={talkDescription} label="Copy description" /></div>
         <pre className="td-pkg__pre">{talkDescription}</pre>
