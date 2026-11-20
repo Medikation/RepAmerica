@@ -2,8 +2,6 @@ import { redirect } from "next/navigation";
 import { getAdmin } from "@/lib/adminAuth";
 import { supabaseAdmin } from "@/lib/supabase";
 import CopyButton from "@/components/admin/CopyButton";
-import { streamPackage, thumbState, placeLabel, placeOf, type StreamEvent } from "@/lib/streamPackage";
-import { withLiveLinks, CHANNEL_LIVE_URL, type LiveLinks } from "@/lib/youtubeLives";
 import { fetchCalendarEvents, zonedDayStart, dayKey, addDays, PT, CALENDAR_USER, type CalEvent } from "@/lib/googleCalendar";
 
 // The producer's desk: one page Medi opens before going live. Three things, top to bottom —
@@ -43,7 +41,6 @@ type Item = {
   response: CalEvent["response"];
   status: ShowEvent["status"] | null;
   conflicts: string[];
-  pkgAnchor: string | null; // "#live-<id>" — the event's card in "Lives this week" (title / description / thumbnail)
 };
 
 const KIND_LABEL: Record<ShowEvent["kind"], string> = { trump: "Trump", "white-house": "White House", campaign: "Campaign", other: "Event" };
@@ -56,6 +53,24 @@ const timeET = (ms: number) => new Date(ms).toLocaleString("en-US", { hour: "num
 const dayLabel = (key: string) => new Date(zonedDayStart(key) + 12 * 3600 * 1000).toLocaleString("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: PT });
 const dayShort = (key: string) => new Date(zonedDayStart(key) + 12 * 3600 * 1000).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: PT });
 const stampPT = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: PT });
+// "Nov. 19, 2026" from a Pacific day key (YYYY-MM-DD) — the date he puts at the end of a live title.
+const MONTHS = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
+const titleDate = (key: string) => { const [y, m, d] = key.split("-").map(Number); return `${MONTHS[m - 1]} ${d}, ${y}`; };
+const TALK_TITLE_DEFAULT = "Talk to Me LIVE | Rep America | {date}";
+const TALK_DESCRIPTION_DEFAULT = `{title}
+
+I'm live and there's no script. Some days it's politics and the news, some days it's books, money, family, or an open debate, and some days we just hang out and talk. Jump in the chat, tell me what's on your mind, and bring your questions or your pushback.
+
+New here? Subscribe and turn on notifications so you catch the next live.
+
+We Represent America.
+
+Medi - Rep America
+Instagram: https://www.instagram.com/medikation
+TikTok: https://www.tiktok.com/@repamerica
+X: https://x.com/repamericatv
+Twitch: https://twitch.tv/repamerica
+Rumble: https://rumble.com/user/repamerica`;
 function relative(ms: number, now: number): string {
   const d = Math.round((ms - now) / 60000);
   const abs = Math.abs(d);
@@ -74,9 +89,8 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const windowEnd = zonedDayStart(addDays(todayKey, 8)); // today + 7 days
   const db = supabaseAdmin();
 
-  const [calendar, { data: eventRows }, { data: rundownRows }, { data: settingRows }, { data: topicRows }] = await Promise.all([
+  const [calendar, { data: rundownRows }, { data: settingRows }, { data: topicRows }] = await Promise.all([
     fetchCalendarEvents(dayStart, windowEnd),
-    db.from("show_events").select("*").gte("starts_at", new Date(dayStart - 12 * 3600 * 1000).toISOString()).lt("starts_at", new Date(windowEnd).toISOString()).order("starts_at", { ascending: true }).limit(120),
     db.from("show_rundowns").select("*").gte("air_date", addDays(todayKey, -14)).lte("air_date", addDays(todayKey, 7)).order("air_date", { ascending: true }),
     db.from("show_settings").select("key, value"),
     db.from("show_topics").select("*").neq("status", "dropped").order("sort_order", { ascending: true }).limit(100),
@@ -87,18 +101,15 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const settings = new Map<string, string>(((settingRows ?? []) as Setting[]).filter((s) => s.value != null).map((s) => [s.key, s.value as string]));
   const showName = settings.get("show_name") ?? "Rep America Live";
   const schedule = settings.get("schedule") ?? "Not set";
-  const ytSignoff = settings.get("yt_signoff") ?? "";
   const igStreamKey = settings.get("ig_stream_key")?.trim() || null; // Instagram Live stream key — copied into Ecamm each stream
-  const tiktok = { url: settings.get("tiktok_live_url") || "https://www.tiktok.com/@repamerica/live", headline: settings.get("tiktok_headline") || "Talk to Me: Trump, Money, Family, Your Future", aftershow: (settings.get("tiktok_aftershow") ?? "on") !== "off", offsetMin: Number(settings.get("tiktok_aftershow_offset_min")) || 120 };
+  // The reusable package for his open-topic lives ("Talk to Me LIVE"): one title + one description, pasted into YouTube every time.
+  // {date} = today in Pacific ("Nov. 19, 2026"), {title} = the finished title. Both strings live in show_settings so they can be reworded in the DB.
+  const talkTitle = (settings.get("talk_title") || TALK_TITLE_DEFAULT).replaceAll("{date}", titleDate(todayKey));
+  const talkDescription = (settings.get("talk_description") || TALK_DESCRIPTION_DEFAULT).replaceAll("{title}", talkTitle).replaceAll("{date}", titleDate(todayKey));
   const rundowns = (rundownRows ?? []) as Rundown[];
   const todayRundown = rundowns.find((r) => r.air_date === todayKey) ?? null;
   const nextRundown = todayRundown ?? rundowns.find((r) => r.air_date > todayKey) ?? null;
   const pastRundowns = rundowns.filter((r) => r.air_date < todayKey).reverse(); // last 14 days, newest first
-
-  /* ---------- lives this week: every Trump / White House / campaign event in the window, with its stream package ---------- */
-  // Live links come from the channel's own Streams page (matched by the title below) — Medi schedules on YouTube, the site finds it.
-  const liveEvents = await withLiveLinks(((eventRows ?? []) as ShowEvent[]).filter((e) => e.status !== "canceled" && e.status !== "skipped" && (e.all_day || Date.parse(e.starts_at) >= dayStart - 3 * 3600 * 1000)));
-  const liveDays = Array.from(liveEvents.reduce((m, e) => { const k = dayKey(Date.parse(e.starts_at)); m.set(k, [...(m.get(k) ?? []), e]); return m; }, new Map<string, typeof liveEvents>()).entries());
 
   /* ---------- build the unified item list ---------- */
   const items: Item[] = [];
@@ -110,23 +121,10 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       dim: e.response === "declined", // "Free" events stay in full — Medi's calendar items are Free by default (2026-10-24)
       kindLabel: e.calendars.join(" + "), kindClass: e.calendars.includes("medi@") ? "td-kind--medi" : "td-kind--team",
       meta: [e.organizer ? `by ${e.organizer}` : null, e.location, e.attendeeCount > 1 ? `${e.attendeeCount} invited` : null].filter(Boolean).join(" · ") || null,
-      joinUrl: e.joinUrl, joinLabel: "Join", otherJoinUrls: e.otherJoinUrls, link: e.htmlLink, response: e.response, status: null, conflicts: [], pkgAnchor: null,
+      joinUrl: e.joinUrl, joinLabel: "Join", otherJoinUrls: e.otherJoinUrls, link: e.htmlLink, response: e.response, status: null, conflicts: [],
     });
   }
-  for (const e of (eventRows ?? []) as ShowEvent[]) {
-    const s = Date.parse(e.starts_at);
-    const en = e.ends_at ? Date.parse(e.ends_at) : null;
-    if (!e.all_day && (en ?? s + 12 * 3600 * 1000) < dayStart) continue; // yesterday's, long over
-    const live = !e.all_day && e.status !== "canceled" && s <= now && (en ? en >= now : s >= now - 2 * 3600 * 1000);
-    items.push({
-      id: `ev:${e.id}`, source: "trump", title: e.title, startsAt: s, endsAt: en, allDay: e.all_day, live,
-      done: !live && !e.all_day && s < now && e.status !== "canceled",
-      dim: e.status === "canceled" || e.status === "skipped",
-      kindLabel: KIND_LABEL[e.kind], kindClass: `td-kind--${e.kind}`,
-      meta: [e.location, e.press ? `${e.press} press` : null, e.notes].filter(Boolean).join(" · ") || null,
-      joinUrl: e.stream_url, joinLabel: "Watch", otherJoinUrls: [], link: e.source_url, response: null, status: e.status, conflicts: [], pkgAnchor: e.status === "canceled" || e.status === "skipped" ? null : `#live-${e.id}`,
-    });
-  }
+  // show_events (the Trump / White House schedule) is no longer listed here — the rallies ended (Medi, 2026-11-19). The table and the public pages are untouched.
   for (const r of rundowns) {
     if (!r.starts_at) continue;
     const s = Date.parse(r.starts_at);
@@ -136,7 +134,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       id: `show:${r.id}`, source: "show", title: `${showName}${r.title ? ` — ${r.title}` : ""}`, startsAt: s, endsAt: en, allDay: false, live,
       done: !live && en <= now, dim: r.status === "skipped",
       kindLabel: "Show", kindClass: "td-kind--show",
-      meta: r.lead, joinUrl: null, joinLabel: "", otherJoinUrls: [], link: "#rundown", response: null, status: null, conflicts: [], pkgAnchor: null,
+      meta: r.lead, joinUrl: null, joinLabel: "", otherJoinUrls: [], link: "#rundown", response: null, status: null, conflicts: [],
     });
   }
   items.sort((a, b) => Number(b.allDay) - Number(a.allDay) || a.startsAt - b.startsAt || a.title.localeCompare(b.title));
@@ -154,7 +152,6 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const laterDays = Array.from(laterItems.reduce((m, i) => { const k = dayKey(i.startsAt); m.set(k, [...(m.get(k) ?? []), i]); return m; }, new Map<string, Item[]>()).entries());
   const liveNow = todayItems.filter((i) => i.live && !i.dim);
   const nextUp = todayItems.find((i) => !i.allDay && !i.dim && !i.live && i.startsAt > now) ?? null;
-  const nextTrump = items.find((i) => i.source === "trump" && !i.dim && (i.live || i.startsAt > now || i.allDay && dayKey(i.startsAt) >= todayKey)) ?? null;
   const awaiting = calendar.events.filter((e) => e.response === "needsAction" || e.response === "tentative");
   const conflictsToday = todayItems.filter((i) => i.source === "cal" && i.conflicts.length);
   const { gcal } = await searchParams;
@@ -174,7 +171,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
     <div>
       <style>{`
         .ra-admin .td-stats { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; margin:0 0 18px; }
-        @media (min-width:1000px){ .ra-admin .td-stats { grid-template-columns:repeat(4, minmax(0,1fr)); } }
+        @media (min-width:1000px){ .ra-admin .td-stats { grid-template-columns:repeat(3, minmax(0,1fr)); } }
         .ra-admin .td-stat { border:1px solid #e2e2e2; border-radius:10px; padding:10px 14px; background:#fff; min-width:0; overflow:hidden; }
         .ra-admin .td-stat--live { border-color:#c00; background:#fff5f5; }
         .ra-admin .td-stat--warn { border-color:#f1e2b3; background:#fff8e6; }
@@ -293,18 +290,28 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         .ra-admin .td-golive__title { font-size:1.3rem; font-weight:700; color:#111; margin:0 0 6px; display:flex; align-items:center; gap:8px; }
         .ra-admin .td-golive__row { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; }
         .ra-admin .td-golive__key { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:1.15rem; color:#222; background:#f6f6f6; border:1px solid #e5e5e5; border-radius:6px; padding:5px 8px; overflow-wrap:anywhere; flex:1 1 280px; min-width:0; }
+        .ra-admin .td-golive__title--sub { margin-top:14px; padding-top:12px; border-top:1px solid #eee; }
+        .ra-admin .td-golive__desc { margin-top:8px; }
+        .ra-admin .td-golive .td-pkg__label { color:#111; }
         .ra-admin .td-golive__hint { font-size:1.15rem; color:#888; margin:6px 0 0; }
       `}</style>
       <h1>Today</h1>
-      <p className="muted">{dayLabel(todayKey)} · everything in Pacific. Your calendars (medi@ + team@), the Trump / White House schedule, and the rundown for the stream. Private — nothing here shows on the site.</p>
+      <p className="muted">{dayLabel(todayKey)} · everything in Pacific. Your calendars (medi@ + team@), your live title and description, and the rundown for the stream. Private — nothing here shows on the site.</p>
 
-      {igStreamKey ? (
-        <div className="td-golive">
-          <p className="td-golive__title"><span className="td-chip">Go live</span> Instagram stream key</p>
-          <div className="td-golive__row"><code className="td-golive__key">{igStreamKey}</code><CopyButton text={igStreamKey} label="Copy key" /></div>
-          <p className="td-golive__hint">Paste into Ecamm as the Instagram RTMP stream key each time you start the live. If Instagram rotates it, send the new one in chat and it gets swapped here.</p>
-        </div>
-      ) : null}
+      <div className="td-golive">
+        <p className="td-golive__title"><span className="td-chip">Go live</span> Talk to Me LIVE · title + description for today</p>
+        <div className="td-pkg__row"><span className="td-pkg__label">Title</span><code className="td-pkg__title">{talkTitle}</code><CopyButton text={talkTitle} label="Copy title" /><CopyButton text={`📱 ${talkTitle}`} label="Copy 📱 title" /></div>
+        <div className="td-pkg__row td-golive__desc"><span className="td-pkg__label">Description</span><CopyButton text={talkDescription} label="Copy description" /></div>
+        <pre className="td-pkg__pre">{talkDescription}</pre>
+        <p className="td-golive__hint">The date is always today&apos;s (Pacific). Same title and description for every open-topic live; the 📱 button is for the vertical twin.</p>
+        {igStreamKey ? (
+          <>
+            <p className="td-golive__title td-golive__title--sub">Instagram stream key</p>
+            <div className="td-golive__row"><code className="td-golive__key">{igStreamKey}</code><CopyButton text={igStreamKey} label="Copy key" /></div>
+            <p className="td-golive__hint">Paste into Ecamm as the Instagram RTMP stream key each time you start the live. If Instagram rotates it, send the new one in chat and it gets swapped here.</p>
+          </>
+        ) : null}
+      </div>
 
       {gcalMsg ? <div className={`notice${gcalMsg[1] ? " notice--error" : ""}`}>{gcalMsg[0]}</div> : null}
       {!calendar.configured ? (
@@ -338,13 +345,6 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
             <><b>{schedule}</b><span>{nextRundown ? `next rundown ${dayShort(nextRundown.air_date)}` : "no rundown for today"}</span></>
           )}
         </div>
-        <div className={`td-stat${nextTrump?.live ? " td-stat--live" : ""}`}>
-          {nextTrump ? (
-            <><b>{nextTrump.allDay ? `${dayShort(dayKey(nextTrump.startsAt))} · TBD` : `${timePT(nextTrump.startsAt)} ${nextTrump.live ? "" : "PT"}`}{nextTrump.live ? <> <span className="td-live">LIVE</span></> : null}</b><span>{dayKey(nextTrump.startsAt) === todayKey ? "today · " : `${dayShort(dayKey(nextTrump.startsAt)).split(",")[0]} · `}{nextTrump.title}</span></>
-          ) : (
-            <><b>—</b><span>no Trump / White House events listed</span></>
-          )}
-        </div>
         <div className={`td-stat${awaiting.length || conflictsToday.length ? " td-stat--warn" : ""}`}>
           {conflictsToday.length ? (
             <><b>{conflictsToday.length} <small>overlap{conflictsToday.length === 1 ? "" : "s"} today</small></b><span>{conflictsToday[0].title} ↔ {conflictsToday[0].conflicts[0]}</span></>
@@ -358,31 +358,13 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
 
       <details id="today" className="td-section" open>
         <summary className="td-h"><span className="td-h__caret" aria-hidden />Today<span className="td-h__meta">{todayItems.length ? `${todayItems.length} on the clock` : "nothing scheduled"}</span></summary>
-        {todayItems.length ? <div>{todayItems.map((i) => <Row key={i.id} i={i} now={now} />)}</div> : <div className="td-empty">Nothing on either calendar or the Trump schedule today.</div>}
-      </details>
-
-      <details id="lives" className="td-section" open>
-        <summary className="td-h"><span className="td-h__caret" aria-hidden />Lives this week<span className="td-h__meta">{liveEvents.length ? `${liveEvents.length} event${liveEvents.length === 1 ? "" : "s"} · title, description + thumbnail ready · through ${dayShort(addDays(todayKey, 7))}` : `nothing to stream through ${dayShort(addDays(todayKey, 7))}`}</span></summary>
-        <div className="td-weekgfx">
-          <a href="/admin/today/week?dl=1" className="td-weekgfx__img" title="Download the square graphic"><img src="/admin/today/week" alt="" loading="lazy" /></a>
-          <div className="td-weekgfx__txt">
-            <b>This week&apos;s graphic</b> — generated from the schedule, always current. Post it Sunday: YouTube community post, X, the IG grid (pin it through the midterms), TikTok.<br />
-            <a href="/admin/today/week?dl=1">Download square 1080×1080</a> · <a href="/admin/today/week?v=1&dl=1">Download Story 1080×1920</a> · <a href="/admin/today/week" target="_blank" rel="noreferrer">Open</a>
-          </div>
-        </div>
-        <p className="td-bench-intro">Everything you need to schedule each live on YouTube, a week ahead. Schedule it with the title as written (the 📱 vertical twin too) and the site picks up your live link from your channel within five minutes — it shows here, on <a href="/schedule" target="_blank" rel="noreferrer">repamerica.com/schedule</a> and on <a href="/trump-schedule" target="_blank" rel="noreferrer">/trump-schedule</a>. A TikTok live is assumed after every rally you stream (~2 h after it starts); say "TikTok Tuesday 8 PM" for a standalone one and it goes on the schedule too. <a href={CHANNEL_LIVE_URL} target="_blank" rel="noreferrer">Your streams on YouTube</a></p>
-        {liveDays.length ? liveDays.map(([day, list]) => (
-          <div key={day}>
-            <div className="td-day">{day === todayKey ? `Today · ${dayLabel(day)}` : dayLabel(day)}</div>
-            {list.map((e) => <LiveCard key={e.id} e={e} signoff={ytSignoff} now={now} tiktok={tiktok} />)}
-          </div>
-        )) : <div className="td-empty">No Trump / White House / campaign events in the next 7 days.</div>}
+        {todayItems.length ? <div>{todayItems.map((i) => <Row key={i.id} i={i} now={now} />)}</div> : <div className="td-empty">Nothing on your calendars today.</div>}
       </details>
 
       <details id="rundown" className="td-section" open>
         <summary className="td-h"><span className="td-h__caret" aria-hidden />Rundown{nextRundown && nextRundown.air_date !== todayKey ? ` — next show ${dayShort(nextRundown.air_date)}` : ""}<span className="td-h__meta">{nextRundown ? `updated ${stampPT(nextRundown.updated_at)} PT` : "none drafted"}</span></summary>
         {nextRundown ? <RundownView r={nextRundown} showName={showName} now={now} /> : (
-          <div className="td-empty">No rundown drafted for today or the next 7 days. Tell Claude &ldquo;draft today&rsquo;s rundown&rdquo; — it comes from the Trump schedule, the book you&rsquo;re on, and the Stronger Americans questions.</div>
+          <div className="td-empty">No rundown drafted for today or the next 7 days. Tell Claude &ldquo;draft today&rsquo;s rundown&rdquo; — it comes from the book you&rsquo;re on and your topic bench.</div>
         )}
       </details>
 
@@ -398,7 +380,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
             ))}
           </div>
         ) : (
-          <div className="td-empty">Nothing on the calendars or the Trump schedule for the next 7 days.</div>
+          <div className="td-empty">Nothing on the calendars for the next 7 days.</div>
         )}
       </details>
 
@@ -440,62 +422,6 @@ function TopicRow({ t, n }: { t: Topic; n: number }) {
   );
 }
 
-function LiveCard({ e, signoff, now, tiktok }: { e: StreamEvent & { liveLinks: LiveLinks | null; press?: string | null }; signoff: string; now: number; tiktok: { url: string; headline: string; aftershow: boolean; offsetMin: number } }) {
-  const pkg = streamPackage(e, signoff);
-  const afterMs = tiktok.aftershow && e.kind === "trump" && /rally/i.test(e.title) && !e.all_day ? Date.parse(e.starts_at) + tiktok.offsetMin * 60000 : null;
-  const st = thumbState(e);
-  const thumb = st ? `/admin/today/thumb/${e.id}` : null;
-  const s = Date.parse(e.starts_at);
-  const l = e.liveLinks;
-  const onAir = !!l?.live || (s <= now && s > now - 3 * 3600 * 1000 && !!l);
-  const place = placeLabel(placeOf(e));
-  return (
-    <div id={`live-${e.id}`} className={`td-livecard${onAir ? " td-livecard--live" : ""}`}>
-      <div className="td-livecard__head">
-        <div className="td-livecard__when">{e.all_day ? "Time TBD" : `${timePT(s)} PT`}<small>{e.all_day ? "" : `${timeET(s)} ET`}</small></div>
-        <div className="td-livecard__title">{e.title}{e.status === "tentative" ? <span className="td-chip">tentative</span> : null}{onAir ? <span className="td-live">LIVE</span> : null}</div>
-        <div className="td-livecard__yt">
-          {l ? (
-            <>
-              <span className="td-chip td-chip--ok">on YouTube</span>
-              {l.vertical ? <a href={l.vertical} target="_blank" rel="noreferrer">📱 vertical</a> : <span className="td-row__warn">📱 vertical not scheduled</span>}
-              {l.horizontal ? <a href={l.horizontal} target="_blank" rel="noreferrer">horizontal</a> : <span className="td-row__warn">horizontal not scheduled</span>}
-            </>
-          ) : (
-            <span className="td-chip">not on YouTube yet</span>
-          )}
-        </div>
-      </div>
-      {e.location || e.notes ? <div className="td-row__meta">{[e.location, e.notes].filter(Boolean).join(" · ")}</div> : null}
-      <div className="td-pkg">
-        <div className="td-pkg__row"><span className="td-pkg__label">Title</span><code className="td-pkg__title">{pkg.title}</code><CopyButton text={pkg.title} label="Copy title" /><CopyButton text={`📱 ${pkg.title}`} label="Copy 📱 title" /></div>
-        <details className="td-pkg__desc">
-          <summary className="td-pkg__row"><span className="td-pkg__label">Description</span><span className="td-pkg__peek">{pkg.description.split("\n")[0]}</span><CopyButton text={pkg.description} label="Copy description" /></summary>
-          <pre className="td-pkg__pre">{pkg.description}</pre>
-        </details>
-        <div className="td-pkg__row td-pkg__thumbrow">
-          <span className="td-pkg__label">Thumbnail</span>
-          {thumb ? (
-            <>
-              <a href={`${thumb}?dl=1`} className="td-pkg__thumb" title="Download the thumbnail"><img src={thumb} alt="" loading="lazy" /></a>
-              <span className="td-pkg__peek">TRUMP LIVE IN {st} · 1920×1080 · <a href={`${thumb}?dl=1`}>Download</a> · <a href={thumb} target="_blank" rel="noreferrer">Open</a></span>
-            </>
-          ) : (
-            <span className="td-pkg__peek">No template for this one yet{place ? ` (${place})` : ""} — the rally thumbnail is Trump-only. Send a thumbnail you like for this kind of event and it becomes a template.</span>
-          )}
-        </div>
-        {afterMs ? (
-          <div className="td-pkg__row td-pkg__tiktok">
-            <span className="td-pkg__label">Then TikTok</span>
-            <span className="td-pkg__peek">~{timePT(afterMs)} PT ({timeET(afterMs)} ET), when Trump wraps · on-screen headline: <code className="td-pkg__title td-pkg__title--sm">{tiktok.headline}</code></span>
-            <CopyButton text={tiktok.headline} label="Copy headline" />
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
 function Row({ i, now, compact }: { i: Item; now: number; compact?: boolean }) {
   const cls = ["td-row", i.live ? "td-row--live" : "", i.done ? "td-row--done" : "", i.dim ? "td-row--dim" : "", !i.live && !i.done && !i.dim && i.conflicts.length ? "td-row--conflict" : ""].filter(Boolean).join(" ");
   const endLabel = i.endsAt && !i.allDay ? ` – ${timePT(i.endsAt)}` : "";
@@ -515,7 +441,6 @@ function Row({ i, now, compact }: { i: Item; now: number; compact?: boolean }) {
             {i.otherJoinUrls.length ? <span className="td-row__warn"> · another link on the invite: {i.otherJoinUrls.map((u, n) => <a key={u} href={u} target="_blank" rel="noreferrer">{n ? ", " : ""}{u.replace(/^https?:\/\//, "")}</a>)} — the bold one is what the organizer sent</span> : null}
           </div>
         ) : null}
-        {i.pkgAnchor && !compact && !i.dim ? <div className="td-row__meta"><a href={i.pkgAnchor}>Title · description · thumbnail ↓</a></div> : null}
         {i.conflicts.length && !i.dim ? <div className="td-row__warn">overlaps {i.conflicts.join(" · ")}</div> : null}
       </div>
       <div className="td-row__badges">
