@@ -68,6 +68,21 @@ export const scheduleStyles = `
 .ra-sched__about a { color:#14140f; }
 .ra-sched__feeds { display:flex; flex-wrap:wrap; gap:8px 18px; margin:0; padding:0; list-style:none; font-size:14px; }
 .ra-sched__feeds a { color:#14140f; }
+.ra-sched__answer { display:grid; gap:0; margin:28px 0 0; border:2px solid #14140f; border-radius:14px; background:#fff; overflow:hidden; }
+@media (min-width: 760px) { .ra-sched__answer { grid-template-columns: 1fr 1fr; } }
+.ra-sched__answer-cell { padding:18px 20px; border-top:1px solid rgba(20,20,15,.12); }
+.ra-sched__answer-cell:first-child { border-top:0; }
+@media (min-width: 760px) { .ra-sched__answer-cell { border-top:0; border-left:1px solid rgba(20,20,15,.12); } .ra-sched__answer-cell:first-child { border-left:0; } }
+.ra-sched__answer-label { margin:0 0 6px; font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:${RED}; }
+.ra-sched__answer-main { margin:0; font-family: var(--font-heading-family, Georgia, serif); font-size: clamp(19px, 1.8vw, 24px); line-height:1.2; letter-spacing:-.01em; }
+.ra-sched__answer-list { margin:0; padding:0; list-style:none; }
+.ra-sched__answer-list li { margin:0 0 6px; font-size:16px; line-height:1.35; }
+.ra-sched__answer-list b { white-space:nowrap; }
+.ra-sched__answer-sub { margin:6px 0 0; font-size:13.5px; color: rgba(20,20,15,.65); }
+.ra-sched__answer-sub a { color:#14140f; font-weight:600; }
+.ra-sched__faq dl { margin:0; max-width:72ch; }
+.ra-sched__faq dt { margin:16px 0 4px; font-weight:800; font-size:16px; }
+.ra-sched__faq dd { margin:0; font-size:15px; line-height:1.55; color: rgba(20,20,15,.78); }
 /* homepage strip */
 .ra-home-sched__grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:14px; margin-top:22px; }
 .ra-home-sched__card { display:flex; flex-direction:column; gap:6px; padding:16px 18px; border:1px solid rgba(20,20,15,.12); border-radius:12px; background:#fff; text-decoration:none; color:#14140f; min-height:148px; }

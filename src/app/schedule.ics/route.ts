@@ -3,5 +3,5 @@ import { icsFeed } from "@/lib/scheduleFeeds";
 import { MEDI_URL } from "@/lib/schedule";
 export const dynamic = "force-dynamic";
 export async function GET() {
-  return icsFeed("medi", MEDI_URL, "Rep America LIVE — Medi's schedule", "The Trump rallies Medi streams live on YouTube and his TikTok lives after every rally. repamerica.com/schedule");
+  return icsFeed("medi", MEDI_URL, "Rep America LIVE — Medi's schedule", "Rep America LIVE with Medi, weekdays on YouTube, plus the Trump and White House events he covers live. repamerica.com/schedule");
 }

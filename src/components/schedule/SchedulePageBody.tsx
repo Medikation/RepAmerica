@@ -13,6 +13,10 @@ export type SchedulePageConfig = {
   icsHref: string;
   jsonHref: string;
   crossLink: ReactNode; // "the other door"
+  answer?: ReactNode; // the plain answer box under the header ("Today: … / Next: …")
+  upcomingHeading?: string;
+  pastHeading?: string;
+  faq?: { q: string; a: string }[];
   upcomingNote: string;
   emptyText: string;
   pastNote: string | null;
@@ -26,7 +30,7 @@ function groupByDay(list: ScheduleEvent[]): [string, ScheduleEvent[]][] {
   return Array.from(m.entries());
 }
 
-/** The body both schedule pages share: header, live-now banner, next-7-days grouped by ET day, recently covered, about. */
+/** The body both schedule pages share: header, live-now banner, answer box, upcoming grouped by ET day, recent, FAQ, about. */
 export default function SchedulePageBody({ s, c }: { s: Schedule; c: SchedulePageConfig }) {
   const todayKey = dayKeyET(s.now);
   const days = groupByDay(s.upcoming);
@@ -54,9 +58,10 @@ export default function SchedulePageBody({ s, c }: { s: Schedule; c: SchedulePag
             </div>
           )}
         </header>
+        {c.answer}
 
         <section className="ra-sched__section" aria-labelledby={`${c.id}-upcoming`}>
-          <h2 id={`${c.id}-upcoming`} className="ra-sched__h2">Next 7 days</h2>
+          <h2 id={`${c.id}-upcoming`} className="ra-sched__h2">{c.upcomingHeading ?? "Next 7 days"}</h2>
           <p className="ra-sched__h2-note">Last checked {updated} ET. {c.upcomingNote}</p>
           {days.length ? days.map(([day, list]) => (
             <div key={day}>
@@ -70,9 +75,16 @@ export default function SchedulePageBody({ s, c }: { s: Schedule; c: SchedulePag
 
         {s.past.length > 0 && c.pastNote && (
           <section className="ra-sched__section" aria-labelledby={`${c.id}-past`}>
-            <h2 id={`${c.id}-past`} className="ra-sched__h2">Recently covered</h2>
+            <h2 id={`${c.id}-past`} className="ra-sched__h2">{c.pastHeading ?? "Recently covered"}</h2>
             <p className="ra-sched__h2-note">{c.pastNote}</p>
             <ol className="ra-sched__list">{s.past.map((e) => <ScheduleEventRow key={e.id} e={e} showDay />)}</ol>
+          </section>
+        )}
+
+        {c.faq && c.faq.length > 0 && (
+          <section className="ra-sched__section ra-sched__faq" aria-labelledby={`${c.id}-faq`}>
+            <h2 id={`${c.id}-faq`} className="ra-sched__h2">Quick answers</h2>
+            <dl>{c.faq.map((f) => (<div key={f.q}><dt>{f.q}</dt><dd>{f.a}</dd></div>))}</dl>
           </section>
         )}
 

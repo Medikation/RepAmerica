@@ -6,8 +6,8 @@ import { scheduleJsonLd } from "@/lib/scheduleJsonLd";
 import { CHANNEL_LIVE_URL } from "@/lib/youtubeLives";
 import SchedulePageBody from "@/components/schedule/SchedulePageBody";
 
-// Rep America's own week: the Trump / White House events Medi streams live on YouTube, the TikTok live that follows each
-// rally, and any other live he schedules. The full political listing is /trump-schedule — same data, other door.
+// Rep America's own week: Medi's standing weekday show (show_settings daily_live_*), the Trump / White House events he
+// streams live on YouTube, and any other live he schedules. The political listing is /trump-schedule — same data, other door.
 export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -15,42 +15,44 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     ...base,
     alternates: { ...(base.alternates ?? {}), canonical: MEDI_URL, types: { "text/calendar": `${MEDI_URL}.ics`, "application/json": `${MEDI_URL}.json` } },
-    keywords: ["Rep America live", "Medi live", "Rep America schedule", "Trump rally live stream with commentary", "Rep America TikTok live", "Medikation live"],
+    keywords: ["Rep America live", "Medi live", "Rep America schedule", "Rep America live stream time", "live political commentary YouTube", "Medikation live"],
   };
 }
 
 export default async function RepAmericaSchedulePage() {
   const [s, theme] = await Promise.all([getPublicSchedule({ daysAhead: 7, daysBack: 14, scope: "medi" }), getSetting<Record<string, string>>("theme").catch(() => ({}) as Record<string, string>)]);
   const image = theme.share_image_watch_url ?? theme.share_image_fallback ?? null;
-  const next = s.upcoming.find((e) => e.phase === "upcoming" && e.watchUrl) ?? null;
-  const jsonLd = scheduleJsonLd(s, { pageUrl: MEDI_URL, title: MEDI_TITLE, description: MEDI_DESCRIPTION, listName: "Rep America LIVE — this week", image });
+  const next = s.upcoming.find((e) => e.watchUrl) ?? null;
+  const jsonLd = scheduleJsonLd(s, { pageUrl: MEDI_URL, title: MEDI_TITLE, description: MEDI_DESCRIPTION, listName: "Rep America LIVE: this week", image });
   return (
     <SchedulePageBody
       s={s}
       c={{
         id: "schedule",
-        eyebrow: "Rep America LIVE · this week · times in ET and PT",
+        eyebrow: "Rep America LIVE · times in ET and PT",
         h1: "This Week on Rep America",
-        lead: (
+        lead: s.daily ? (
           <>
-            The rallies Medi streams live on YouTube, and <strong>Rep America LIVE on TikTok</strong> after every one — <em>{s.tiktok.headline}</em>
+            Medi is live on YouTube <strong>{s.daily.label}</strong>. Politics, laughs and life, with the chat open the whole time.
           </>
+        ) : (
+          <>Medi&apos;s lives on YouTube this week, with the chat open the whole time.</>
         ),
         primaryHref: next?.watchUrl ?? CHANNEL_LIVE_URL,
-        primaryLabel: next ? (next.platform === "tiktok" ? "Next: Rep America LIVE on TikTok" : `Next live: ${next.headline}`) : "Rep America on YouTube",
+        primaryLabel: next?.phase === "live" ? "Live now on YouTube" : "Rep America on YouTube",
         icsHref: `${MEDI_PATH}.ics`,
         jsonHref: `${MEDI_PATH}.json`,
-        crossLink: <>Want every Trump, White House and political event this week, covered or not? <a href={SCHEDULE_PATH}>Full Trump &amp; White House schedule →</a></>,
-        upcomingNote: "Rally times can move. TikTok starts when Trump wraps (~2 h after the rally begins).",
-        emptyText: "Nothing scheduled yet this week — check back, or subscribe to the calendar above and your phone will tell you.",
-        pastNote: "The last two weeks of rallies Medi streamed live — replays and highlights on the Rep America YouTube channel.",
+        crossLink: <>Want to know what Trump and the White House are doing today? <a href={SCHEDULE_PATH}>Trump &amp; White House schedule →</a></>,
+        upcomingNote: "Trump and White House events Medi covers live are added as they are announced.",
+        emptyText: "Nothing scheduled yet this week. Check back, or subscribe to the calendar above and your phone will tell you.",
+        pastNote: "The last two weeks of events Medi streamed live. Replays and highlights are on the Rep America YouTube channel.",
         about: (
           <>
             <p>
-              Rep America is Medi&apos;s channel: live coverage of Trump rallies and White House events on YouTube, and <strong>Rep America LIVE</strong> on TikTok (@repamerica) — one show, every time: debate him on Trump, or ask him anything about money, work, family and your future. The TikTok live follows every rally he covers and runs on its own on other nights; those get added here as they&apos;re scheduled.
+              Rep America is Medi&apos;s channel. The show is <strong>Rep America LIVE</strong>{s.daily ? <>, on YouTube {s.daily.label}</> : null}: the day&apos;s politics, clips and posts, open debates, books, money, family and whatever comes up. It streams in vertical and widescreen at the same time, so watch whichever way you like.
             </p>
             <p>
-              The red button on a rally opens the YouTube live (vertical, where the chat is) and the replay afterwards. The black button opens TikTok. The full political listing for the week — including events Medi isn&apos;t covering — is the <a href={SCHEDULE_PATH}>Trump &amp; White House schedule</a>.
+              When President Trump or the White House does something worth watching live, Medi goes live for it and it shows up here with a red button. For the full political calendar, including events he isn&apos;t covering, see the <a href={SCHEDULE_PATH}>Trump &amp; White House schedule</a>.
             </p>
           </>
         ),

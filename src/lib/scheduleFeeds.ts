@@ -1,6 +1,7 @@
 // The .ics and .json feeds for both schedule pages (political reference + Rep America's own week). Server-only.
 import { getPublicSchedule, isoET, plainDescription, whenET, whenPT, SITE, type ScheduleEvent, type ScheduleScope } from "@/lib/schedule";
 import { CHANNEL_URL } from "@/lib/youtubeLives";
+import { PERFORMER_SHORT } from "@/lib/streamPackage";
 
 const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/;/g, "\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
 const fold = (line: string) => { const out: string[] = []; let l = line; while (l.length > 73) { out.push(l.slice(0, 73)); l = " " + l.slice(73); } out.push(l); return out.join("\r\n"); };
@@ -22,14 +23,14 @@ function vevent(e: ScheduleEvent, stamp: string, pageUrl: string): string {
     `DESCRIPTION:${esc(`${plainDescription(e)}\n\nSchedule: ${pageUrl}`)}`,
     `URL:${url}`,
     `STATUS:${e.status === "canceled" ? "CANCELLED" : e.status === "tentative" ? "TENTATIVE" : "CONFIRMED"}`,
-    `CATEGORIES:${e.platform === "tiktok" ? "Rep America LIVE" : e.performer === "vance" ? "JD Vance" : e.performer === "white-house" ? "White House" : e.performer === "medi" ? "Rep America LIVE" : "Trump"}`,
+    `CATEGORIES:${e.platform === "tiktok" ? "Rep America LIVE" : e.performer === "medi" ? "Rep America LIVE" : PERFORMER_SHORT[e.performer] || "Washington"}`,
     "END:VEVENT",
   ].filter(Boolean) as string[];
   return lines.map(fold).join("\r\n");
 }
 
 export async function icsFeed(scope: ScheduleScope, pageUrl: string, calName: string, calDesc: string): Promise<Response> {
-  const s = await getPublicSchedule({ daysAhead: 14, daysBack: 7, scope });
+  const s = await getPublicSchedule({ daysAhead: scope === "political" ? 45 : 14, daysBack: 7, scope });
   const stamp = utc(s.now);
   const body = [
     "BEGIN:VCALENDAR",
@@ -59,7 +60,7 @@ export async function icsFeed(scope: ScheduleScope, pageUrl: string, calName: st
 const item = (e: ScheduleEvent, pageUrl: string) => ({
   id: e.id,
   title: e.headline,
-  type: e.platform === "tiktok" ? "Rep America LIVE on TikTok" : e.sub ?? (e.performer === "white-house" ? "White House event" : e.performer === "medi" ? "Rep America LIVE" : "Event"),
+  type: e.platform === "tiktok" ? "Rep America LIVE on TikTok" : e.virtual ? "Rep America LIVE" : e.sub ?? (e.performer === "white-house" ? "White House event" : e.performer === "medi" ? "Rep America LIVE" : "Event"),
   topic: e.platform === "tiktok" ? e.sub : null,
   performer: e.performerName || null,
   platform: e.platform,
@@ -77,6 +78,8 @@ const item = (e: ScheduleEvent, pageUrl: string) => ({
   state: e.state,
   details: e.notes,
   official_url: e.source_url,
+  on_camera: e.streamable !== false,
+  where_to_watch: e.stream_url ?? null,
   rep_america_live: e.status !== "canceled" ? e.watchUrl : null,
   rep_america_live_widescreen: e.status !== "canceled" ? e.liveLinks?.horizontal ?? null : null,
   rep_america_highlights: e.video_url,
@@ -85,7 +88,7 @@ const item = (e: ScheduleEvent, pageUrl: string) => ({
 });
 
 export async function jsonFeed(scope: ScheduleScope, pageUrl: string, name: string, description: string): Promise<Response> {
-  const s = await getPublicSchedule({ daysAhead: 7, daysBack: 14, scope });
+  const s = await getPublicSchedule({ daysAhead: scope === "political" ? 45 : 7, daysBack: scope === "political" ? 7 : 14, scope });
   const body = {
     name,
     description,
@@ -95,7 +98,8 @@ export async function jsonFeed(scope: ScheduleScope, pageUrl: string, name: stri
     generated_at: new Date(s.now).toISOString(),
     timezone_note: "start is ISO 8601 in US Eastern time with offset; start_utc is the same instant in UTC. TikTok lives after a rally start when the rally ends, so their start is approximate. Times can change; this feed regenerates every 5 minutes from the daily-refreshed schedule.",
     upcoming: s.upcoming.map((e) => item(e, pageUrl)),
-    recently_covered: s.past.map((e) => item(e, pageUrl)),
+    recent: s.past.map((e) => item(e, pageUrl)),
+    recently_covered: s.past.filter((e) => e.watchUrl || e.video_url).map((e) => item(e, pageUrl)),
   };
   return new Response(JSON.stringify(body, null, 2), {
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "public, max-age=300, s-maxage=300, stale-while-revalidate=3600", "Access-Control-Allow-Origin": "*" },

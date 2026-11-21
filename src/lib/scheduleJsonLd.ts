@@ -11,6 +11,7 @@ const PERSON: Record<string, { name: string; sameAs?: string[]; url?: string } |
   trump: { name: "Donald J. Trump", sameAs: ["https://www.wikidata.org/wiki/Q22686", "https://www.whitehouse.gov/administration/donald-j-trump/"] },
   vance: { name: "JD Vance", sameAs: ["https://www.whitehouse.gov/administration/jd-vance/"] },
   medi: { name: "Medi", url: `${SITE}/about`, sameAs: [CHANNEL_URL, "https://www.instagram.com/medikation", TIKTOK_PROFILE] },
+  rubio: { name: "Marco Rubio", sameAs: ["https://www.state.gov/biographies/marco-rubio/"] },
   "white-house": null,
   other: null,
 };
@@ -67,7 +68,7 @@ function broadcastNode(e: ScheduleEvent, pageUrl: string) {
   };
 }
 
-export function scheduleJsonLd(s: Schedule, opts: { pageUrl: string; title: string; description: string; listName: string; image: string | null }) {
+export function scheduleJsonLd(s: Schedule, opts: { pageUrl: string; title: string; description: string; listName: string; image: string | null; faq?: { q: string; a: string }[] }) {
   const { pageUrl, image } = opts;
   const events = [...s.upcoming, ...s.past];
   const graph: unknown[] = [
@@ -80,7 +81,7 @@ export function scheduleJsonLd(s: Schedule, opts: { pageUrl: string; title: stri
       inLanguage: "en-US",
       dateModified: new Date(s.now).toISOString(),
       isPartOf: { "@type": "WebSite", "@id": `${SITE}/#website`, name: "Rep America", url: SITE },
-      about: [{ "@type": "Person", ...PERSON.trump }, { "@type": "Person", ...PERSON.vance }, { "@type": "Organization", name: "The White House", url: "https://www.whitehouse.gov/" }, { "@type": "Person", ...PERSON.medi }],
+      about: [{ "@type": "Person", ...PERSON.trump }, { "@type": "Person", ...PERSON.vance }, { "@type": "Person", ...PERSON.rubio }, { "@type": "Organization", name: "The White House", url: "https://www.whitehouse.gov/" }, { "@type": "Person", ...PERSON.medi }],
       mainEntity: { "@id": `${pageUrl}#list` },
       publisher: { "@type": "Organization", name: "Rep America", url: SITE },
     },
@@ -95,5 +96,6 @@ export function scheduleJsonLd(s: Schedule, opts: { pageUrl: string; title: stri
     ...events.map((e) => eventNode(e, pageUrl, image)),
     ...events.filter((e) => e.watchUrl && e.status !== "canceled").map((e) => broadcastNode(e, pageUrl)),
   ];
+  if (opts.faq?.length) graph.push({ "@type": "FAQPage", "@id": `${pageUrl}#faq`, mainEntity: opts.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) });
   return { "@context": "https://schema.org", "@graph": graph };
 }

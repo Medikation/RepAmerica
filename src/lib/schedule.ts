@@ -3,19 +3,19 @@
 // columns, and attaches Rep America's live / replay links from the channel (see youtubeLives.ts). Server-only.
 import { supabaseAdmin } from "@/lib/supabase";
 import { performerOf, placeOf, publicLabel, PERFORMER_NAME, timeET, timePT, type StreamEvent } from "@/lib/streamPackage";
-import { primaryLive, withLiveLinks, type LiveLinks } from "@/lib/youtubeLives";
+import { CHANNEL_URL, primaryLive, withLiveLinks, type LiveLinks } from "@/lib/youtubeLives";
 
 export const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://repamerica.com";
 // Two doors onto one dataset: /trump-schedule is the political reference (everything, Medi's links where he streams);
 // /schedule is Rep America's own week (what Medi covers + his TikTok lives). Same rows, filtered by `scope`.
 export const SCHEDULE_PATH = "/trump-schedule";
 export const SCHEDULE_URL = `${SITE}${SCHEDULE_PATH}`;
-export const SCHEDULE_TITLE = "Trump & White House Schedule This Week — Rallies, Briefings, Live Streams";
-export const SCHEDULE_DESCRIPTION = "Upcoming Trump rallies, White House press briefings and events, JD Vance rallies and other political events for the next 7 days, with times in ET and PT, venues and status — plus Rep America's live stream for every event Medi covers on YouTube. Updated daily.";
+export const SCHEDULE_TITLE = "Trump Schedule Today & This Week — White House, JD Vance, Marco Rubio";
+export const SCHEDULE_DESCRIPTION = "What President Trump is doing today and this week: remarks, signings, news conferences, meetings and travel, with White House press briefings, Vice President JD Vance, Secretary of State Marco Rubio, Congress and the Supreme Court. Times in ET and PT, where to watch, and what happened in the last few days. Updated daily.";
 export const MEDI_PATH = "/schedule";
 export const MEDI_URL = `${SITE}${MEDI_PATH}`;
-export const MEDI_TITLE = "Rep America LIVE — This Week's Schedule | Medi's Trump Rally Coverage & TikTok Lives";
-export const MEDI_DESCRIPTION = "Medi's live schedule for the week: the Trump rallies and White House events he streams live on YouTube, and his TikTok lives after every rally — Talk to Me: Trump, money, family, your future. Times in ET and PT. Updated daily.";
+export const MEDI_TITLE = "Rep America LIVE Schedule — Live with Medi, Monday to Friday";
+export const MEDI_DESCRIPTION = "When Rep America is live: Medi's weekday show on YouTube — politics, laughs and life — plus the Trump and White House events he covers as they happen. Times in ET and PT.";
 export type ScheduleScope = "political" | "medi";
 export const TIKTOK_URL_DEFAULT = "https://www.tiktok.com/@repamerica/live";
 
@@ -44,6 +44,8 @@ export type ScheduleEvent = StreamEvent & {
   liveLinks: LiveLinks | null;
   platform: "youtube" | "tiktok" | null; // where Medi's stream for this row lives
   aftershowOf: number | null; // for a derived TikTok live: the rally it follows
+  virtual?: boolean; // derived from settings (the weekday show), not a show_events row
+  streamable?: boolean | null;
   startsMs: number;
   endsMs: number | null;
   headline: string; // "Trump rally — Perry, Georgia"
@@ -113,7 +115,63 @@ function aftershowFor(rally: ScheduleEvent, now: number, tk: TikTokSettings): Sc
   };
 }
 
-export type Schedule = { now: number; upcoming: ScheduleEvent[]; past: ScheduleEvent[]; updatedAt: string | null; tiktok: TikTokSettings };
+/** Medi's standing show: which weekdays (0 = Sunday) and what Pacific time. Lives in show_settings (daily_live_*). */
+export type DailyLive = { days: number[]; hour: number; minute: number; minutes: number; title: string; sub: string; url: string; skip: string[]; label: string };
+export type Schedule = { now: number; upcoming: ScheduleEvent[]; past: ScheduleEvent[]; updatedAt: string | null; tiktok: TikTokSettings; daily: DailyLive | null };
+
+const PT = "America/Los_Angeles";
+const DOW = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+/** A wall-clock time in a zone → the UTC instant (handles DST by measuring the zone's offset at that moment). */
+function zonedToUtc(y: number, mo: number, d: number, h: number, mi: number, tz: string): number {
+  const guess = Date.UTC(y, mo - 1, d, h, mi);
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(guess));
+  const n = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? "0");
+  const shown = Date.UTC(n("year"), n("month") - 1, n("day"), n("hour") % 24, n("minute"));
+  return guess - (shown - guess);
+}
+
+function dailyFrom(st: Map<string, string>): DailyLive | null {
+  const days = (st.get("daily_live_days") ?? "").split(",").map((x) => Number(x.trim())).filter((x) => Number.isInteger(x) && x >= 0 && x <= 6);
+  const m = /^(\d{1,2}):(\d{2})$/.exec((st.get("daily_live_time") ?? "").trim());
+  if (!days.length || !m) return null;
+  const hour = Number(m[1]), minute = Number(m[2]);
+  const sorted = [...days].sort((a, b) => a - b);
+  const run = sorted.every((d, i) => i === 0 || d === sorted[i - 1] + 1);
+  const dayText = sorted.length === 7 ? "Every day" : run && sorted.length > 2 ? `${DOW[sorted[0]]} to ${DOW[sorted[sorted.length - 1]]}` : sorted.map((d) => DOW[d]).join(", ");
+  const at = zonedToUtc(2026, 1, 15, hour, minute, PT); // any date — only used to print the clock time in both zones
+  const label = `${dayText} at ${timePT(at)} PT (${timeET(at)} ET)`;
+  return {
+    days: sorted, hour, minute,
+    minutes: Number(st.get("daily_live_minutes")) || 120,
+    title: st.get("daily_live_title") || "Rep America LIVE with Medi",
+    sub: st.get("daily_live_sub") || "Politics, laughs and life",
+    url: st.get("daily_live_url") || `${CHANNEL_URL}/live`,
+    skip: (st.get("daily_live_skip") ?? "").split(",").map((x) => x.trim()).filter(Boolean),
+    label,
+  };
+}
+
+/** One row per show day in the window. Virtual ids: 9YYYYMMDD. */
+function dailyRows(d: DailyLive, now: number, ahead: number): ScheduleEvent[] {
+  const out: ScheduleEvent[] = [];
+  for (let i = 0; i <= ahead; i++) {
+    const key = new Date(now + i * DAY).toLocaleDateString("en-CA", { timeZone: PT }); // YYYY-MM-DD in Pacific
+    const [y, mo, da] = key.split("-").map(Number);
+    const dow = new Date(Date.UTC(y, mo - 1, da)).getUTCDay();
+    if (!d.days.includes(dow) || d.skip.includes(key)) continue;
+    const startsMs = zonedToUtc(y, mo, da, d.hour, d.minute, PT);
+    const endsMs = startsMs + d.minutes * 60000;
+    if (endsMs < now) continue;
+    const phase: ScheduleEvent["phase"] = startsMs <= now ? "live" : "upcoming";
+    out.push({
+      id: Number(`9${key.replace(/-/g, "")}`), starts_at: new Date(startsMs).toISOString(), ends_at: new Date(endsMs).toISOString(), all_day: false,
+      title: d.title, kind: "medi", location: null, notes: "Live on YouTube, in vertical and widescreen. Jump in the chat.", status: "scheduled", stream_url: d.url, source_url: null,
+      liveLinks: null, platform: "youtube", aftershowOf: null, virtual: true, startsMs, endsMs, headline: d.title, sub: d.sub,
+      performer: "medi", performerName: "Medi", city: null, state: null, watchUrl: d.url, phase,
+    });
+  }
+  return out;
+}
 
 const TIKTOK_DEFAULTS: TikTokSettings = { url: TIKTOK_URL_DEFAULT, headline: "Talk to Me: Trump, Money, Family, Your Future", aftershow: true, offsetMin: 120 };
 
@@ -127,17 +185,17 @@ export async function getPublicSchedule(opts: { daysAhead?: number; daysBack?: n
   const now = Date.now();
   const ahead = opts.daysAhead ?? 7, back = opts.daysBack ?? 14, scope = opts.scope ?? "political";
   let db: ReturnType<typeof supabaseAdmin>;
-  try { db = supabaseAdmin(); } catch { return { now, upcoming: [], past: [], updatedAt: null, tiktok: TIKTOK_DEFAULTS }; } // no service key (local build) → empty page, never a 500
+  try { db = supabaseAdmin(); } catch { return { now, upcoming: [], past: [], updatedAt: null, tiktok: TIKTOK_DEFAULTS, daily: null }; } // no service key (local build) → empty page, never a 500
   const [{ data }, { data: settingRows }] = await Promise.all([
     db
       .from("show_events")
-      .select("id, starts_at, ends_at, all_day, title, kind, location, press, stream_url, source_url, status, notes, stream_title, live_url, live_url_alt, video_url, is_public, updated_at")
+      .select("id, starts_at, ends_at, all_day, title, kind, location, press, stream_url, source_url, status, notes, stream_title, live_url, live_url_alt, video_url, is_public, streamable, updated_at")
       .eq("is_public", true)
       .gte("starts_at", new Date(now - back * DAY).toISOString())
       .lt("starts_at", new Date(now + (ahead + 1) * DAY).toISOString())
       .order("starts_at", { ascending: true })
-      .limit(200),
-    db.from("show_settings").select("key, value").like("key", "tiktok_%"),
+      .limit(400),
+    db.from("show_settings").select("key, value").or("key.like.tiktok_%,key.like.daily_live_%"),
   ]);
   const st = new Map<string, string>(((settingRows ?? []) as { key: string; value: string | null }[]).map((r) => [r.key, r.value ?? ""]));
   const tiktok: TikTokSettings = {
@@ -146,6 +204,7 @@ export async function getPublicSchedule(opts: { daysAhead?: number; daysBack?: n
     aftershow: (st.get("tiktok_aftershow") ?? "on") !== "off",
     offsetMin: Number(st.get("tiktok_aftershow_offset_min")) || TIKTOK_DEFAULTS.offsetMin,
   };
+  const daily = dailyFrom(st);
   const rows = ((data ?? []) as (StreamEvent & { updated_at?: string })[]).filter((r) => !isRumour(r));
   const mediRows = rows.filter((r) => r.kind === "medi");
   const political = rows.filter((r) => r.kind !== "medi");
@@ -157,13 +216,16 @@ export async function getPublicSchedule(opts: { daysAhead?: number; daysBack?: n
   } else {
     const covered = shaped.filter((e) => e.watchUrl && e.status !== "canceled");
     const after = tiktok.aftershow ? covered.filter((e) => e.performer === "trump" && isRallyEvent(e)).map((e) => aftershowFor(e, now, tiktok)) : [];
-    all = [...covered, ...after, ...mediRows.map((e) => shapeMedi(e, now, tiktok.url))].sort((a, b) => a.startsMs - b.startsMs);
+    all = [...covered, ...after, ...mediRows.map((e) => shapeMedi(e, now, tiktok.url)), ...(daily ? dailyRows(daily, now, ahead) : [])].sort((a, b) => a.startsMs - b.startsMs);
   }
   const upcoming = all.filter((e) => e.phase !== "past" && e.status !== "skipped");
-  // Past: only what Rep America actually covered (there is a replay to point at), newest first. TikTok lives have no replay.
-  const past = all.filter((e) => e.phase === "past" && e.platform !== "tiktok" && (e.watchUrl || e.video_url || e.status === "covered")).reverse();
+  // Past, newest first. The political reference keeps everything that happened (that is what "what did Trump do
+  // yesterday" needs); Rep America's own page keeps only what Medi covered. TikTok lives have no replay.
+  const past = all
+    .filter((e) => e.phase === "past" && e.platform !== "tiktok" && !e.virtual && e.status !== "canceled" && e.status !== "skipped" && (scope === "political" || e.watchUrl || e.video_url || e.status === "covered"))
+    .reverse();
   const updatedAt = rows.reduce<string | null>((m, r) => (r.updated_at && (!m || r.updated_at > m) ? r.updated_at : m), null);
-  return { now, upcoming, past, updatedAt, tiktok };
+  return { now, upcoming, past, updatedAt, tiktok, daily };
 }
 
 const isRallyEvent = (e: ScheduleEvent) => /rally/i.test(e.title);
@@ -192,14 +254,15 @@ export function isoET(ms: number): string {
 export function statusLabel(e: ScheduleEvent): { text: string; tone: "live" | "ok" | "warn" | "muted" } {
   if (e.status === "canceled") return { text: "Canceled", tone: "muted" };
   if (e.phase === "live") return { text: "Live now", tone: "live" };
-  if (e.phase === "past") return { text: e.platform === "tiktok" ? "Done" : e.watchUrl || e.video_url ? "Replay" : "Covered", tone: "muted" };
+  if (e.phase === "past") return { text: e.platform === "tiktok" ? "Done" : e.watchUrl || e.video_url ? "Replay" : "Ended", tone: "muted" };
   if (e.status === "tentative") return { text: "Tentative", tone: "warn" };
   return { text: "Scheduled", tone: "ok" };
 }
 
 /** Plain-text description for feeds and JSON-LD. */
 export function plainDescription(e: ScheduleEvent): string {
+  if (e.virtual) return [`${e.headline} — ${e.sub ?? ""}`.replace(/ — $/, ""), e.notes, `Watch: ${e.watchUrl}`].filter(Boolean).join(". ");
   if (e.platform === "tiktok") return [`Medi live on TikTok (@repamerica) — ${e.sub ?? ""}`.trim(), e.notes, `Join: ${e.watchUrl}`].filter(Boolean).join(". ");
-  const bits = [e.sub ? `${e.sub} with ${e.performerName}` : e.performerName, e.location, e.notes, e.watchUrl ? `Watch live with Medi on Rep America: ${e.watchUrl}` : null];
+  const bits = [e.sub ? `${e.sub} with ${e.performerName}` : e.headline, e.location, e.notes, e.watchUrl ? `Watch live with Medi on Rep America: ${e.watchUrl}` : null];
   return bits.filter(Boolean).join(". ").replace(/\.\./g, ".");
 }

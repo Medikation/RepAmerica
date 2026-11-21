@@ -10,8 +10,11 @@ export default function ScheduleEventRow({ e, showDay = false }: { e: ScheduleEv
   const tiktok = e.platform === "tiktok";
   const cls = ["ra-sched__event", `ra-sched__event--${e.phase}`, canceled ? "ra-sched__event--canceled" : "", tiktok ? "ra-sched__event--tiktok" : "", e.aftershowOf ? "ra-sched__event--after" : ""].filter(Boolean).join(" ");
   // Glanceable row: time · what/where · button. Everything else (venue, doors, official links) sits behind "Details".
-  const label = tiktok ? "Rep America LIVE on TikTok" : e.performer === "trump" && /rally/i.test(e.title) && e.city && e.state ? `${e.city}, ${e.state}` : e.headline;
-  const kicker = tiktok ? (e.aftershowOf ? "After the rally" : "Live") : e.performer === "trump" && /rally/i.test(e.title) ? "Trump rally" : e.performer === "vance" ? "JD Vance" : e.performer === "white-house" ? "White House" : null;
+  const rally = /rally/i.test(e.title);
+  const label = tiktok ? "Rep America LIVE on TikTok" : e.performer === "trump" && rally && e.city && e.state ? `${e.city}, ${e.state}` : e.headline;
+  const KICKER: Record<string, string> = { trump: "President Trump", vance: "Vice President Vance", rubio: "Secretary Rubio", "white-house": "White House", congress: "Congress", court: "Supreme Court", medi: "Rep America LIVE" };
+  const kicker = tiktok ? (e.aftershowOf ? "After the rally" : "Live") : e.performer === "trump" && rally ? "Trump rally" : KICKER[e.performer] ?? null;
+  const closed = e.streamable === false && !replay && !canceled;
   const showStatus = st.tone !== "ok"; // "Scheduled" is the default — no chip noise
   const details = (tiktok ? [e.sub, e.notes] : [e.sub && !/^Midterm rally$/i.test(e.sub) ? e.sub : null, e.location, e.notes]).filter(Boolean) as string[];
   return (
@@ -22,8 +25,8 @@ export default function ScheduleEventRow({ e, showDay = false }: { e: ScheduleEv
         {!e.all_day && <span className="ra-sched__time-pt">{e.aftershowOf ? `~${whenPT(e)}` : whenPT(e)}</span>}
       </div>
       <div className="ra-sched__body">
-        {kicker && <p className={`ra-sched__kicker${e.performer === "trump" ? " ra-sched__kicker--trump" : ""}`}>{kicker}{showStatus && <span className={`ra-sched__status ra-sched__status--${st.tone}`}>{st.text}</span>}</p>}
-        <h3 className="ra-sched__name">{e.performer === "trump" && !tiktok ? <><span className="ra-sched__trump">Trump</span> · {label}</> : label}</h3>
+        {kicker && <p className={`ra-sched__kicker${e.performer === "trump" ? " ra-sched__kicker--trump" : ""}`}>{kicker}{closed && <span className="ra-sched__status ra-sched__status--muted">No cameras</span>}{showStatus && <span className={`ra-sched__status ra-sched__status--${st.tone}`}>{st.text}</span>}</p>}
+        <h3 className="ra-sched__name">{e.performer === "trump" && rally && !tiktok ? <><span className="ra-sched__trump">Trump</span> · {label}</> : label}</h3>
         {(details.length > 0 || (e.source_url && !canceled && !tiktok)) && (
           <details className="ra-sched__more">
             <summary>Details</summary>
@@ -42,7 +45,7 @@ export default function ScheduleEventRow({ e, showDay = false }: { e: ScheduleEv
         ) : e.watchUrl && !canceled && !tiktok ? (
           <>
             <a className={`ra-button ${replay ? "ra-button--secondary" : "ra-button--primary"} ra-sched__watch${e.phase === "live" ? " ra-sched__watch--live" : ""}`} href={e.watchUrl} target="_blank" rel="noopener noreferrer">
-              {e.phase === "live" ? "Watch live now" : replay ? "Watch the replay" : "Watch live with Medi"}
+              {e.phase === "live" ? "Watch live now" : replay ? "Watch the replay" : e.virtual ? "Watch on YouTube" : "Watch live with Medi"}
             </a>
             {e.liveLinks?.horizontal && e.liveLinks.vertical && (
               <a className="ra-sched__alt" href={e.liveLinks.horizontal} target="_blank" rel="noopener noreferrer">widescreen stream</a>
@@ -51,6 +54,8 @@ export default function ScheduleEventRow({ e, showDay = false }: { e: ScheduleEv
           </>
         ) : e.video_url && !canceled ? (
           <a className="ra-button ra-button--secondary ra-sched__watch" href={e.video_url} target="_blank" rel="noopener noreferrer">Watch the highlights</a>
+        ) : e.stream_url && !canceled && !tiktok && e.streamable !== false && !replay ? (
+          <a className="ra-sched__alt" href={e.stream_url} target="_blank" rel="noopener noreferrer nofollow">Where to watch</a>
         ) : null}
       </div>
     </li>
