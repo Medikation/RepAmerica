@@ -295,6 +295,8 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         .ra-admin .td-golive__title--sub { margin-top:14px; padding-top:12px; border-top:1px solid #eee; }
         .ra-admin .td-golive__desc { margin-top:8px; }
         .ra-admin .td-golive .td-pkg__label { color:#111; }
+        .ra-admin .td-golive__colors { margin-top:10px; padding-top:10px; border-top:1px solid #eee; }
+        .ra-admin .td-swatch { display:inline-block; width:22px; height:22px; border-radius:5px; border:1px solid rgba(0,0,0,.15); flex:none; }
         .ra-admin .td-golive__hint { font-size:1.15rem; color:#888; margin:6px 0 0; }
       `}</style>
       <h1>Today</h1>
@@ -311,6 +313,11 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
           <span className="td-pkg__peek">{thumbLines(settings.get("live_thumb_words")).join(" ")} · {titleDate(todayKey).toUpperCase()} · 3840×2160 PNG, your original size · <a href="/admin/today/live-thumb?dl=1">Download</a> · <a href="/admin/today/live-thumb" target="_blank" rel="noreferrer">Open</a></span>
         </div>
         <p className="td-golive__hint">The date is always today&apos;s (Pacific). Same title, description and thumbnail for every open-topic live; the 📱 button is for the vertical twin.</p>
+        <div className="td-pkg__row td-golive__colors">
+          <span className="td-pkg__label">Brand colors</span>
+          <span className="td-swatch" style={{ background: "#01214B" }} /><code className="td-pkg__title td-pkg__title--sm">#01214B</code><CopyButton text="#01214B" label="Copy navy" />
+          <span className="td-swatch" style={{ background: "#DD0505" }} /><code className="td-pkg__title td-pkg__title--sm">#DD0505</code><CopyButton text="#DD0505" label="Copy red" />
+        </div>
         {igStreamKey ? (
           <>
             <p className="td-golive__title td-golive__title--sub">Instagram stream key</p>
