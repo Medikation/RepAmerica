@@ -15,7 +15,7 @@ import { ImageResponse } from "next/og";
 
 const COL_CENTER_X = 2999; // centre of the navy text column on the 3840-wide photo
 const COL_MAX_W = 1340; // widest a line of the words may run
-const RED = { r: 226, g: 26, b: 26, alpha: 1 };
+const RED = { r: 221, g: 5, b: 5, alpha: 1 }; // brand red #DD0505
 const CAP = 0.879; // Anton cap height ÷ font size
 
 const BRAND_TOP = 200, BRAND_SIZE = 116, BRAND_GAP = 26, BRAND_PAD_X = 20, BRAND_PAD_Y = 15;
