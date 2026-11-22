@@ -80,6 +80,29 @@ export const scheduleStyles = `
 .ra-sched__answer-list b { white-space:nowrap; }
 .ra-sched__answer-sub { margin:6px 0 0; font-size:13.5px; color: rgba(20,20,15,.65); }
 .ra-sched__answer-sub a { color:#14140f; font-weight:600; }
+.ra-sched__answer a { color:#14140f; text-decoration: underline; text-decoration-thickness:1px; text-underline-offset:3px; }
+/* "On this calendar" chips */
+.ra-sched__filters { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:20px 0 0; padding:0; border:0; min-width:0; }
+.ra-sched__filters legend { float:left; width:100%; margin:0 0 8px; padding:0; font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color: rgba(20,20,15,.62); }
+.ra-sched__chip { position:relative; display:inline-flex; cursor:pointer; }
+.ra-sched__chip input { position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; }
+.ra-sched__chip span { display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border:1px solid rgba(20,20,15,.3); border-radius:999px; background:#fff; color:#14140f; font-size:14px; font-weight:600; line-height:1.1; white-space:nowrap; }
+.ra-sched__chip b { font-size:12px; font-weight:700; color: rgba(20,20,15,.5); }
+.ra-sched__chip:hover span { border-color:#14140f; }
+.ra-sched__chip input:checked + span { background:#14140f; border-color:#14140f; color:#fff; }
+.ra-sched__chip input:checked + span b { color: rgba(255,255,255,.7); }
+.ra-sched__chip input:focus-visible + span { outline:2px solid ${RED}; outline-offset:2px; }
+.ra-sched__chip--empty, .ra-sched__chip--empty input { cursor:default; }
+.ra-sched__chip--empty span, .ra-sched__chip--empty:hover span { border-style:dashed; border-color: rgba(20,20,15,.25); background:transparent; color: rgba(20,20,15,.45); }
+@media (max-width: 759px) { .ra-sched__filters { gap:6px; } .ra-sched__chip span { padding:7px 11px; font-size:13px; } .ra-sched__chip--empty { display:none; } }
+/* one block per day */
+.ra-sched__daygroup { margin-top:14px; padding:4px 16px 2px; border:1px solid rgba(20,20,15,.14); border-radius:12px; background:#fff; }
+.ra-sched__daygroup:nth-of-type(even) { background:#f3efe6; }
+.ra-sched__daygroup--today { border-left:4px solid ${RED}; }
+.ra-sched__daygroup .ra-sched__day { margin:12px 0 0; padding-bottom:8px; border-bottom:0; }
+.ra-sched__daygroup .ra-sched__event { border-bottom:0; border-top:1px solid rgba(20,20,15,.12); }
+.ra-sched:has(.ra-sched__filters input:not([value="all"]):checked) .ra-sched__daygroup { background:#fff; }
+@media (min-width: 760px) { .ra-sched__daygroup { padding:6px 22px 4px; } }
 .ra-sched__faq dl { margin:0; max-width:72ch; }
 .ra-sched__faq dt { margin:16px 0 4px; font-weight:800; font-size:16px; }
 .ra-sched__faq dd { margin:0; font-size:15px; line-height:1.55; color: rgba(20,20,15,.78); }

@@ -66,9 +66,18 @@ export default async function TrumpSchedulePage() {
         h1: "Trump's Schedule Today and This Week",
         lead: (
           <>
-            What <strong>President Trump</strong> is doing today and what&apos;s coming up, with the <strong>White House</strong>, <strong>JD Vance</strong>, <strong>Marco Rubio</strong>, Congress and the Supreme Court alongside. Where to watch each one, and what happened in the last few days.
+            What <strong>President Trump</strong> is doing today and what&apos;s coming up, where to watch each one, and what happened in the last few days.
           </>
         ),
+        filters: [
+          { key: "trump", label: "President Trump" },
+          { key: "white-house", label: "White House" },
+          { key: "vance", label: "JD Vance" },
+          { key: "rubio", label: "Marco Rubio" },
+          { key: "congress", label: "Congress" },
+          { key: "court", label: "Supreme Court" },
+          { key: "other", label: "Major events" },
+        ],
         primaryHref: nextCovered?.watchUrl ?? CHANNEL_LIVE_URL,
         primaryLabel: nextCovered ? `Next live: ${nextCovered.headline}` : "Rep America live on YouTube",
         icsHref: `${SCHEDULE_PATH}.ics`,

@@ -12,13 +12,13 @@ export default function ScheduleEventRow({ e, showDay = false }: { e: ScheduleEv
   // Glanceable row: time · what/where · button. Everything else (venue, doors, official links) sits behind "Details".
   const rally = /rally/i.test(e.title);
   const label = tiktok ? "Rep America LIVE on TikTok" : e.performer === "trump" && rally && e.city && e.state ? `${e.city}, ${e.state}` : e.headline;
-  const KICKER: Record<string, string> = { trump: "President Trump", vance: "Vice President Vance", rubio: "Secretary Rubio", "white-house": "White House", congress: "Congress", court: "Supreme Court", medi: "Rep America LIVE" };
+  const KICKER: Record<string, string> = { trump: "President Trump", vance: "Vice President Vance", rubio: "Secretary Rubio", "white-house": "White House", congress: "Congress", court: "Supreme Court", other: "Major event", medi: "Rep America LIVE" };
   const kicker = tiktok ? (e.aftershowOf ? "After the rally" : "Live") : e.performer === "trump" && rally ? "Trump rally" : KICKER[e.performer] ?? null;
   const closed = e.streamable === false && !replay && !canceled;
   const showStatus = st.tone !== "ok"; // "Scheduled" is the default — no chip noise
   const details = (tiktok ? [e.sub, e.notes] : [e.sub && !/^Midterm rally$/i.test(e.sub) ? e.sub : null, e.location, e.notes]).filter(Boolean) as string[];
   return (
-    <li id={`event-${e.id}`} className={cls}>
+    <li id={`event-${e.id}`} className={cls} data-who={e.performer}>
       <div className="ra-sched__time">
         {showDay && <span className="ra-sched__time-day">{dayShortET(e.startsMs)}</span>}
         <time dateTime={isoET(e.startsMs)} className="ra-sched__time-et">{e.aftershowOf ? `~${whenET(e)}` : whenET(e)}</time>
