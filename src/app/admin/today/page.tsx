@@ -59,7 +59,7 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const titleDate = (key: string) => { const [, m, d] = key.split("-").map(Number); return `${MONTHS[m - 1]} ${d}`; };
 const TALK_TITLE_DEFAULT = "LIVE with Medi | Politics, Life & Whatever Comes Up | {date}";
 // YouTube tags for the open-topic live — comma-separated, pasted straight into the Tags box (YouTube caps the whole list at 500 characters). Override in show_settings.talk_tags.
-const TALK_TAGS_DEFAULT = "Rep America, RepAmerica, Medi Hashemi, LIVE with Medi, politics live, live stream, political commentary, Trump, Trump news, news today, politics today, current events, MAGA, America First, conservative, conservative commentary, Republican, White House, live debate, open debate, political debate, live chat, talk show, books, life";
+const TALK_TAGS_DEFAULT = "Rep America, RepAmerica, Medi, LIVE with Medi, politics live, live stream, political commentary, Trump, Trump news, news today, politics today, current events, MAGA, America First, conservative, conservative commentary, Republican, White House, live debate, open debate, political debate, live chat, talk show, books, life";
 const TALK_DESCRIPTION_DEFAULT = `Politics, laughs and life, live with Medi. I'm going through posts and clips, reacting to what's happening, and talking about whatever comes up: the news, books, money, family, ridiculous videos, or a debate with the chat. No script.
 
 Jump in, tell me what's on your mind, and bring your questions or your pushback.
