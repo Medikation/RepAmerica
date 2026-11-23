@@ -36,6 +36,12 @@ const anton = () => (fontCache ??= readFile(assets("fonts/Anton.ttf")).then((b) 
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 /** "NOV 20" from a day key (YYYY-MM-DD) — the way the date is written on the thumbnail (month abbreviation + day, no year). */
+/** A "2026-11-25" from the go-live date picker → that same key if it is a real calendar day, otherwise null (→ today). */
+export const liveDateKey = (v: string | null | undefined) => {
+  if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
+  const d = new Date(`${v}T12:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v ? v : null;
+};
 export const thumbDate = (key: string) => { const [, m, d] = key.split("-").map(Number); return `${MONTHS[m - 1]} ${d}`; };
 
 type Line = { text: string; accent: boolean };

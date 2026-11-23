@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAdmin } from "@/lib/adminAuth";
 import { supabaseAdmin } from "@/lib/supabase";
-import { thumbLines } from "@/lib/liveThumb";
+import { thumbLines, liveDateKey } from "@/lib/liveThumb";
 import CopyButton from "@/components/admin/CopyButton";
 import { fetchCalendarEvents, zonedDayStart, dayKey, addDays, PT, CALENDAR_USER, type CalEvent } from "@/lib/googleCalendar";
 
@@ -81,7 +81,7 @@ function relative(ms: number, now: number): string {
 }
 const effectiveEnd = (i: Item) => i.endsAt ?? i.startsAt + TRUMP_DEFAULT_MIN * 60000;
 
-export default async function TodayPage({ searchParams }: { searchParams: Promise<{ gcal?: string }> }) {
+export default async function TodayPage({ searchParams }: { searchParams: Promise<{ gcal?: string; date?: string }> }) {
   const state = await getAdmin();
   if (!state.user) redirect(state.canRefresh ? `/admin/refresh?next=${encodeURIComponent("/admin/today")}` : "/admin/login?next=/admin/today");
 
@@ -106,8 +106,13 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const igStreamKey = settings.get("ig_stream_key")?.trim() || null; // Instagram Live stream key — copied into Ecamm each stream
   // The reusable package for his open-topic lives ("LIVE with Medi"): one title + one description, pasted into YouTube every time.
   // {date} = today in Pacific ("Nov 20"), {title} = the finished title. Both strings live in show_settings so they can be reworded in the DB.
-  const talkTitle = (settings.get("talk_title") || TALK_TITLE_DEFAULT).replaceAll("{date}", titleDate(todayKey));
-  const talkDescription = (settings.get("talk_description") || TALK_DESCRIPTION_DEFAULT).replaceAll("{title}", talkTitle).replaceAll("{date}", titleDate(todayKey));
+  // The go-live box is for today unless a day was picked in it (?date=2026-11-25) — for scheduling the week's streams ahead.
+  const { gcal, date: pickedDate } = await searchParams;
+  const liveKey = liveDateKey(pickedDate) ?? todayKey;
+  const liveIsToday = liveKey === todayKey;
+  const thumbQ = liveIsToday ? "" : `date=${liveKey}&`;
+  const talkTitle = (settings.get("talk_title") || TALK_TITLE_DEFAULT).replaceAll("{date}", titleDate(liveKey));
+  const talkDescription = (settings.get("talk_description") || TALK_DESCRIPTION_DEFAULT).replaceAll("{title}", talkTitle).replaceAll("{date}", titleDate(liveKey));
   const rundowns = (rundownRows ?? []) as Rundown[];
   const todayRundown = rundowns.find((r) => r.air_date === todayKey) ?? null;
   const nextRundown = todayRundown ?? rundowns.find((r) => r.air_date > todayKey) ?? null;
@@ -156,7 +161,6 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const nextUp = todayItems.find((i) => !i.allDay && !i.dim && !i.live && i.startsAt > now) ?? null;
   const awaiting = calendar.events.filter((e) => e.response === "needsAction" || e.response === "tentative");
   const conflictsToday = todayItems.filter((i) => i.source === "cal" && i.conflicts.length);
-  const { gcal } = await searchParams;
   const GCAL_MSG: Record<string, [string, boolean]> = {
     connected: ["Google Calendar connected — both calendars load live from here on.", false],
     denied: ["Google reported that access was declined. Nothing was stored; try Connect again when ready.", true],
@@ -297,22 +301,38 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         .ra-admin .td-golive .td-pkg__label { color:#111; }
         .ra-admin .td-golive__colors { margin-top:10px; padding-top:10px; border-top:1px solid #eee; }
         .ra-admin .td-swatch { display:inline-block; width:22px; height:22px; border-radius:5px; border:1px solid rgba(0,0,0,.15); flex:none; }
+        .ra-admin .td-golive__pick { display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin:0 0 10px; font-size:1.25rem; color:#555; }
+        .ra-admin .td-golive__pick input[type=date] { font:inherit; padding:3px 6px; border:1px solid #ccc; border-radius:6px; background:#fff; color:#111; }
+        .ra-admin .td-golive__days { display:flex; flex-wrap:wrap; gap:6px; }
+        .ra-admin .td-golive__days a { padding:2px 9px; border:1px solid #ddd; border-radius:999px; text-decoration:none; color:#01214B; font-weight:600; white-space:nowrap; }
+        .ra-admin .td-golive__days a[aria-current] { background:#01214B; border-color:#01214B; color:#fff; }
+        .ra-admin .td-golive--ahead { border-color:#DD0505; }
         .ra-admin .td-golive__hint { font-size:1.15rem; color:#888; margin:6px 0 0; }
       `}</style>
       <h1>Today</h1>
       <p className="muted">{dayLabel(todayKey)} · everything in Pacific. Your calendars (medi@ + team@), your live title and description, and the rundown for the stream. Private — nothing here shows on the site.</p>
 
-      <div className="td-golive">
-        <p className="td-golive__title"><span className="td-chip">Go live</span> YouTube live · title + description for today</p>
+      <div className={`td-golive${liveIsToday ? "" : " td-golive--ahead"}`} id="golive">
+        <p className="td-golive__title"><span className="td-chip">Go live</span> YouTube live · title + description for {liveIsToday ? "today" : dayLabel(liveKey)}</p>
+        <form className="td-golive__pick" method="get" action="/admin/today#golive">
+          <label htmlFor="golive-date">Date</label>
+          <input id="golive-date" type="date" name="date" defaultValue={liveKey} />
+          <button type="submit" className="btn btn--ghost btn--sm">Show</button>
+          <span className="td-golive__days">
+            {Array.from({ length: 8 }, (_, n) => addDays(todayKey, n)).map((k) => (
+              <a key={k} href={k === todayKey ? "/admin/today#golive" : `/admin/today?date=${k}#golive`} aria-current={k === liveKey ? "date" : undefined}>{k === todayKey ? "Today" : dayShort(k)}</a>
+            ))}
+          </span>
+        </form>
         <div className="td-pkg__row"><span className="td-pkg__label">Title</span><code className="td-pkg__title">{talkTitle}</code><CopyButton text={talkTitle} label="Copy title" /><CopyButton text={`📱 ${talkTitle}`} label="Copy 📱 title" /></div>
         <div className="td-pkg__row td-golive__desc"><span className="td-pkg__label">Description</span><CopyButton text={talkDescription} label="Copy description" /></div>
         <pre className="td-pkg__pre">{talkDescription}</pre>
         <div className="td-pkg__row td-pkg__thumbrow">
           <span className="td-pkg__label">Thumbnail</span>
-          <a href="/admin/today/live-thumb?dl=1" className="td-pkg__thumb" title="Download the thumbnail"><img src="/admin/today/live-thumb?w=480" alt="" /></a>
-          <span className="td-pkg__peek">{thumbLines(settings.get("live_thumb_words")).join(" ")} · {titleDate(todayKey).toUpperCase()} · 3840×2160 PNG, your original size · <a href="/admin/today/live-thumb?dl=1">Download</a> · <a href="/admin/today/live-thumb" target="_blank" rel="noreferrer">Open</a></span>
+          <a href={`/admin/today/live-thumb?${thumbQ}dl=1`} className="td-pkg__thumb" title="Download the thumbnail"><img src={`/admin/today/live-thumb?${thumbQ}w=480`} alt="" /></a>
+          <span className="td-pkg__peek">{thumbLines(settings.get("live_thumb_words")).join(" ")} · {titleDate(liveKey).toUpperCase()} · 3840×2160 PNG, your original size · <a href={`/admin/today/live-thumb?${thumbQ}dl=1`}>Download</a> · <a href={`/admin/today/live-thumb${liveIsToday ? "" : `?date=${liveKey}`}`} target="_blank" rel="noreferrer">Open</a></span>
         </div>
-        <p className="td-golive__hint">The date is always today&apos;s (Pacific). Same title, description and thumbnail for every open-topic live; the 📱 button is for the vertical twin.</p>
+        <p className="td-golive__hint">The date is today&apos;s (Pacific) unless you pick another day above — use that when scheduling streams ahead; the title, description and thumbnail all follow it. Same title, description and thumbnail for every open-topic live; the 📱 button is for the vertical twin.</p>
         <div className="td-pkg__row td-golive__colors">
           <span className="td-pkg__label">Brand colors</span>
           <span className="td-swatch" style={{ background: "#01214B" }} /><code className="td-pkg__title td-pkg__title--sm">#01214B</code><CopyButton text="#01214B" label="Copy navy" />
