@@ -58,6 +58,8 @@ const stampPT = (iso: string) => new Date(iso).toLocaleString("en-US", { month: 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const titleDate = (key: string) => { const [, m, d] = key.split("-").map(Number); return `${MONTHS[m - 1]} ${d}`; };
 const TALK_TITLE_DEFAULT = "LIVE with Medi | Politics, Life & Whatever Comes Up | {date}";
+// YouTube tags for the open-topic live — comma-separated, pasted straight into the Tags box (YouTube caps the whole list at 500 characters). Override in show_settings.talk_tags.
+const TALK_TAGS_DEFAULT = "Rep America, RepAmerica, Medi Hashemi, LIVE with Medi, politics live, live stream, political commentary, Trump, Trump news, news today, politics today, current events, MAGA, America First, conservative, conservative commentary, Republican, White House, live debate, open debate, political debate, live chat, talk show, books, life";
 const TALK_DESCRIPTION_DEFAULT = `Politics, laughs and life, live with Medi. I'm going through posts and clips, reacting to what's happening, and talking about whatever comes up: the news, books, money, family, ridiculous videos, or a debate with the chat. No script.
 
 Jump in, tell me what's on your mind, and bring your questions or your pushback.
@@ -113,6 +115,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const thumbQ = liveIsToday ? "" : `date=${liveKey}&`;
   const talkTitle = (settings.get("talk_title") || TALK_TITLE_DEFAULT).replaceAll("{date}", titleDate(liveKey));
   const talkDescription = (settings.get("talk_description") || TALK_DESCRIPTION_DEFAULT).replaceAll("{title}", talkTitle).replaceAll("{date}", titleDate(liveKey));
+  const talkTags = (settings.get("talk_tags") || TALK_TAGS_DEFAULT).trim();
   const rundowns = (rundownRows ?? []) as Rundown[];
   const todayRundown = rundowns.find((r) => r.air_date === todayKey) ?? null;
   const nextRundown = todayRundown ?? rundowns.find((r) => r.air_date > todayKey) ?? null;
@@ -307,6 +310,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         .ra-admin .td-golive__days a { padding:2px 9px; border:1px solid #ddd; border-radius:999px; text-decoration:none; color:#01214B; font-weight:600; white-space:nowrap; }
         .ra-admin .td-golive__days a[aria-current] { background:#01214B; border-color:#01214B; color:#fff; }
         .ra-admin .td-golive--ahead { border-color:#DD0505; }
+        .ra-admin .td-golive__count { font-size:1.15rem; color:#888; }
         .ra-admin .td-golive__hint { font-size:1.15rem; color:#888; margin:6px 0 0; }
       `}</style>
       <h1>Today</h1>
@@ -327,12 +331,14 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
         <div className="td-pkg__row"><span className="td-pkg__label">Title</span><code className="td-pkg__title">{talkTitle}</code><CopyButton text={talkTitle} label="Copy title" /><CopyButton text={`📱 ${talkTitle}`} label="Copy 📱 title" /></div>
         <div className="td-pkg__row td-golive__desc"><span className="td-pkg__label">Description</span><CopyButton text={talkDescription} label="Copy description" /></div>
         <pre className="td-pkg__pre">{talkDescription}</pre>
+        <div className="td-pkg__row td-golive__desc"><span className="td-pkg__label">Tags</span><CopyButton text={talkTags} label="Copy tags" /><span className="td-golive__count">{talkTags.length} / 500 characters</span></div>
+        <pre className="td-pkg__pre">{talkTags}</pre>
         <div className="td-pkg__row td-pkg__thumbrow">
           <span className="td-pkg__label">Thumbnail</span>
           <a href={`/admin/today/live-thumb?${thumbQ}dl=1`} className="td-pkg__thumb" title="Download the thumbnail"><img src={`/admin/today/live-thumb?${thumbQ}w=480`} alt="" /></a>
           <span className="td-pkg__peek">{thumbLines(settings.get("live_thumb_words")).join(" ")} · {titleDate(liveKey).toUpperCase()} · 3840×2160 PNG, your original size · <a href={`/admin/today/live-thumb?${thumbQ}dl=1`}>Download</a> · <a href={`/admin/today/live-thumb${liveIsToday ? "" : `?date=${liveKey}`}`} target="_blank" rel="noreferrer">Open</a></span>
         </div>
-        <p className="td-golive__hint">The date is today&apos;s (Pacific) unless you pick another day above — use that when scheduling streams ahead; the title, description and thumbnail all follow it. Same title, description and thumbnail for every open-topic live; the 📱 button is for the vertical twin.</p>
+        <p className="td-golive__hint">The date is today&apos;s (Pacific) unless you pick another day above — use that when scheduling streams ahead; the title, description and thumbnail all follow it. Same title, description, tags and thumbnail for every open-topic live; the 📱 button is for the vertical twin.</p>
         <div className="td-pkg__row td-golive__colors">
           <span className="td-pkg__label">Brand colors</span>
           <span className="td-swatch" style={{ background: "#01214B" }} /><code className="td-pkg__title td-pkg__title--sm">#01214B</code><CopyButton text="#01214B" label="Copy navy" />
